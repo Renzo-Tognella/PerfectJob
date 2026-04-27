@@ -10,6 +10,7 @@ import { Category } from '../../../types';
 import { colors } from '../../../design-system/tokens/colors';
 import { typography } from '../../../design-system/tokens/typography';
 import { spacing } from '../../../design-system/tokens/spacing';
+import Icon from '../../../components/ui/Icon';
 
 interface CategoryGridProps {
   categories: Category[];
@@ -22,15 +23,20 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({
 }) => {
   const renderItem = ({ item }: { item: Category }) => (
     <TouchableOpacity
-      activeOpacity={0.9}
+      activeOpacity={0.8}
       onPress={() => onCategoryPress?.(item)}
       style={styles.card}
     >
-      <View style={styles.iconPlaceholder}>
-        <Text style={styles.iconText}>{item.icon}</Text>
+      <View style={styles.iconContainer}>
+        <Icon
+          family={item.icon.family}
+          name={item.icon.name}
+          size={28}
+          color={colors.primary[500]}
+        />
       </View>
       <Text style={styles.name}>{item.name}</Text>
-      <Text style={styles.jobCount}>{item.jobCount} vagas</Text>
+      <Text style={styles.jobCount}>{item.jobCount.toLocaleString('pt-BR')} vagas</Text>
     </TouchableOpacity>
   );
 
@@ -66,30 +72,29 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: spacing[4],
+    borderRadius: 14,
+    padding: spacing[5],
     width: '48%',
     alignItems: 'center',
     shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.neutral[100],
   },
-  iconPlaceholder: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+  iconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
     backgroundColor: colors.primary[50],
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing[2],
-  },
-  iconText: {
-    fontSize: typography.fontSize.h4,
+    marginBottom: spacing[3],
   },
   name: {
-    fontSize: typography.fontSize.body,
+    fontSize: typography.fontSize.bodySm,
     fontWeight: typography.fontWeight.semibold as '600',
     color: colors.neutral[900],
     marginBottom: spacing[1],

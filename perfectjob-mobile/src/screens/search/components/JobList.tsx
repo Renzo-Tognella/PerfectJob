@@ -13,6 +13,7 @@ import { typography } from '@/design-system/tokens/typography';
 import { spacing } from '@/design-system/tokens/spacing';
 import { Job } from '@/types';
 import JobCard from '@/components/shared/JobCard';
+import Icon from '@/components/ui/Icon';
 
 interface JobListProps {
   jobs: Job[];
@@ -45,7 +46,9 @@ const JobList: React.FC<JobListProps> = ({
   if (jobs.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyIcon}>🔍</Text>
+        <View style={styles.emptyIcon}>
+          <Icon family="Feather" name="search" size={40} color={colors.neutral[400]} />
+        </View>
         <Text style={styles.emptyTitle}>Nenhuma vaga encontrada</Text>
         <Text style={styles.emptySubtitle}>
           Tente ajustar seus filtros ou buscar por outro termo.
@@ -97,7 +100,6 @@ const styles = StyleSheet.create({
     marginTop: spacing[12],
   },
   emptyIcon: {
-    fontSize: 48,
     marginBottom: spacing[4],
   },
   emptyTitle: {

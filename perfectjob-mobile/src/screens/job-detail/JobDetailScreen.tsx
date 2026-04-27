@@ -1,13 +1,7 @@
 import React from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  SafeAreaView,
-  StatusBar,
-  Alert,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  SafeAreaView, StatusBar, Alert,
 } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { colors } from '@/design-system/tokens/colors';
@@ -15,49 +9,32 @@ import { typography } from '@/design-system/tokens/typography';
 import { spacing } from '@/design-system/tokens/spacing';
 import { Job } from '@/types';
 import { RootStackParamList } from '@/navigation/types';
+import Icon from '@/components/ui/Icon';
 
 const MOCK_JOBS: Record<string, Job> = {
   '1': {
-    id: '1',
-    title: 'Desenvolvedor React Native',
-    company: 'TechCorp',
-    location: 'São Paulo, SP',
-    salary: 'R$ 10.000',
-    workModel: 'Híbrido',
-    level: 'Pleno',
-    contractType: 'CLT',
-    description:
-      'Buscamos um desenvolvedor React Native para criar e manter aplicativos móveis de alta qualidade. Você fará parte de uma equipe ágil e colaborativa.',
+    id: '1', title: 'Desenvolvedor React Native', company: 'TechCorp',
+    location: 'São Paulo, SP', salary: 'R$ 10.000',
+    workModel: 'Híbrido', level: 'Pleno', contractType: 'CLT',
+    description: 'Buscamos um desenvolvedor React Native para criar e manter aplicativos móveis de alta qualidade. Você fará parte de uma equipe ágil e colaborativa.',
     requirements: ['React Native', 'TypeScript', 'Node.js'],
     benefits: ['VR', 'Plano de saúde'],
     skills: ['React Native', 'TypeScript'],
   },
   '2': {
-    id: '2',
-    title: 'Engenheiro de Software',
-    company: 'InovaLabs',
-    location: 'Remoto',
-    salary: 'R$ 14.000',
-    workModel: 'Remoto',
-    level: 'Sênior',
-    contractType: 'PJ',
-    description:
-      'Estamos em busca de um Engenheiro de Software Sênior para liderar projetos de backend com Java e Spring Boot.',
+    id: '2', title: 'Engenheiro de Software', company: 'InovaLabs',
+    location: 'Remoto', salary: 'R$ 14.000',
+    workModel: 'Remoto', level: 'Sênior', contractType: 'PJ',
+    description: 'Estamos em busca de um Engenheiro de Software Sênior para liderar projetos de backend com Java e Spring Boot.',
     requirements: ['Java', 'Spring Boot'],
     benefits: ['Home office'],
     skills: ['Java', 'Spring'],
   },
   '3': {
-    id: '3',
-    title: 'Product Designer',
-    company: 'DesignStudio',
-    location: 'Remoto',
-    salary: 'R$ 8.500',
-    workModel: 'Remoto',
-    level: 'Pleno',
-    contractType: 'CLT',
-    description:
-      'Procuramos um Product Designer para criar experiências incríveis. Domínio de Figma e UI/UX é essencial.',
+    id: '3', title: 'Product Designer', company: 'DesignStudio',
+    location: 'Remoto', salary: 'R$ 8.500',
+    workModel: 'Remoto', level: 'Pleno', contractType: 'CLT',
+    description: 'Procuramos um Product Designer para criar experiências incríveis. Domínio de Figma e UI/UX é essencial.',
     requirements: ['Figma', 'UI/UX'],
     benefits: ['Flexible hours'],
     skills: ['Figma', 'Design'],
@@ -76,7 +53,7 @@ const JobDetailScreen = () => {
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backIcon}>←</Text>
+          <Icon family="MaterialIcons" name="arrow-back" size={22} color={colors.neutral[800]} />
         </TouchableOpacity>
       </View>
 
@@ -85,15 +62,11 @@ const JobDetailScreen = () => {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.logo}>
-          <Text style={styles.logoText}>
-            {job.company.charAt(0).toUpperCase()}
-          </Text>
+          <Text style={styles.logoText}>{job.company.charAt(0).toUpperCase()}</Text>
         </View>
 
         <Text style={styles.title}>{job.title}</Text>
-        <Text style={styles.companyLocation}>
-          {job.company} • {job.location}
-        </Text>
+        <Text style={styles.companyLocation}>{job.company} • {job.location}</Text>
 
         <View style={styles.badgeRow}>
           <View style={styles.badge}>
@@ -112,9 +85,7 @@ const JobDetailScreen = () => {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Descrição</Text>
-          <Text style={styles.sectionBody}>
-            {job.description || 'Descrição não informada.'}
-          </Text>
+          <Text style={styles.sectionBody}>{job.description || 'Descrição não informada.'}</Text>
         </View>
 
         <View style={styles.section}>
@@ -174,8 +145,7 @@ const JobDetailScreen = () => {
                 { text: 'Cancelar', style: 'cancel' },
                 {
                   text: 'Sim',
-                  onPress: () =>
-                    Alert.alert('Sucesso!', 'Candidatura enviada com sucesso!'),
+                  onPress: () => Alert.alert('Sucesso!', 'Candidatura enviada com sucesso!'),
                 },
               ]
             )
@@ -190,146 +160,83 @@ const JobDetailScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.white,
-  },
-  header: {
-    paddingHorizontal: spacing[4],
-    paddingTop: spacing[2],
-    paddingBottom: spacing[2],
-  },
+  container: { flex: 1, backgroundColor: colors.white },
+  header: { paddingHorizontal: spacing[4], paddingTop: spacing[2], paddingBottom: spacing[2] },
   backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 40, height: 40, borderRadius: 20,
     backgroundColor: colors.neutral[100],
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center', justifyContent: 'center',
   },
-  backIcon: {
-    fontSize: 20,
-    color: colors.neutral[800],
-  },
-  scrollContent: {
-    paddingHorizontal: spacing[5],
-    paddingTop: spacing[2],
-  },
+  scrollContent: { paddingHorizontal: spacing[5], paddingTop: spacing[2] },
   logo: {
-    width: 64,
-    height: 64,
-    borderRadius: 16,
+    width: 64, height: 64, borderRadius: 16,
     backgroundColor: colors.primary[100],
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'center',
-    marginBottom: spacing[4],
+    alignItems: 'center', justifyContent: 'center',
+    alignSelf: 'center', marginBottom: spacing[4],
   },
-  logoText: {
-    fontSize: 28,
-    fontWeight: typography.fontWeight.bold as any,
-    color: colors.primary[500],
-  },
+  logoText: { fontSize: 28, fontWeight: typography.fontWeight.bold as any, color: colors.primary[500] },
   title: {
     fontSize: typography.fontSize.h3,
     fontWeight: typography.fontWeight.bold as any,
-    color: colors.neutral[900],
-    textAlign: 'center',
-    marginBottom: spacing[2],
+    color: colors.neutral[900], textAlign: 'center', marginBottom: spacing[2],
   },
   companyLocation: {
-    fontSize: typography.fontSize.body,
-    color: colors.neutral[600],
-    textAlign: 'center',
-    marginBottom: spacing[4],
+    fontSize: typography.fontSize.body, color: colors.neutral[600],
+    textAlign: 'center', marginBottom: spacing[4],
   },
   badgeRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: spacing[2],
-    marginBottom: spacing[6],
+    flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center',
+    gap: spacing[2], marginBottom: spacing[6],
   },
   badge: {
     backgroundColor: colors.neutral[100],
-    paddingVertical: spacing[1],
-    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[1], paddingHorizontal: spacing[3],
     borderRadius: 9999,
   },
   badgeText: {
     fontSize: typography.fontSize.caption,
-    fontWeight: typography.fontWeight.medium as any,
-    color: colors.neutral[700],
+    fontWeight: typography.fontWeight.medium as any, color: colors.neutral[700],
   },
-  section: {
-    marginBottom: spacing[6],
-  },
+  section: { marginBottom: spacing[6] },
   sectionTitle: {
     fontSize: typography.fontSize.h5,
     fontWeight: typography.fontWeight.semibold as any,
-    color: colors.neutral[900],
-    marginBottom: spacing[3],
+    color: colors.neutral[900], marginBottom: spacing[3],
   },
   sectionBody: {
-    fontSize: typography.fontSize.body,
-    color: colors.neutral[600],
-    lineHeight: 24,
+    fontSize: typography.fontSize.body, color: colors.neutral[600], lineHeight: 24,
   },
-  bulletRow: {
-    flexDirection: 'row',
-    marginBottom: spacing[2],
-  },
+  bulletRow: { flexDirection: 'row', marginBottom: spacing[2] },
   bullet: {
-    fontSize: typography.fontSize.body,
-    color: colors.primary[500],
-    marginRight: spacing[2],
-    lineHeight: 24,
+    fontSize: typography.fontSize.body, color: colors.primary[500],
+    marginRight: spacing[2], lineHeight: 24,
   },
   bulletText: {
-    fontSize: typography.fontSize.body,
-    color: colors.neutral[700],
-    flex: 1,
-    lineHeight: 24,
+    fontSize: typography.fontSize.body, color: colors.neutral[700],
+    flex: 1, lineHeight: 24,
   },
-  skillRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing[2],
-  },
+  skillRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing[2] },
   skillChip: {
-    backgroundColor: colors.primary[50],
-    borderWidth: 1,
-    borderColor: colors.primary[200],
-    paddingVertical: spacing[1],
-    paddingHorizontal: spacing[3],
-    borderRadius: 9999,
+    backgroundColor: colors.primary[50], borderWidth: 1,
+    borderColor: colors.primary[200], paddingVertical: spacing[1],
+    paddingHorizontal: spacing[3], borderRadius: 9999,
   },
   skillChipText: {
     fontSize: typography.fontSize.caption,
-    fontWeight: typography.fontWeight.medium as any,
-    color: colors.primary[700],
+    fontWeight: typography.fontWeight.medium as any, color: colors.primary[700],
   },
-  bottomSpacer: {
-    height: spacing[8],
-  },
+  bottomSpacer: { height: spacing[8] },
   stickyBar: {
-    borderTopWidth: 1,
-    borderTopColor: colors.neutral[200],
+    borderTopWidth: 1, borderTopColor: colors.neutral[200],
     backgroundColor: colors.white,
-    paddingHorizontal: spacing[5],
-    paddingTop: spacing[3],
-    paddingBottom: spacing[5],
+    paddingHorizontal: spacing[5], paddingTop: spacing[3], paddingBottom: spacing[5],
   },
   applyBtn: {
-    backgroundColor: '#2B5FC2',
-    borderRadius: 8,
-    height: 56,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#2B5FC2', borderRadius: 12,
+    height: 56, alignItems: 'center', justifyContent: 'center',
   },
   applyBtnText: {
-    color: colors.white,
-    fontSize: typography.fontSize.body,
+    color: colors.white, fontSize: typography.fontSize.body,
     fontWeight: typography.fontWeight.semibold as any,
   },
 });

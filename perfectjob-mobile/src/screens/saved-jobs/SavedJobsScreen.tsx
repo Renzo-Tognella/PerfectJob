@@ -1,12 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  Alert,
-  SafeAreaView,
+  View, Text, StyleSheet, FlatList, TouchableOpacity,
+  Alert, SafeAreaView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { colors } from '@/design-system/tokens/colors';
@@ -14,27 +9,18 @@ import { typography } from '@/design-system/tokens/typography';
 import { spacing } from '@/design-system/tokens/spacing';
 import { Job } from '@/types';
 import JobCard from '@/components/shared/JobCard';
+import Icon from '@/components/ui/Icon';
 
 const MOCK_SAVED: Job[] = [
   {
-    id: '1',
-    title: 'Desenvolvedor React Native',
-    company: 'TechCorp',
-    location: 'São Paulo, SP',
-    salary: 'R$ 10.000',
-    workModel: 'Híbrido',
-    level: 'Pleno',
-    contractType: 'CLT',
+    id: '1', title: 'Desenvolvedor React Native', company: 'TechCorp',
+    location: 'São Paulo, SP', salary: 'R$ 10.000',
+    workModel: 'Híbrido', level: 'Pleno', contractType: 'CLT',
   },
   {
-    id: '2',
-    title: 'Engenheiro de Software',
-    company: 'InovaLabs',
-    location: 'Remoto',
-    salary: 'R$ 14.000',
-    workModel: 'Remoto',
-    level: 'Sênior',
-    contractType: 'PJ',
+    id: '2', title: 'Engenheiro de Software', company: 'InovaLabs',
+    location: 'Remoto', salary: 'R$ 14.000',
+    workModel: 'Remoto', level: 'Sênior', contractType: 'PJ',
   },
 ];
 
@@ -53,8 +39,7 @@ const SavedJobsScreen = () => {
         {
           text: 'Remover',
           style: 'destructive',
-          onPress: () =>
-            setSavedJobs((prev) => prev.filter((j) => j.id !== job.id)),
+          onPress: () => setSavedJobs((prev) => prev.filter((j) => j.id !== job.id)),
         },
       ]);
     },
@@ -63,10 +48,7 @@ const SavedJobsScreen = () => {
 
   const renderItem = useCallback(
     ({ item }: { item: Job }) => (
-      <TouchableOpacity
-        onLongPress={() => handleDelete(item)}
-        activeOpacity={0.9}
-      >
+      <TouchableOpacity onLongPress={() => handleDelete(item)} activeOpacity={0.9}>
         <JobCard job={item} onPress={handleJobPress} />
       </TouchableOpacity>
     ),
@@ -80,7 +62,9 @@ const SavedJobsScreen = () => {
           <Text style={styles.headerTitle}>Vagas Salvas</Text>
         </View>
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyIcon}>🔖</Text>
+          <View style={styles.emptyIcon}>
+            <Icon family="MaterialIcons" name="bookmark-border" size={48} color={colors.neutral[300]} />
+          </View>
           <Text style={styles.emptyTitle}>Nenhuma vaga salva</Text>
           <Text style={styles.emptySubtitle}>
             Toque no ícone de favorito nas vagas para salvá-las aqui.
@@ -107,44 +91,27 @@ const SavedJobsScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.neutral[50],
-  },
-  header: {
-    paddingHorizontal: spacing[5],
-    paddingTop: spacing[5],
-    paddingBottom: spacing[3],
-  },
+  container: { flex: 1, backgroundColor: colors.neutral[50] },
+  header: { paddingHorizontal: spacing[5], paddingTop: spacing[5], paddingBottom: spacing[3] },
   headerTitle: {
     fontSize: typography.fontSize.h3,
     fontWeight: typography.fontWeight.bold as any,
     color: colors.neutral[900],
   },
-  listContent: {
-    paddingHorizontal: spacing[4],
-    paddingBottom: spacing[6],
-  },
+  listContent: { paddingHorizontal: spacing[4], paddingBottom: spacing[6] },
   emptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    flex: 1, alignItems: 'center', justifyContent: 'center',
     paddingHorizontal: spacing[8],
   },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: spacing[4],
-  },
+  emptyIcon: { marginBottom: spacing[4] },
   emptyTitle: {
     fontSize: typography.fontSize.h4,
     fontWeight: typography.fontWeight.semibold as any,
-    color: colors.neutral[800],
-    marginBottom: spacing[2],
+    color: colors.neutral[800], marginBottom: spacing[2],
     textAlign: 'center',
   },
   emptySubtitle: {
-    fontSize: typography.fontSize.body,
-    color: colors.neutral[500],
+    fontSize: typography.fontSize.body, color: colors.neutral[500],
     textAlign: 'center',
   },
 });

@@ -3,6 +3,7 @@ package com.perfectjob.service;
 import com.perfectjob.dto.request.LoginRequest;
 import com.perfectjob.dto.request.RegisterRequest;
 import com.perfectjob.dto.response.AuthResponse;
+import com.perfectjob.exception.DuplicateResourceException;
 import com.perfectjob.model.User;
 import com.perfectjob.repository.UserRepository;
 import com.perfectjob.security.JwtProvider;
@@ -24,7 +25,7 @@ public class AuthService {
 
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.email())) {
-            throw new RuntimeException("Email already in use");
+            throw new DuplicateResourceException("Este email já está cadastrado");
         }
 
         User user = User.builder()
@@ -52,7 +53,7 @@ public class AuthService {
         );
 
         User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
         String token = jwtProvider.generateToken(user.getEmail(), user.getRole().name());
 

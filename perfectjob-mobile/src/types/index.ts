@@ -1,3 +1,5 @@
+import { IconSpec } from '../design-system/icons';
+
 export interface Job {
   id: string;
   title: string;
@@ -21,7 +23,7 @@ export interface Category {
   id: string;
   name: string;
   jobCount: number;
-  icon: string;
+  icon: IconSpec;
 }
 
 export interface Company {

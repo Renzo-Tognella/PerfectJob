@@ -1,18 +1,14 @@
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Switch,
-  SafeAreaView,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  Switch, SafeAreaView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { colors } from '@/design-system/tokens/colors';
 import { typography } from '@/design-system/tokens/typography';
 import { spacing } from '@/design-system/tokens/spacing';
 import { useAuthStore } from '@/store/useAuthStore';
+import Icon from '@/components/ui/Icon';
 
 const DEFAULT_USER = {
   name: 'João Silva',
@@ -70,7 +66,7 @@ const ProfileScreen = () => {
                   onPress={() => removeSkill(skill)}
                   hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
                 >
-                  <Text style={styles.skillRemove}>✕</Text>
+                  <Icon family="MaterialIcons" name="close" size={14} color={colors.primary[400]} />
                 </TouchableOpacity>
               </View>
             ))}
@@ -84,7 +80,7 @@ const ProfileScreen = () => {
             onPress={() => {}}
             activeOpacity={0.8}
           >
-            <Text style={styles.uploadIcon}>📄</Text>
+            <Icon family="Ionicons" name="document-text" size={22} color={colors.primary[500]} />
             <Text style={styles.uploadText}>Enviar currículo (PDF)</Text>
           </TouchableOpacity>
         </View>
@@ -127,58 +123,42 @@ const ProfileScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.neutral[50],
-  },
+  container: { flex: 1, backgroundColor: colors.neutral[50] },
   scrollContent: {
-    paddingHorizontal: spacing[5],
-    paddingTop: spacing[6],
-    paddingBottom: spacing[10],
+    paddingHorizontal: spacing[5], paddingTop: spacing[6], paddingBottom: spacing[10],
   },
   avatar: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+    width: 96, height: 96, borderRadius: 48,
     backgroundColor: colors.primary[100],
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'center',
-    marginBottom: spacing[4],
+    alignItems: 'center', justifyContent: 'center',
+    alignSelf: 'center', marginBottom: spacing[4],
+    shadowColor: colors.primary[500],
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15, shadowRadius: 8, elevation: 4,
   },
   avatarText: {
-    fontSize: 36,
-    fontWeight: typography.fontWeight.bold as any,
+    fontSize: 36, fontWeight: typography.fontWeight.bold as any,
     color: colors.primary[500],
   },
   name: {
     fontSize: typography.fontSize.h3,
     fontWeight: typography.fontWeight.bold as any,
-    color: colors.neutral[900],
-    textAlign: 'center',
-    marginBottom: spacing[1],
+    color: colors.neutral[900], textAlign: 'center', marginBottom: spacing[1],
   },
   email: {
-    fontSize: typography.fontSize.body,
-    color: colors.neutral[600],
-    textAlign: 'center',
-    marginBottom: spacing[6],
+    fontSize: typography.fontSize.body, color: colors.neutral[600],
+    textAlign: 'center', marginBottom: spacing[6],
   },
   statsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing[6],
+    flexDirection: 'row', alignItems: 'center',
+    justifyContent: 'center', marginBottom: spacing[6],
+    backgroundColor: colors.white, borderRadius: 14,
+    padding: spacing[4],
+    shadowColor: colors.black, shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04, shadowRadius: 2, elevation: 1,
   },
-  statBox: {
-    alignItems: 'center',
-    paddingHorizontal: spacing[6],
-  },
-  statDivider: {
-    width: 1,
-    height: 32,
-    backgroundColor: colors.neutral[300],
-  },
+  statBox: { alignItems: 'center', paddingHorizontal: spacing[6] },
+  statDivider: { width: 1, height: 32, backgroundColor: colors.neutral[200] },
   statValue: {
     fontSize: typography.fontSize.h3,
     fontWeight: typography.fontWeight.bold as any,
@@ -186,82 +166,45 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: typography.fontSize.bodySm,
-    color: colors.neutral[500],
-    marginTop: spacing[1],
+    color: colors.neutral[500], marginTop: spacing[1],
   },
-  section: {
-    marginBottom: spacing[6],
-  },
+  section: { marginBottom: spacing[6] },
   sectionTitle: {
     fontSize: typography.fontSize.h5,
     fontWeight: typography.fontWeight.semibold as any,
-    color: colors.neutral[900],
-    marginBottom: spacing[3],
+    color: colors.neutral[900], marginBottom: spacing[4],
   },
-  skillRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing[2],
-  },
+  skillRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing[2] },
   skillChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'row', alignItems: 'center',
     backgroundColor: colors.primary[50],
-    borderWidth: 1,
-    borderColor: colors.primary[200],
-    paddingVertical: spacing[1],
-    paddingHorizontal: spacing[3],
-    borderRadius: 9999,
-    gap: spacing[2],
+    borderWidth: 1, borderColor: colors.primary[200],
+    paddingVertical: spacing[1], paddingHorizontal: spacing[3],
+    borderRadius: 9999, gap: spacing[2],
   },
   skillChipText: {
     fontSize: typography.fontSize.caption,
     fontWeight: typography.fontWeight.medium as any,
     color: colors.primary[700],
   },
-  skillRemove: {
-    fontSize: 12,
-    color: colors.primary[400],
-    fontWeight: typography.fontWeight.bold as any,
-  },
   uploadBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    borderRadius: 8,
-    paddingVertical: spacing[3],
-    paddingHorizontal: spacing[4],
-    borderStyle: 'dashed',
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: colors.white, borderWidth: 1.5,
+    borderColor: colors.neutral[300], borderRadius: 12,
+    paddingVertical: spacing[4], paddingHorizontal: spacing[4],
+    borderStyle: 'dashed', gap: spacing[3],
   },
-  uploadIcon: {
-    fontSize: 20,
-    marginRight: spacing[3],
-  },
-  uploadText: {
-    fontSize: typography.fontSize.body,
-    color: colors.neutral[600],
-  },
+  uploadText: { fontSize: typography.fontSize.body, color: colors.neutral[600] },
   settingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: colors.white,
-    borderRadius: 8,
-    paddingVertical: spacing[3],
-    paddingHorizontal: spacing[4],
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: colors.white, borderRadius: 12,
+    paddingVertical: spacing[3], paddingHorizontal: spacing[4],
     marginBottom: spacing[2],
   },
-  settingLabel: {
-    fontSize: typography.fontSize.body,
-    color: colors.neutral[800],
-  },
+  settingLabel: { fontSize: typography.fontSize.body, color: colors.neutral[800] },
   logoutBtn: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: spacing[4],
-    marginTop: spacing[4],
+    alignItems: 'center', justifyContent: 'center',
+    paddingVertical: spacing[4], marginTop: spacing[4],
   },
   logoutText: {
     fontSize: typography.fontSize.body,

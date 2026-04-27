@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { authApi, type LoginData, type RegisterData } from '@/services/api/authApi';
 import { useAuthStore } from '@/store/useAuthStore';
+import { extractErrorMessage } from '@/services/api/client';
 
 export const useLogin = () => {
   const setAuth = useAuthStore((state) => state.setAuth);
@@ -40,6 +41,6 @@ export const useAuth = () => {
     login: (data: LoginData) => loginMutation.mutateAsync(data),
     register: (data: Omit<RegisterData, 'confirmPassword'>) => registerMutation.mutateAsync(data),
     isLoading: loginMutation.isPending || registerMutation.isPending,
-    error: (loginMutation.error as Error)?.message || (registerMutation.error as Error)?.message || null,
+    error: extractErrorMessage(loginMutation.error) || extractErrorMessage(registerMutation.error) || null,
   };
 };

@@ -8,6 +8,7 @@ import {
 import { colors } from '../../../design-system/tokens/colors';
 import { typography } from '../../../design-system/tokens/typography';
 import { spacing } from '../../../design-system/tokens/spacing';
+import Icon from '../../../components/ui/Icon';
 
 interface HeroSectionProps {
   searchQuery: string;
@@ -22,15 +23,19 @@ const HeroSection: React.FC<HeroSectionProps> = ({
 }) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.headline}>
-        Encontre a vaga dos seus sonhos
-      </Text>
+      <Text style={styles.headline}>Encontre a vaga dos seus sonhos</Text>
       <Text style={styles.subtitle}>
         Milhares de oportunidades esperando por você
       </Text>
 
       <View style={styles.searchContainer}>
-        <Text style={styles.searchIcon}>🔍</Text>
+        <Icon
+          family="Feather"
+          name="search"
+          size={20}
+          color={colors.neutral[400]}
+          style={styles.searchIcon}
+        />
         <TextInput
           style={styles.searchInput}
           placeholder="Cargo, habilidade ou empresa..."
@@ -68,19 +73,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.white,
     borderRadius: 9999,
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
+    borderWidth: 1.5,
+    borderColor: colors.neutral[200],
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[3],
     shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 3,
   },
   searchIcon: {
-    fontSize: typography.fontSize.body,
-    marginRight: spacing[2],
+    marginRight: spacing[3],
   },
   searchInput: {
     flex: 1,

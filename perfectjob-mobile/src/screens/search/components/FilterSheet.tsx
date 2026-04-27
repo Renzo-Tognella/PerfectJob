@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
 import { colors } from '@/design-system/tokens/colors';
 import { typography } from '@/design-system/tokens/typography';
 import { spacing } from '@/design-system/tokens/spacing';
+import Icon from '@/components/ui/Icon';
 
 export interface Filters {
   workModel: string[];
@@ -101,7 +102,7 @@ const FilterSheet: React.FC<FilterSheetProps> = ({
                     ]}
                   >
                     {filters.workModel.includes(m) && (
-                      <Text style={styles.checkmark}>✓</Text>
+                      <Icon family="MaterialIcons" name="check" size={14} color={colors.white} />
                     )}
                   </View>
                   <Text style={styles.checkboxLabel}>{m}</Text>
@@ -127,7 +128,7 @@ const FilterSheet: React.FC<FilterSheetProps> = ({
                     ]}
                   >
                     {filters.level.includes(l) && (
-                      <Text style={styles.checkmark}>✓</Text>
+                      <Icon family="MaterialIcons" name="check" size={14} color={colors.white} />
                     )}
                   </View>
                   <Text style={styles.checkboxLabel}>{l}</Text>
@@ -259,11 +260,6 @@ const styles = StyleSheet.create({
   checkboxActive: {
     backgroundColor: colors.primary[500],
     borderColor: colors.primary[500],
-  },
-  checkmark: {
-    color: colors.white,
-    fontSize: 12,
-    fontWeight: typography.fontWeight.bold as any,
   },
   checkboxLabel: {
     fontSize: typography.fontSize.body,
