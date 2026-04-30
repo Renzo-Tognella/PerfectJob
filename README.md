@@ -12,7 +12,7 @@ O PerfectJob e uma plataforma composta por tres aplicacoes:
 
 - **Aplicativo Mobile** (React Native / Expo) - Interface para candidatos buscarem e se candidatarem a vagas
 - **API REST** (Spring Boot 3 / Java 21) - Backend com autenticacao JWT e busca full-text via PostgreSQL
-- **Painel Administrativo Web** (React / Vite) - Interface para recrutadores publicarem e gerenciarem vagas
+- **Painel Administrativo Web** (React / Vite) - Interface para recrutadores publicarem e gerenciarem vagas e a Interface de controle dos administradores do sistema
 
 ---
 
