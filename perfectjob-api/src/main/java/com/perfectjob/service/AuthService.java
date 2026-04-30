@@ -1,5 +1,11 @@
 package com.perfectjob.service;
 
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
 import com.perfectjob.dto.request.LoginRequest;
 import com.perfectjob.dto.request.RegisterRequest;
 import com.perfectjob.dto.response.AuthResponse;
@@ -7,12 +13,8 @@ import com.perfectjob.exception.DuplicateResourceException;
 import com.perfectjob.model.User;
 import com.perfectjob.repository.UserRepository;
 import com.perfectjob.security.JwtProvider;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -52,7 +54,8 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(request.email(), request.password())
         );
 
-        User user = userRepository.findByEmail(request.email())
+        String email = authentication.getName(); // email autenticado
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
         String token = jwtProvider.generateToken(user.getEmail(), user.getRole().name());
