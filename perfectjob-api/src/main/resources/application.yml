@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: perfectjob-api
+  datasource:
+    url: jdbc:postgresql://localhost:5432/perfectjob
+    username: perfectjob
+    password: perfectjob
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+jwt:
+  secret: perfectjob-default-secret-key-change-me-in-production
+  access-expiration: 900000
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api

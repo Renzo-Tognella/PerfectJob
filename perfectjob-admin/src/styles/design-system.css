@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Primary Colors */
+  --color-primary-50: #EAF1FB;
+  --color-primary-100: #C5D8F4;
+  --color-primary-200: #9FBFED;
+  --color-primary-300: #7AA5E6;
+  --color-primary-400: #548CDD;
+  --color-primary-500: #2B5FC2;
+  --color-primary-600: #234D9E;
+  --color-primary-700: #1B3B7A;
+  --color-primary-800: #122956;
+  --color-primary-900: #0A1732;
+
+  /* Accent Colors */
+  --color-accent-100: #FFE6DC;
+  --color-accent-200: #FFC5B3;
+  --color-accent-300: #FFA48A;
+  --color-accent-400: #FF8361;
+  --color-accent-500: #FF6B35;
+
+  /* Semantic Colors */
+  --color-success-light: #D1FADF;
+  --color-success: #22C55E;
+  --color-success-dark: #15803D;
+
+  --color-warning-light: #FEF3C7;
+  --color-warning: #F59E0B;
+  --color-warning-dark: #B45309;
+
+  --color-error-light: #FEE2E2;
+  --color-error: #EF4444;
+  --color-error-dark: #B91C1C;
+
+  --color-info-light: #DBEAFE;
+  --color-info: #3B82F6;
+  --color-info-dark: #1D4ED8;
+
+  /* Neutral Colors */
+  --color-neutral-50: #F8FAFC;
+  --color-neutral-100: #F1F5F9;
+  --color-neutral-200: #E2E8F0;
+  --color-neutral-300: #CBD5E1;
+  --color-neutral-400: #94A3B8;
+  --color-neutral-500: #64748B;
+  --color-neutral-600: #475569;
+  --color-neutral-700: #334155;
+  --color-neutral-800: #1E293B;
+  --color-neutral-900: #0F172A;
+
+  --color-white: #FFFFFF;
+  --color-black: #000000;
+
+  /* Typography */
+  --font-family-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+  --font-size-display: 3.5rem;
+  --font-size-h1: 2.5rem;
+  --font-size-h2: 2rem;
+  --font-size-h3: 1.5rem;
+  --font-size-h4: 1.25rem;
+  --font-size-h5: 1.125rem;
+  --font-size-body-lg: 1.125rem;
+  --font-size-body: 1rem;
+  --font-size-body-sm: 0.875rem;
+  --font-size-caption: 0.75rem;
+  --font-size-overline: 0.6875rem;
+
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Spacing */
+  --space-0: 0px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
