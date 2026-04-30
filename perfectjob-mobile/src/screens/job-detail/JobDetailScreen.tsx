@@ -36,7 +36,7 @@ const MOCK_JOBS: Record<string, Job> = {
     workModel: 'Remoto', level: 'Pleno', contractType: 'CLT',
     description: 'Procuramos um Product Designer para criar experiências incríveis. Domínio de Figma e UI/UX é essencial.',
     requirements: ['Figma', 'UI/UX'],
-    benefits: ['Flexible hours'],
+    benefits: ['Horário flexível'],
     skills: ['Figma', 'Design'],
   },
 };
@@ -117,7 +117,7 @@ const JobDetailScreen = () => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Skills</Text>
+          <Text style={styles.sectionTitle}>Habilidades</Text>
           <View style={styles.skillRow}>
             {(job.skills?.length ?? 0) > 0 ? (
               job.skills!.map((skill, i) => (
@@ -126,7 +126,7 @@ const JobDetailScreen = () => {
                 </View>
               ))
             ) : (
-              <Text style={styles.sectionBody}>Nenhuma skill informada.</Text>
+              <Text style={styles.sectionBody}>Nenhuma habilidade informada.</Text>
             )}
           </View>
         </View>

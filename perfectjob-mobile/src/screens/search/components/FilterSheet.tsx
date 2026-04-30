@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -23,6 +23,7 @@ export interface Filters {
 
 interface FilterSheetProps {
   visible: boolean;
+  initialFilters: Filters;
   onClose: () => void;
   onApply: (filters: Filters) => void;
 }
@@ -30,18 +31,27 @@ interface FilterSheetProps {
 const WORK_MODELS = ['Remoto', 'Híbrido', 'Presencial'];
 const LEVELS = ['Júnior', 'Pleno', 'Sênior'];
 
+const EMPTY_FILTERS: Filters = {
+  workModel: [],
+  level: [],
+  salaryMin: '',
+  salaryMax: '',
+  location: '',
+};
+
 const FilterSheet: React.FC<FilterSheetProps> = ({
   visible,
+  initialFilters,
   onClose,
   onApply,
 }) => {
-  const [filters, setFilters] = useState<Filters>({
-    workModel: [],
-    level: [],
-    salaryMin: '',
-    salaryMax: '',
-    location: '',
-  });
+  const [filters, setFilters] = useState<Filters>(initialFilters);
+
+  useEffect(() => {
+    if (visible) {
+      setFilters(initialFilters);
+    }
+  }, [visible]);
 
   const toggleArray = useCallback(
     (key: 'workModel' | 'level', value: string) => {
@@ -58,13 +68,7 @@ const FilterSheet: React.FC<FilterSheetProps> = ({
   );
 
   const handleClear = useCallback(() => {
-    setFilters({
-      workModel: [],
-      level: [],
-      salaryMin: '',
-      salaryMax: '',
-      location: '',
-    });
+    setFilters(EMPTY_FILTERS);
   }, []);
 
   return (

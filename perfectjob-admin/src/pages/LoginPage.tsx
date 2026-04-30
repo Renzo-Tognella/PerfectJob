@@ -19,7 +19,13 @@ export function LoginPage() {
 
     try {
       const response = await authApi.login({ email, password })
-      setAuth(response.token, response.user)
+      const user: authApi.User = {
+        id: '',
+        email: response.email,
+        name: response.fullName,
+        role: response.role,
+      }
+      setAuth(response.accessToken, user)
       navigate('/')
     } catch (err) {
       setError('Email ou senha inválidos')

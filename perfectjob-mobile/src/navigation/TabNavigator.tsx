@@ -24,6 +24,7 @@ export const TabNavigator = () => {
         name="Home"
         component={HomeScreen}
         options={{
+          tabBarLabel: 'Início',
           tabBarIcon: ({ focused, color, size }) => (
             <Ionicons
               name={focused ? 'home' : 'home-outline'}
@@ -37,6 +38,7 @@ export const TabNavigator = () => {
         name="Search"
         component={SearchScreen}
         options={{
+          tabBarLabel: 'Buscar',
           tabBarIcon: ({ focused, color, size }) => (
             <Ionicons
               name={focused ? 'search' : 'search-outline'}
@@ -50,6 +52,7 @@ export const TabNavigator = () => {
         name="Saved"
         component={SavedJobsScreen}
         options={{
+          tabBarLabel: 'Salvas',
           tabBarIcon: ({ focused, color, size }) => (
             <Ionicons
               name={focused ? 'bookmark' : 'bookmark-outline'}
@@ -63,6 +66,7 @@ export const TabNavigator = () => {
         name="Applications"
         component={ApplicationsScreen}
         options={{
+          tabBarLabel: 'Candidaturas',
           tabBarIcon: ({ focused, color, size }) => (
             <Ionicons
               name={focused ? 'document-text' : 'document-text-outline'}
@@ -76,6 +80,7 @@ export const TabNavigator = () => {
         name="Profile"
         component={ProfileScreen}
         options={{
+          tabBarLabel: 'Perfil',
           tabBarIcon: ({ focused, color, size }) => (
             <Ionicons
               name={focused ? 'person' : 'person-outline'}

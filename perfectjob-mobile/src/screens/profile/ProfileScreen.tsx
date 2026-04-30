@@ -57,7 +57,7 @@ const ProfileScreen = () => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Minhas Skills</Text>
+          <Text style={styles.sectionTitle}>Minhas Habilidades</Text>
           <View style={styles.skillRow}>
             {skills.map((skill) => (
               <View key={skill} style={styles.skillChip}>

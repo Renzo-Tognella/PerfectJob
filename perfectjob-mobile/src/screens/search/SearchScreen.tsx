@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
-  FlatList, KeyboardAvoidingView, Platform,
+  FlatList, KeyboardAvoidingView, Platform, SafeAreaView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { colors } from '@/design-system/tokens/colors';
@@ -9,13 +9,21 @@ import { typography } from '@/design-system/tokens/typography';
 import { spacing } from '@/design-system/tokens/spacing';
 import { Job } from '@/types';
 import JobList from './components/JobList';
-import FilterSheet from './components/FilterSheet';
+import FilterSheet, { Filters } from './components/FilterSheet';
 import Icon from '@/components/ui/Icon';
 
 const FILTERS = [
   'Todas as vagas', 'Remoto', 'Híbrido', 'Presencial',
   'Sênior', 'Pleno', 'Júnior',
 ];
+
+const EMPTY_FILTERS: Filters = {
+  workModel: [],
+  level: [],
+  salaryMin: '',
+  salaryMax: '',
+  location: '',
+};
 
 const MOCK_JOBS: Job[] = Array.from({ length: 20 }).map((_, i) => ({
   id: String(i + 1),
@@ -37,15 +45,54 @@ const SearchScreen = () => {
   const [query, setQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('Todas as vagas');
   const [filterVisible, setFilterVisible] = useState(false);
+  const [advancedFilters, setAdvancedFilters] = useState<Filters>(EMPTY_FILTERS);
   const [jobs] = useState<Job[]>(MOCK_JOBS);
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  const hasAdvancedFilters =
+    advancedFilters.workModel.length > 0 ||
+    advancedFilters.level.length > 0 ||
+    advancedFilters.salaryMin !== '' ||
+    advancedFilters.salaryMax !== '' ||
+    advancedFilters.location !== '';
 
   const filteredJobs = jobs.filter((job) => {
     const matchesQuery =
       !query ||
       job.title.toLowerCase().includes(query.toLowerCase()) ||
       job.company.toLowerCase().includes(query.toLowerCase());
+
+    if (hasAdvancedFilters) {
+      let matches = matchesQuery;
+
+      if (advancedFilters.workModel.length > 0) {
+        matches = matches && !!job.workModel && advancedFilters.workModel.includes(job.workModel);
+      }
+      if (advancedFilters.level.length > 0) {
+        matches = matches && !!job.level && advancedFilters.level.includes(job.level);
+      }
+      if (advancedFilters.salaryMin && job.salary) {
+        const jobSalaryNum = parseInt(job.salary.replace(/[^0-9]/g, ''), 10);
+        const minNum = parseInt(advancedFilters.salaryMin, 10);
+        if (!isNaN(jobSalaryNum) && !isNaN(minNum)) {
+          matches = matches && jobSalaryNum >= minNum;
+        }
+      }
+      if (advancedFilters.salaryMax && job.salary) {
+        const jobSalaryNum = parseInt(job.salary.replace(/[^0-9]/g, ''), 10);
+        const maxNum = parseInt(advancedFilters.salaryMax, 10);
+        if (!isNaN(jobSalaryNum) && !isNaN(maxNum)) {
+          matches = matches && jobSalaryNum <= maxNum;
+        }
+      }
+      if (advancedFilters.location) {
+        matches =
+          matches &&
+          job.location.toLowerCase().includes(advancedFilters.location.toLowerCase());
+      }
+      return matches;
+    }
 
     if (activeFilter === 'Todas as vagas') return matchesQuery;
     if (['Remoto', 'Híbrido', 'Presencial'].includes(activeFilter)) {
@@ -72,11 +119,23 @@ const SearchScreen = () => {
     navigation.navigate('JobDetail', { slug: job.id });
   };
 
+  const handleChipPress = (item: string) => {
+    setActiveFilter(item);
+    setAdvancedFilters(EMPTY_FILTERS);
+  };
+
+  const handleApplyFilters = (filters: Filters) => {
+    setAdvancedFilters(filters);
+    setActiveFilter('Todas as vagas');
+    setFilterVisible(false);
+  };
+
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
       <View style={styles.searchRow}>
         <View style={styles.inputWrapper}>
           <Icon family="Feather" name="search" size={18} color={colors.neutral[400]} />
@@ -94,10 +153,10 @@ const SearchScreen = () => {
           )}
         </View>
         <TouchableOpacity
-          style={styles.filterBtn}
+          style={[styles.filterBtn, hasAdvancedFilters && styles.filterBtnActive]}
           onPress={() => setFilterVisible(true)}
         >
-          <Icon family="Feather" name="settings" size={20} color={colors.neutral[700]} />
+          <Icon family="Feather" name="settings" size={20} color={hasAdvancedFilters ? colors.primary[500] : colors.neutral[700]} />
         </TouchableOpacity>
       </View>
 
@@ -111,7 +170,7 @@ const SearchScreen = () => {
           const isActive = activeFilter === item;
           return (
             <TouchableOpacity
-              onPress={() => setActiveFilter(item)}
+              onPress={() => handleChipPress(item)}
               style={[styles.chip, isActive && styles.chipActive]}
             >
               <Text style={[styles.chipText, isActive && styles.chipTextActive]}>
@@ -138,14 +197,17 @@ const SearchScreen = () => {
 
       <FilterSheet
         visible={filterVisible}
+        initialFilters={advancedFilters}
         onClose={() => setFilterVisible(false)}
-        onApply={() => setFilterVisible(false)}
+        onApply={handleApplyFilters}
       />
     </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: colors.neutral[50] },
   container: { flex: 1, backgroundColor: colors.neutral[50] },
   searchRow: {
     flexDirection: 'row', alignItems: 'center',
@@ -169,12 +231,18 @@ const styles = StyleSheet.create({
     borderColor: colors.neutral[200],
     alignItems: 'center', justifyContent: 'center',
   },
-  chipList: { paddingHorizontal: spacing[4], gap: spacing[2], paddingVertical: spacing[2] },
+  filterBtnActive: {
+    borderColor: colors.primary[500],
+    backgroundColor: colors.primary[50],
+  },
+  chipList: { paddingHorizontal: spacing[4], paddingVertical: spacing[2] },
   chip: {
-    paddingVertical: spacing[2], paddingHorizontal: spacing[4],
+    height: 36,
+    paddingVertical: 0, paddingHorizontal: spacing[4],
     borderRadius: 9999, backgroundColor: colors.white,
     borderWidth: 1, borderColor: colors.neutral[300],
     marginRight: spacing[2],
+    alignItems: 'center', justifyContent: 'center',
   },
   chipActive: { backgroundColor: colors.primary[500], borderColor: colors.primary[500] },
   chipText: {
@@ -185,7 +253,7 @@ const styles = StyleSheet.create({
   chipTextActive: { color: colors.white },
   resultsText: {
     fontSize: typography.fontSize.bodySm, color: colors.neutral[500],
-    paddingHorizontal: spacing[4], marginVertical: spacing[3],
+    paddingHorizontal: spacing[4], marginTop: spacing[4], marginBottom: spacing[2],
   },
 });
 

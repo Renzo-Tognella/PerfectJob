@@ -43,7 +43,7 @@ const MOCK_APPLICATIONS: Application[] = [
     status: 'reviewed', appliedAt: '2025-04-18',
   },
   {
-    id: '3', jobTitle: 'Fullstack Developer', company: 'StartupXYZ',
+    id: '3', jobTitle: 'Desenvolvedor Fullstack', company: 'StartupXYZ',
     status: 'rejected', appliedAt: '2025-04-10',
   },
   {

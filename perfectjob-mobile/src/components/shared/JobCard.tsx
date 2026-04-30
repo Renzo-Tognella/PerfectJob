@@ -116,7 +116,7 @@ const JobCard: React.FC<JobCardProps> = ({
             )}
             {job.matchPercentage && job.matchPercentage > 0 ? (
               <View style={styles.legacyMatchBadge}>
-                <Text style={styles.legacyMatchText}>{job.matchPercentage}% match</Text>
+                <Text style={styles.legacyMatchText}>{job.matchPercentage}% compatível</Text>
               </View>
             ) : null}
           </View>
