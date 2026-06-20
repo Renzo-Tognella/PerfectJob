@@ -14,9 +14,8 @@ export interface AuthResponse {
 }
 
 export interface User {
-  id: string
   email: string
-  name: string
+  fullName: string
   role: string
 }
 
@@ -26,6 +25,7 @@ export const login = async (data: LoginInput): Promise<AuthResponse> => {
 }
 
 export const getMe = async (): Promise<User> => {
-  const response = await apiClient.get<User>('/v1/auth/me')
-  return response.data
+  const response = await apiClient.get<AuthResponse>('/v1/auth/me')
+  const { email, fullName, role } = response.data
+  return { email, fullName, role }
 }

@@ -2,6 +2,8 @@ package com.perfectjob.controller.v1;
 
 import com.perfectjob.dto.request.CreateCompanyRequest;
 import com.perfectjob.dto.response.CompanyResponse;
+import com.perfectjob.security.CurrentUser;
+import com.perfectjob.security.CurrentUserResolver;
 import com.perfectjob.service.CompanyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -24,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CompanyController {
 
     private final CompanyService companyService;
+    private final CurrentUserResolver currentUserResolver;
 
     @GetMapping
     public ResponseEntity<Page<CompanyResponse>> listAll(Pageable pageable) {
@@ -36,19 +40,26 @@ public class CompanyController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('RECRUITER', 'ADMIN')")
     public ResponseEntity<CompanyResponse> create(@Valid @RequestBody CreateCompanyRequest request) {
-        CompanyResponse response = companyService.create(request);
+        CurrentUser currentUser = currentUserResolver.resolve();
+        CompanyResponse response = companyService.create(request, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<CompanyResponse> update(@PathVariable Long id, @Valid @RequestBody CreateCompanyRequest request) {
-        return ResponseEntity.ok(companyService.update(id, request));
+    @PreAuthorize("hasAnyRole('RECRUITER', 'ADMIN')")
+    public ResponseEntity<CompanyResponse> update(@PathVariable Long id,
+                                                  @Valid @RequestBody CreateCompanyRequest request) {
+        CurrentUser currentUser = currentUserResolver.resolve();
+        return ResponseEntity.ok(companyService.update(id, request, currentUser));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('RECRUITER', 'ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        companyService.delete(id);
+        CurrentUser currentUser = currentUserResolver.resolve();
+        companyService.delete(id, currentUser);
         return ResponseEntity.noContent().build();
     }
 }

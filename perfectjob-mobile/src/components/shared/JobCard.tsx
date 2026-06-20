@@ -12,12 +12,12 @@ interface JobCardProps {
   job: Job;
   onPress?: (job: Job) => void;
   style?: ViewStyle;
-  saved?: boolean;
+  isSaved: boolean;
   onToggleSave?: (job: Job) => void;
 }
 
 const JobCard: React.FC<JobCardProps> = ({
-  job, onPress, style, saved, onToggleSave,
+  job, onPress, style, isSaved, onToggleSave,
 }) => {
   const isEnhanced = !!job.workModel || !!job.level || !!job.contractType || !!job.salary;
 
@@ -27,6 +27,8 @@ const JobCard: React.FC<JobCardProps> = ({
         activeOpacity={0.95}
         onPress={() => onPress?.(job)}
         style={[styles.container, style]}
+        accessibilityRole="button"
+        accessibilityLabel={`Vaga: ${job.title} na empresa ${job.company}`}
       >
         <View style={styles.header}>
           <View style={styles.logo}>
@@ -41,11 +43,13 @@ const JobCard: React.FC<JobCardProps> = ({
               onPress={() => onToggleSave(job)}
               style={styles.saveBtn}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel={isSaved ? 'Remover vaga dos salvos' : 'Salvar vaga'}
             >
               <Icon
-                name={saved ? 'favorite' : 'favorite-border'}
+                name={isSaved ? 'bookmark' : 'bookmark-border'}
                 size={22}
-                color={saved ? colors.accent[500] : colors.neutral[400]}
+                color={isSaved ? colors.accent[500] : colors.neutral[400]}
               />
             </TouchableOpacity>
           )}

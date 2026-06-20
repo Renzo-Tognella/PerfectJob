@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
+  StyleProp,
   ViewStyle,
   TextStyle,
 } from 'react-native';
@@ -33,17 +34,17 @@ const Button: React.FC<ButtonProps> = ({
 }) => {
   const isDisabled = disabled || loading;
 
-  const buttonStyles: ViewStyle[] = [
+  const buttonStyles: StyleProp<ViewStyle>[] = [
     styles.base,
     styles[size],
     styles[variant],
-    isDisabled && styles.disabled,
+    isDisabled ? styles.disabled : null,
   ];
 
-  const textStyles: TextStyle[] = [
+  const textStyles: StyleProp<TextStyle>[] = [
     styles.textBase,
     styles[`${variant}Text` as const],
-    isDisabled && styles.disabledText,
+    isDisabled ? styles.disabledText : null,
   ];
 
   return (

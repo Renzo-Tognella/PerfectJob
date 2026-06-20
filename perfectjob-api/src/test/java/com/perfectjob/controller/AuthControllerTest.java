@@ -5,24 +5,33 @@ import com.perfectjob.controller.v1.AuthController;
 import com.perfectjob.dto.request.LoginRequest;
 import com.perfectjob.dto.request.RegisterRequest;
 import com.perfectjob.dto.response.AuthResponse;
+import com.perfectjob.model.User;
+import com.perfectjob.model.enums.Role;
+import com.perfectjob.repository.UserRepository;
+import com.perfectjob.security.JwtFilter;
 import com.perfectjob.service.AuthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.boot.test.mock.bean.MockBean;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(AuthController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class AuthControllerTest {
 
     @Autowired
@@ -33,6 +42,12 @@ class AuthControllerTest {
 
     @MockBean
     private AuthService authService;
+
+    @MockBean
+    private UserRepository userRepository;
+
+    @MockBean
+    private JwtFilter jwtFilter;
 
     private AuthResponse authResponse;
 
@@ -83,6 +98,22 @@ class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").value("jwt-token"))
                 .andExpect(jsonPath("$.tokenType").value("Bearer"))
+                .andExpect(jsonPath("$.email").value("john@example.com"))
+                .andExpect(jsonPath("$.fullName").value("John Doe"))
+                .andExpect(jsonPath("$.role").value("CANDIDATE"));
+    }
+
+    @Test
+    @WithMockUser(username = "john@example.com")
+    void me_shouldReturnCurrentUser() throws Exception {
+        User user = User.builder()
+                .id(1L).email("john@example.com").fullName("John Doe").role(Role.CANDIDATE)
+                .build();
+        when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.of(user));
+
+        mockMvc.perform(get("/v1/auth/me")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("john@example.com"))
                 .andExpect(jsonPath("$.fullName").value("John Doe"))
                 .andExpect(jsonPath("$.role").value("CANDIDATE"));

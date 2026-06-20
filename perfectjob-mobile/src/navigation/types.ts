@@ -1,14 +1,10 @@
-export type RootStackParamList = {
-  Main: undefined;
-  JobDetail: { slug: string };
-  Login: undefined;
-  Register: undefined;
-};
+import type { NavigatorScreenParams } from '@react-navigation/native';
+import type { MainStackParamList, TabParamList } from './MainNavigator';
+import type { AuthStackParamList } from './AuthNavigator';
 
-export type TabParamList = {
-  Home: undefined;
-  Search: { query?: string; category?: string } | undefined;
-  Saved: undefined;
-  Applications: undefined;
-  Profile: undefined;
+export type { MainStackParamList, TabParamList, AuthStackParamList };
+
+export type RootStackParamList = {
+  Auth: NavigatorScreenParams<AuthStackParamList> | undefined;
+  Main: NavigatorScreenParams<MainStackParamList> | undefined;
 };

@@ -1,34 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Switch, SafeAreaView,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { colors } from '@/design-system/tokens/colors';
-import { typography } from '@/design-system/tokens/typography';
-import { spacing } from '@/design-system/tokens/spacing';
-import { useAuthStore } from '@/store/useAuthStore';
-import Icon from '@/components/ui/Icon';
-
-const DEFAULT_USER = {
-  name: 'João Silva',
-  email: 'joao.silva@email.com',
-  skills: ['React Native', 'TypeScript', 'Node.js', 'Python'],
-  applicationsCount: 12,
-  savedJobsCount: 8,
-};
+} from 'react-native'
+import { useQueryClient } from '@tanstack/react-query'
+import { colors } from '@/design-system/tokens/colors'
+import { typography } from '@/design-system/tokens/typography'
+import { spacing } from '@/design-system/tokens/spacing'
+import { useAuthStore } from '@/store/useAuthStore'
+import Icon from '@/components/ui/Icon'
 
 const ProfileScreen = () => {
-  const navigation = useNavigation<any>();
-  const logout = useAuthStore((s) => s.logout);
-  const user = DEFAULT_USER;
-  const [skills, setSkills] = useState<string[]>(user.skills);
-  const [darkMode, setDarkMode] = useState(false);
-  const [notifications, setNotifications] = useState(true);
+  const { user, logout } = useAuthStore()
+  const queryClient = useQueryClient()
+  const [darkMode, setDarkMode] = useState(false)
+  const [notifications, setNotifications] = useState(true)
 
-  const removeSkill = (skill: string) => {
-    setSkills((prev) => prev.filter((s) => s !== skill));
-  };
+  const displayName = user?.fullName || 'Usuário'
+  const displayEmail = user?.email || ''
 
   return (
     <SafeAreaView style={styles.container}>
@@ -38,48 +27,27 @@ const ProfileScreen = () => {
       >
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>
-            {user.name.charAt(0).toUpperCase()}
+            {displayName.charAt(0).toUpperCase()}
           </Text>
         </View>
-        <Text style={styles.name}>{user.name}</Text>
-        <Text style={styles.email}>{user.email}</Text>
+        <Text style={styles.name}>{displayName}</Text>
+        <Text style={styles.email}>{displayEmail}</Text>
 
         <View style={styles.statsRow}>
           <View style={styles.statBox}>
-            <Text style={styles.statValue}>{user.applicationsCount}</Text>
+            <Text style={styles.statValue}>-</Text>
             <Text style={styles.statLabel}>Candidaturas</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statBox}>
-            <Text style={styles.statValue}>{user.savedJobsCount}</Text>
+            <Text style={styles.statValue}>-</Text>
             <Text style={styles.statLabel}>Vagas salvas</Text>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Minhas Habilidades</Text>
-          <View style={styles.skillRow}>
-            {skills.map((skill) => (
-              <View key={skill} style={styles.skillChip}>
-                <Text style={styles.skillChipText}>{skill}</Text>
-                <TouchableOpacity
-                  onPress={() => removeSkill(skill)}
-                  hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-                >
-                  <Icon family="MaterialIcons" name="close" size={14} color={colors.primary[400]} />
-                </TouchableOpacity>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.section}>
           <Text style={styles.sectionTitle}>Meu Currículo</Text>
-          <TouchableOpacity
-            style={styles.uploadBtn}
-            onPress={() => {}}
-            activeOpacity={0.8}
-          >
+          <TouchableOpacity style={styles.uploadBtn} onPress={() => {}} activeOpacity={0.8}>
             <Icon family="Ionicons" name="document-text" size={22} color={colors.primary[500]} />
             <Text style={styles.uploadText}>Enviar currículo (PDF)</Text>
           </TouchableOpacity>
@@ -109,9 +77,9 @@ const ProfileScreen = () => {
 
         <TouchableOpacity
           style={styles.logoutBtn}
-          onPress={() => {
-            logout();
-            navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+          onPress={async () => {
+            await logout()
+            await queryClient.clear()
           }}
           activeOpacity={0.8}
         >
@@ -119,8 +87,8 @@ const ProfileScreen = () => {
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.neutral[50] },
@@ -174,19 +142,6 @@ const styles = StyleSheet.create({
     fontWeight: typography.fontWeight.semibold as any,
     color: colors.neutral[900], marginBottom: spacing[4],
   },
-  skillRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing[2] },
-  skillChip: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: colors.primary[50],
-    borderWidth: 1, borderColor: colors.primary[200],
-    paddingVertical: spacing[1], paddingHorizontal: spacing[3],
-    borderRadius: 9999, gap: spacing[2],
-  },
-  skillChipText: {
-    fontSize: typography.fontSize.caption,
-    fontWeight: typography.fontWeight.medium as any,
-    color: colors.primary[700],
-  },
   uploadBtn: {
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: colors.white, borderWidth: 1.5,
@@ -211,6 +166,6 @@ const styles = StyleSheet.create({
     fontWeight: typography.fontWeight.semibold as any,
     color: colors.error.DEFAULT,
   },
-});
+})
 
-export default ProfileScreen;
+export default ProfileScreen

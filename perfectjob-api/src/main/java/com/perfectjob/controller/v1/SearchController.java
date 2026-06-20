@@ -1,7 +1,6 @@
 package com.perfectjob.controller.v1;
 
 import com.perfectjob.dto.response.JobResponse;
-import com.perfectjob.dto.response.JobSearchResponse;
 import com.perfectjob.model.enums.ExperienceLevel;
 import com.perfectjob.model.enums.WorkModel;
 import com.perfectjob.service.JobService;
@@ -21,7 +20,7 @@ public class SearchController {
     private final JobService jobService;
 
     @GetMapping("/jobs")
-    public ResponseEntity<JobSearchResponse> searchJobs(
+    public ResponseEntity<Page<JobResponse>> searchJobs(
             @RequestParam(required = false) String q,
             @RequestParam(required = false) WorkModel workModel,
             @RequestParam(required = false) ExperienceLevel experienceLevel,
@@ -34,14 +33,7 @@ public class SearchController {
             page = jobService.findActiveJobs(workModel, experienceLevel, pageable);
         }
 
-        JobSearchResponse response = new JobSearchResponse(
-                page.getContent(),
-                page.getNumber(),
-                page.getSize(),
-                page.getTotalElements()
-        );
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(page);
     }
 
     @GetMapping("/suggest")

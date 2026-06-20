@@ -1,36 +1,63 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useEffect } from 'react'
-import { useAuthStore } from './store/useAuthStore'
-import { Layout } from './components/Layout'
-import { LoginPage } from './pages/LoginPage'
-import { Dashboard } from './pages/Dashboard'
-import { JobsPage } from './pages/JobsPage'
-import { CompaniesPage } from './pages/CompaniesPage'
-import './styles/design-system.css'
+import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, type Location } from 'react-router-dom';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { useAuthStore } from './store/useAuthStore';
+import { setNavigator } from './lib/navigationRef';
+import { queryClient } from './lib/queryClient';
+import { Layout } from './components/Layout';
+import { LoginPage } from './pages/LoginPage';
+import { Dashboard } from './pages/Dashboard';
+import { JobsPage } from './pages/JobsPage';
+import { CompaniesPage } from './pages/CompaniesPage';
+import { Toaster } from './components/ui/Toast';
+import './styles/design-system.css';
 
-const queryClient = new QueryClient()
+function NavigationBridge() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    setNavigator(navigate);
+  }, [navigate]);
+  return null;
+}
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, loadToken } = useAuthStore()
-
-  useEffect(() => {
-    loadToken()
-  }, [loadToken])
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const location = useLocation();
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  return <Layout>{children}</Layout>
+  return <Layout>{children}</Layout>;
+}
+
+function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const location = useLocation();
+  const from = (location.state as { from?: Location } | null)?.from?.pathname || '/';
+
+  if (isAuthenticated) {
+    return <Navigate to={from} replace />;
+  }
+
+  return <>{children}</>;
 }
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <Toaster />
       <BrowserRouter>
+        <NavigationBridge />
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
+          <Route
+            path="/login"
+            element={
+              <PublicOnlyRoute>
+                <LoginPage />
+              </PublicOnlyRoute>
+            }
+          />
           <Route
             path="/"
             element={
@@ -59,7 +86,7 @@ function App() {
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
-  )
+  );
 }
 
-export default App
+export default App;

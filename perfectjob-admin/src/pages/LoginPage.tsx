@@ -1,38 +1,53 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Briefcase } from 'lucide-react'
-import { useAuthStore } from '../store/useAuthStore'
-import * as authApi from '../services/api/authApi'
+import { useState } from 'react';
+import { useLocation, useNavigate, type Location } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import axios from 'axios';
+import { Briefcase } from 'lucide-react';
+import { useAuthStore } from '@/store/useAuthStore';
+import { login as loginApi } from '@/services/api/authApi';
+import { loginSchema, type LoginInput } from '@/schemas/auth';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
+import { toast } from '@/components/ui/Toast';
 
 export function LoginPage() {
-  const navigate = useNavigate()
-  const { setAuth } = useAuthStore()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { setAuth } = useAuthStore();
+  const [serverError, setServerError] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+  const from = (location.state as { from?: Location } | null)?.from?.pathname || '/';
 
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '' },
+  });
+
+  const onSubmit = handleSubmit(async (data) => {
+    setServerError('');
     try {
-      const response = await authApi.login({ email, password })
-      const user: authApi.User = {
-        id: '',
+      const response = await loginApi(data);
+      const user = {
         email: response.email,
-        name: response.fullName,
+        fullName: response.fullName,
         role: response.role,
-      }
-      setAuth(response.accessToken, user)
-      navigate('/')
+      };
+      setAuth(response.accessToken, user);
+      toast.success(`Bem-vindo, ${user.fullName || user.email}!`);
+      navigate(from, { replace: true });
     } catch (err) {
-      setError('Email ou senha inválidos')
-    } finally {
-      setLoading(false)
+      if (axios.isAxiosError(err) && err.response?.data?.message) {
+        setServerError(err.response.data.message);
+      } else {
+        setServerError('Email ou senha inválidos');
+      }
     }
-  }
+  });
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -45,44 +60,33 @@ export function LoginPage() {
           <p className="text-sm text-gray-500 mt-1">Admin</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5FC2] focus:border-transparent"
-              placeholder="seu@email.com"
-              required
-            />
-          </div>
+        <form onSubmit={onSubmit} className="space-y-4">
+          <Input
+            label="Email"
+            type="email"
+            placeholder="seu@email.com"
+            autoComplete="email"
+            error={errors.email?.message}
+            {...register('email')}
+          />
+          <Input
+            label="Senha"
+            type="password"
+            placeholder="••••••••"
+            autoComplete="current-password"
+            error={errors.password?.message}
+            {...register('password')}
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5FC2] focus:border-transparent"
-              placeholder="••••••••"
-              required
-            />
-          </div>
-
-          {error && (
-            <p className="text-sm text-red-600">{error}</p>
+          {serverError && (
+            <p className="text-sm text-red-600" role="alert">{serverError}</p>
           )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full px-4 py-2 text-sm font-medium text-white bg-[#2B5FC2] rounded-lg hover:bg-[#234D9E] transition-colors disabled:opacity-50"
-          >
-            {loading ? 'Entrando...' : 'Entrar'}
-          </button>
+          <Button type="submit" loading={isSubmitting} className="w-full">
+            Entrar
+          </Button>
         </form>
       </div>
     </div>
-  )
+  );
 }

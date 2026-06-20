@@ -1,51 +1,131 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  SafeAreaView, StatusBar, Alert,
-} from 'react-native';
-import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
-import { colors } from '@/design-system/tokens/colors';
-import { typography } from '@/design-system/tokens/typography';
-import { spacing } from '@/design-system/tokens/spacing';
-import { Job } from '@/types';
-import { RootStackParamList } from '@/navigation/types';
-import Icon from '@/components/ui/Icon';
-
-const MOCK_JOBS: Record<string, Job> = {
-  '1': {
-    id: '1', title: 'Desenvolvedor React Native', company: 'TechCorp',
-    location: 'São Paulo, SP', salary: 'R$ 10.000',
-    workModel: 'Híbrido', level: 'Pleno', contractType: 'CLT',
-    description: 'Buscamos um desenvolvedor React Native para criar e manter aplicativos móveis de alta qualidade. Você fará parte de uma equipe ágil e colaborativa.',
-    requirements: ['React Native', 'TypeScript', 'Node.js'],
-    benefits: ['VR', 'Plano de saúde'],
-    skills: ['React Native', 'TypeScript'],
-  },
-  '2': {
-    id: '2', title: 'Engenheiro de Software', company: 'InovaLabs',
-    location: 'Remoto', salary: 'R$ 14.000',
-    workModel: 'Remoto', level: 'Sênior', contractType: 'PJ',
-    description: 'Estamos em busca de um Engenheiro de Software Sênior para liderar projetos de backend com Java e Spring Boot.',
-    requirements: ['Java', 'Spring Boot'],
-    benefits: ['Home office'],
-    skills: ['Java', 'Spring'],
-  },
-  '3': {
-    id: '3', title: 'Product Designer', company: 'DesignStudio',
-    location: 'Remoto', salary: 'R$ 8.500',
-    workModel: 'Remoto', level: 'Pleno', contractType: 'CLT',
-    description: 'Procuramos um Product Designer para criar experiências incríveis. Domínio de Figma e UI/UX é essencial.',
-    requirements: ['Figma', 'UI/UX'],
-    benefits: ['Horário flexível'],
-    skills: ['Figma', 'Design'],
-  },
-};
+  SafeAreaView, StatusBar, Alert, ActivityIndicator,
+} from 'react-native'
+import { useRoute, useNavigation, RouteProp, CommonActions } from '@react-navigation/native'
+import { colors } from '@/design-system/tokens/colors'
+import { typography } from '@/design-system/tokens/typography'
+import { spacing } from '@/design-system/tokens/spacing'
+import { useJobDetail } from '@/hooks/useJobs'
+import { useIsJobSaved, useToggleSavedJob } from '@/hooks/useSavedJobs'
+import { useSubmitApplication } from '@/hooks/useApplications'
+import { extractErrorMessage } from '@/services/api/client'
+import type { MainStackParamList } from '@/navigation/types'
+import { useAuthStore } from '@/store/useAuthStore'
+import Icon from '@/components/ui/Icon'
 
 const JobDetailScreen = () => {
-  const route = useRoute<RouteProp<RootStackParamList, 'JobDetail'>>();
-  const navigation = useNavigation<any>();
-  const { slug } = route.params;
-  const job = MOCK_JOBS[slug] || MOCK_JOBS['1'];
+  const route = useRoute<RouteProp<MainStackParamList, 'JobDetail'>>()
+  const navigation = useNavigation<any>()
+  const { slug } = route.params
+  const { data: job, isLoading } = useJobDetail(slug)
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+
+  const [jobId, setJobId] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (job) {
+      setJobId((job as any).originalId ?? Number(job.id))
+    }
+  }, [job])
+
+  const { data: isSaved, isLoading: isSavedLoading } = useIsJobSaved(jobId ?? 0)
+  const toggleSaved = useToggleSavedJob()
+  const submitApplication = useSubmitApplication()
+
+  const handleApply = () => {
+    if (!isAuthenticated) {
+      Alert.alert('Login necessário', 'Faça login para se candidatar.', [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Login',
+          onPress: () => {
+            navigation.dispatch(
+              CommonActions.navigate({
+                name: 'Auth',
+                params: { screen: 'Login' },
+              }),
+            )
+          },
+        },
+      ])
+      return
+    }
+
+    if (!job || jobId === null) return
+
+    Alert.alert(
+      'Candidatura',
+      `Deseja se candidatar para ${job.title}?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Sim',
+          onPress: () => {
+            submitApplication.mutate(
+              { jobId },
+              {
+                onSuccess: () =>
+                  Alert.alert('Sucesso!', 'Candidatura enviada com sucesso!'),
+                onError: (error) =>
+                  Alert.alert('Erro', extractErrorMessage(error)),
+              }
+            )
+          },
+        },
+      ]
+    )
+  }
+
+  const handleToggleSave = () => {
+    if (jobId === null) return
+    toggleSaved.mutate(
+      { jobId, isSaved: !!isSaved },
+      {
+        onSuccess: () => {
+          Alert.alert(
+            isSaved ? 'Removida' : 'Salva',
+            isSaved
+              ? 'Vaga removida dos salvos.'
+              : 'Vaga salva com sucesso!'
+          )
+        },
+        onError: (error) =>
+          Alert.alert('Erro', extractErrorMessage(error)),
+      }
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <Icon family="MaterialIcons" name="arrow-back" size={22} color={colors.neutral[800]} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary[500]} />
+        </View>
+      </SafeAreaView>
+    )
+  }
+
+  if (!job) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <Icon family="MaterialIcons" name="arrow-back" size={22} color={colors.neutral[800]} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.errorText}>Vaga não encontrada.</Text>
+        </View>
+      </SafeAreaView>
+    )
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -55,6 +135,22 @@ const JobDetailScreen = () => {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Icon family="MaterialIcons" name="arrow-back" size={22} color={colors.neutral[800]} />
         </TouchableOpacity>
+        {jobId !== null && (
+          <TouchableOpacity
+            onPress={handleToggleSave}
+            style={styles.saveBtn}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            disabled={isSavedLoading}
+            accessibilityRole="button"
+            accessibilityLabel={isSaved ? 'Remover vaga dos salvos' : 'Salvar vaga'}
+          >
+            <Icon
+              name={isSaved ? 'bookmark' : 'bookmark-border'}
+              size={24}
+              color={isSaved ? colors.accent[500] : colors.neutral[700]}
+            />
+          </TouchableOpacity>
+        )}
       </View>
 
       <ScrollView
@@ -69,18 +165,22 @@ const JobDetailScreen = () => {
         <Text style={styles.companyLocation}>{job.company} • {job.location}</Text>
 
         <View style={styles.badgeRow}>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{job.salary}</Text>
-          </View>
+          {job.salary && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{job.salary}</Text>
+            </View>
+          )}
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{job.workModel}</Text>
           </View>
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{job.level}</Text>
           </View>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{job.contractType}</Text>
-          </View>
+          {job.contractType && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{job.contractType}</Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.section}>
@@ -136,33 +236,39 @@ const JobDetailScreen = () => {
 
       <View style={styles.stickyBar}>
         <TouchableOpacity
-          style={styles.applyBtn}
-          onPress={() =>
-            Alert.alert(
-              'Candidatura',
-              `Deseja se candidatar para ${job.title}?`,
-              [
-                { text: 'Cancelar', style: 'cancel' },
-                {
-                  text: 'Sim',
-                  onPress: () => Alert.alert('Sucesso!', 'Candidatura enviada com sucesso!'),
-                },
-              ]
-            )
-          }
+          style={[
+            styles.applyBtn,
+            submitApplication.isPending && styles.applyBtnDisabled,
+          ]}
+          onPress={handleApply}
           activeOpacity={0.9}
+          disabled={submitApplication.isPending}
+          accessibilityRole="button"
+          accessibilityLabel="Candidatar-se a esta vaga"
         >
-          <Text style={styles.applyBtnText}>Candidatar-se</Text>
+          {submitApplication.isPending ? (
+            <ActivityIndicator color={colors.white} />
+          ) : (
+            <Text style={styles.applyBtnText}>Candidatar-se</Text>
+          )}
         </TouchableOpacity>
       </View>
     </SafeAreaView>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.white },
-  header: { paddingHorizontal: spacing[4], paddingTop: spacing[2], paddingBottom: spacing[2] },
+  header: {
+    paddingHorizontal: spacing[4], paddingTop: spacing[2], paddingBottom: spacing[2],
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+  },
   backBtn: {
+    width: 40, height: 40, borderRadius: 20,
+    backgroundColor: colors.neutral[100],
+    alignItems: 'center', justifyContent: 'center',
+  },
+  saveBtn: {
     width: 40, height: 40, borderRadius: 20,
     backgroundColor: colors.neutral[100],
     alignItems: 'center', justifyContent: 'center',
@@ -235,10 +341,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#2B5FC2', borderRadius: 12,
     height: 56, alignItems: 'center', justifyContent: 'center',
   },
+  applyBtnDisabled: {
+    opacity: 0.7,
+  },
   applyBtnText: {
     color: colors.white, fontSize: typography.fontSize.body,
     fontWeight: typography.fontWeight.semibold as any,
   },
-});
+  loadingContainer: {
+    flex: 1, alignItems: 'center', justifyContent: 'center',
+  },
+  errorText: {
+    fontSize: typography.fontSize.body,
+    color: colors.neutral[500],
+  },
+})
 
-export default JobDetailScreen;
+export default JobDetailScreen

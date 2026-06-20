@@ -1,8 +1,9 @@
 import axios, { AxiosError } from 'axios';
 import * as SecureStore from 'expo-secure-store';
+import { ENV } from '@/config/env';
 
 const apiClient = axios.create({
-  baseURL: 'http://localhost:8080/api',
+  baseURL: ENV.API_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

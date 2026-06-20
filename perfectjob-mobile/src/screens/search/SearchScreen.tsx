@@ -1,134 +1,118 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react'
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
   FlatList, KeyboardAvoidingView, Platform, SafeAreaView,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { colors } from '@/design-system/tokens/colors';
-import { typography } from '@/design-system/tokens/typography';
-import { spacing } from '@/design-system/tokens/spacing';
-import { Job } from '@/types';
-import JobList from './components/JobList';
-import FilterSheet, { Filters } from './components/FilterSheet';
-import Icon from '@/components/ui/Icon';
+  ActivityIndicator,
+} from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+import { colors } from '@/design-system/tokens/colors'
+import { typography } from '@/design-system/tokens/typography'
+import { spacing } from '@/design-system/tokens/spacing'
+import { Job } from '@/types'
+import { useSearchJobs } from '@/hooks/useJobs'
+import { useFilterStore } from '@/store/useFilterStore'
+import JobList from './components/JobList'
+import FilterSheet, { Filters } from './components/FilterSheet'
+import Icon from '@/components/ui/Icon'
 
 const FILTERS = [
   'Todas as vagas', 'Remoto', 'Híbrido', 'Presencial',
   'Sênior', 'Pleno', 'Júnior',
-];
+]
 
-const EMPTY_FILTERS: Filters = {
-  workModel: [],
-  level: [],
-  salaryMin: '',
-  salaryMax: '',
-  location: '',
-};
+const WORK_MODEL_MAP: Record<string, string> = {
+  'Remoto': 'REMOTE',
+  'Híbrido': 'HYBRID',
+  'Presencial': 'ON_SITE',
+}
 
-const MOCK_JOBS: Job[] = Array.from({ length: 20 }).map((_, i) => ({
-  id: String(i + 1),
-  title: `Vaga de Desenvolvedor ${i + 1}`,
-  company: `Empresa ${i + 1}`,
-  location: ['São Paulo, SP', 'Rio de Janeiro, RJ', 'Remoto'][i % 3],
-  salary: `R$ ${(8 + (i % 5))}.000`,
-  workModel: (['Remoto', 'Híbrido', 'Presencial'] as const)[i % 3],
-  level: (['Júnior', 'Pleno', 'Sênior'] as const)[i % 3],
-  contractType: ['CLT', 'PJ', 'Freelance'][i % 3],
-  description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-  requirements: ['React Native', 'TypeScript', 'Node.js'],
-  benefits: ['Vale refeição', 'Plano de saúde', 'Horário flexível'],
-  skills: ['React Native', 'TypeScript', 'Node.js'],
-}));
+const LEVEL_MAP: Record<string, string> = {
+  'Júnior': 'JUNIOR',
+  'Pleno': 'MID',
+  'Sênior': 'SENIOR',
+}
 
 const SearchScreen = () => {
-  const navigation = useNavigation<any>();
-  const [query, setQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState('Todas as vagas');
-  const [filterVisible, setFilterVisible] = useState(false);
-  const [advancedFilters, setAdvancedFilters] = useState<Filters>(EMPTY_FILTERS);
-  const [jobs] = useState<Job[]>(MOCK_JOBS);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
+  const navigation = useNavigation<any>()
+  const [query, setQuery] = useState('')
+  const [activeFilter, setActiveFilter] = useState('Todas as vagas')
+  const [filterVisible, setFilterVisible] = useState(false)
+  const [advancedFilters, setAdvancedFilters] = useState<Filters>({
+    workModel: [],
+    level: [],
+    salaryMin: '',
+    salaryMax: '',
+    location: '',
+  })
+
+  const searchParams = {
+    keyword: query || undefined,
+    workModel: advancedFilters.workModel.length > 0
+      ? advancedFilters.workModel.map((m) => WORK_MODEL_MAP[m] || m).join(',')
+      : activeFilter in WORK_MODEL_MAP
+        ? WORK_MODEL_MAP[activeFilter]
+        : activeFilter in LEVEL_MAP
+          ? undefined
+          : undefined,
+    experienceLevel: advancedFilters.level.length > 0
+      ? advancedFilters.level.map((l) => LEVEL_MAP[l] || l).join(',')
+      : activeFilter in LEVEL_MAP
+        ? LEVEL_MAP[activeFilter]
+        : undefined,
+    minSalary: advancedFilters.salaryMin ? Number(advancedFilters.salaryMin) : undefined,
+    size: 20,
+  }
+
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    refetch,
+    isRefetching,
+  } = useSearchJobs(searchParams as any)
+
+  const jobs = data?.pages?.flatMap((p) => p.jobs) || []
+  const totalElements = data?.pages?.[0]?.totalElements || 0
 
   const hasAdvancedFilters =
     advancedFilters.workModel.length > 0 ||
     advancedFilters.level.length > 0 ||
     advancedFilters.salaryMin !== '' ||
     advancedFilters.salaryMax !== '' ||
-    advancedFilters.location !== '';
-
-  const filteredJobs = jobs.filter((job) => {
-    const matchesQuery =
-      !query ||
-      job.title.toLowerCase().includes(query.toLowerCase()) ||
-      job.company.toLowerCase().includes(query.toLowerCase());
-
-    if (hasAdvancedFilters) {
-      let matches = matchesQuery;
-
-      if (advancedFilters.workModel.length > 0) {
-        matches = matches && !!job.workModel && advancedFilters.workModel.includes(job.workModel);
-      }
-      if (advancedFilters.level.length > 0) {
-        matches = matches && !!job.level && advancedFilters.level.includes(job.level);
-      }
-      if (advancedFilters.salaryMin && job.salary) {
-        const jobSalaryNum = parseInt(job.salary.replace(/[^0-9]/g, ''), 10);
-        const minNum = parseInt(advancedFilters.salaryMin, 10);
-        if (!isNaN(jobSalaryNum) && !isNaN(minNum)) {
-          matches = matches && jobSalaryNum >= minNum;
-        }
-      }
-      if (advancedFilters.salaryMax && job.salary) {
-        const jobSalaryNum = parseInt(job.salary.replace(/[^0-9]/g, ''), 10);
-        const maxNum = parseInt(advancedFilters.salaryMax, 10);
-        if (!isNaN(jobSalaryNum) && !isNaN(maxNum)) {
-          matches = matches && jobSalaryNum <= maxNum;
-        }
-      }
-      if (advancedFilters.location) {
-        matches =
-          matches &&
-          job.location.toLowerCase().includes(advancedFilters.location.toLowerCase());
-      }
-      return matches;
-    }
-
-    if (activeFilter === 'Todas as vagas') return matchesQuery;
-    if (['Remoto', 'Híbrido', 'Presencial'].includes(activeFilter)) {
-      return matchesQuery && job.workModel === activeFilter;
-    }
-    if (['Júnior', 'Pleno', 'Sênior'].includes(activeFilter)) {
-      return matchesQuery && job.level === activeFilter;
-    }
-    return matchesQuery;
-  });
+    advancedFilters.location !== ''
 
   const handleRefresh = useCallback(() => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1200);
-  }, []);
+    refetch()
+  }, [refetch])
 
   const handleLoadMore = useCallback(() => {
-    if (loadingMore) return;
-    setLoadingMore(true);
-    setTimeout(() => setLoadingMore(false), 1000);
-  }, [loadingMore]);
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage()
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
   const handleJobPress = (job: Job) => {
-    navigation.navigate('JobDetail', { slug: job.id });
-  };
+    navigation.navigate('JobDetail', { slug: (job as any).slug })
+  }
 
   const handleChipPress = (item: string) => {
-    setActiveFilter(item);
-    setAdvancedFilters(EMPTY_FILTERS);
-  };
+    setActiveFilter(item)
+    setAdvancedFilters({
+      workModel: [],
+      level: [],
+      salaryMin: '',
+      salaryMax: '',
+      location: '',
+    })
+  }
 
   const handleApplyFilters = (filters: Filters) => {
-    setAdvancedFilters(filters);
-    setActiveFilter('Todas as vagas');
-    setFilterVisible(false);
-  };
+    setAdvancedFilters(filters)
+    setActiveFilter('Todas as vagas')
+    setFilterVisible(false)
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -167,7 +151,7 @@ const SearchScreen = () => {
         keyExtractor={(item) => item}
         contentContainerStyle={styles.chipList}
         renderItem={({ item }) => {
-          const isActive = activeFilter === item;
+          const isActive = activeFilter === item
           return (
             <TouchableOpacity
               onPress={() => handleChipPress(item)}
@@ -177,23 +161,28 @@ const SearchScreen = () => {
                 {item}
               </Text>
             </TouchableOpacity>
-          );
+          )
         }}
       />
 
       <Text style={styles.resultsText}>
-        {filteredJobs.length} vaga{filteredJobs.length !== 1 ? 's' : ''} encontrada
-        {filteredJobs.length !== 1 ? 's' : ''}
+        {isLoading ? 'Buscando...' : `${totalElements} vaga${totalElements !== 1 ? 's' : ''} encontrada${totalElements !== 1 ? 's' : ''}`}
       </Text>
 
-      <JobList
-        jobs={filteredJobs}
-        onJobPress={handleJobPress}
-        onRefresh={handleRefresh}
-        refreshing={refreshing}
-        onEndReached={handleLoadMore}
-        loadingMore={loadingMore}
-      />
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary[500]} />
+        </View>
+      ) : (
+        <JobList
+          jobs={jobs}
+          onJobPress={handleJobPress}
+          onRefresh={handleRefresh}
+          refreshing={isRefetching}
+          onEndReached={handleLoadMore}
+          loadingMore={isFetchingNextPage}
+        />
+      )}
 
       <FilterSheet
         visible={filterVisible}
@@ -203,8 +192,8 @@ const SearchScreen = () => {
       />
     </KeyboardAvoidingView>
     </SafeAreaView>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.neutral[50] },
@@ -255,6 +244,12 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.bodySm, color: colors.neutral[500],
     paddingHorizontal: spacing[4], marginTop: spacing[4], marginBottom: spacing[2],
   },
-});
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing[10],
+  },
+})
 
-export default SearchScreen;
+export default SearchScreen

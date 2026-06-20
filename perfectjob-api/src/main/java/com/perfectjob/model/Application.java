@@ -28,6 +28,14 @@ public class Application {
     @Column(name = "candidate_id", nullable = false)
     private Long candidateId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "job_id", insertable = false, updatable = false)
+    private Job job;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "candidate_id", insertable = false, updatable = false)
+    private User candidate;
+
     @Column(nullable = false)
     @Builder.Default
     private String status = "PENDING";

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
@@ -10,47 +9,45 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/hooks/useAuth';
+import { registerSchema, type RegisterInput } from '@/schemas/auth';
 import { colors } from '@/design-system/tokens/colors';
 import { typography } from '@/design-system/tokens/typography';
 import { spacing } from '@/design-system/tokens/spacing';
 import Icon from '@/components/ui/Icon';
+import { FormField } from '@/components/ui/FormField';
 
 interface RegisterScreenProps {
   onNavigateToLogin?: () => void;
 }
 
 const RegisterScreen: React.FC<RegisterScreenProps> = ({ onNavigateToLogin }) => {
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { register, isLoading, error } = useAuth();
   const navigation = useNavigation<any>();
 
-  const handleRegister = async () => {
-    if (!fullName.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
-      Alert.alert('Campos obrigatórios', 'Preencha todos os campos para continuar.');
-      return;
-    }
-    if (password !== confirmPassword) {
-      Alert.alert('Erro', 'As senhas não coincidem.');
-      return;
-    }
+  const { control, handleSubmit, formState: { isValid } } = useForm<RegisterInput>({
+    resolver: zodResolver(registerSchema),
+    mode: 'onBlur',
+    defaultValues: { fullName: '', email: '', password: '', confirmPassword: '' },
+  });
+
+  const onSubmit = async (data: RegisterInput) => {
     try {
-      await register({ fullName: fullName.trim(), email: email.trim(), password });
-      navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
+      await register({
+        fullName: data.fullName.trim(),
+        email: data.email.trim(),
+        password: data.password,
+      });
     } catch {
       // Error is handled in useAuth
     }
   };
-
-  const isFormValid = fullName.trim() && email.trim() && password.trim() && confirmPassword.trim();
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -70,94 +67,61 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ onNavigateToLogin }) =>
 
           {/* Form */}
           <View style={styles.form}>
-            {/* Full Name Input */}
-            <View style={[styles.inputContainer, fullName ? styles.inputFocused : null]}>
-              <Icon
-                name="person"
-                size={20}
-                color={fullName ? colors.primary[500] : colors.neutral[400]}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Nome completo"
-                placeholderTextColor={colors.neutral[400]}
-                autoCapitalize="words"
-                value={fullName}
-                onChangeText={setFullName}
-              />
-            </View>
+            <FormField
+              control={control}
+              name="fullName"
+              label="Nome completo"
+              placeholder="Seu nome"
+              autoCapitalize="words"
+              required
+            />
 
-            {/* Email Input */}
-            <View style={[styles.inputContainer, email ? styles.inputFocused : null]}>
-              <Icon
-                name="email"
-                size={20}
-                color={email ? colors.primary[500] : colors.neutral[400]}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Email"
-                placeholderTextColor={colors.neutral[400]}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                value={email}
-                onChangeText={setEmail}
-              />
-            </View>
+            <FormField
+              control={control}
+              name="email"
+              label="Email"
+              placeholder="seu@email.com"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              required
+            />
 
-            {/* Password Input */}
-            <View style={[styles.inputContainer, password ? styles.inputFocused : null]}>
-              <Icon
-                name="lock"
-                size={20}
-                color={password ? colors.primary[500] : colors.neutral[400]}
-              />
-              <TextInput
-                style={[styles.input, { flex: 1 }]}
-                placeholder="Senha"
-                placeholderTextColor={colors.neutral[400]}
-                secureTextEntry={!showPassword}
-                value={password}
-                onChangeText={setPassword}
-              />
+            <FormField
+              control={control}
+              name="password"
+              label="Senha"
+              placeholder="Mínimo 8 caracteres"
+              secureTextEntry={!showPassword}
+              required
+            />
+
+            <FormField
+              control={control}
+              name="confirmPassword"
+              label="Confirme sua senha"
+              placeholder="Digite a senha novamente"
+              secureTextEntry={!showConfirmPassword}
+              required
+            />
+
+            <View style={styles.passwordActions}>
               <TouchableOpacity
-                onPress={() => setShowPassword(!showPassword)}
+                onPress={() => {
+                  setShowPassword(!showPassword);
+                  setShowConfirmPassword(!showConfirmPassword);
+                }}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                style={styles.showPasswordBtn}
               >
                 <Icon
                   family="Ionicons"
                   name={showPassword ? 'eye-off' : 'eye'}
-                  size={20}
-                  color={colors.neutral[400]}
+                  size={16}
+                  color={colors.neutral[600]}
                 />
-              </TouchableOpacity>
-            </View>
-
-            {/* Confirm Password Input */}
-            <View style={[styles.inputContainer, confirmPassword ? styles.inputFocused : null]}>
-              <Icon
-                name="lock"
-                size={20}
-                color={confirmPassword ? colors.primary[500] : colors.neutral[400]}
-              />
-              <TextInput
-                style={[styles.input, { flex: 1 }]}
-                placeholder="Confirme sua senha"
-                placeholderTextColor={colors.neutral[400]}
-                secureTextEntry={!showConfirmPassword}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-              />
-              <TouchableOpacity
-                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <Icon
-                  family="Ionicons"
-                  name={showConfirmPassword ? 'eye-off' : 'eye'}
-                  size={20}
-                  color={colors.neutral[400]}
-                />
+                <Text style={styles.showPasswordText}>
+                  {showPassword ? 'Ocultar' : 'Mostrar'} senhas
+                </Text>
               </TouchableOpacity>
             </View>
 
@@ -172,9 +136,9 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ onNavigateToLogin }) =>
             {/* Register Button */}
             <TouchableOpacity
               activeOpacity={0.8}
-              style={[styles.button, !isFormValid && styles.buttonDisabled]}
-              onPress={handleRegister}
-              disabled={isLoading || !isFormValid}
+              style={[styles.button, (!isValid || isLoading) && styles.buttonDisabled]}
+              onPress={handleSubmit(onSubmit)}
+              disabled={isLoading || !isValid}
             >
               {isLoading ? (
                 <ActivityIndicator color={colors.white} />
@@ -234,36 +198,9 @@ const styles = StyleSheet.create({
   form: {
     width: '100%',
   },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    borderWidth: 1.5,
-    borderColor: colors.neutral[300],
-    borderRadius: 12,
-    paddingHorizontal: spacing[4],
-    marginBottom: spacing[4],
-    height: 52,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  inputFocused: {
-    borderColor: colors.primary[400],
-    shadowColor: colors.primary[500],
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  input: {
-    flex: 1,
-    fontSize: typography.fontSize.body,
-    color: colors.neutral[900],
-    padding: 0,
-    marginLeft: spacing[3],
-    height: '100%',
-  },
+  passwordActions: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: spacing[2] },
+  showPasswordBtn: { flexDirection: 'row', alignItems: 'center', gap: spacing[1] },
+  showPasswordText: { fontSize: typography.fontSize.bodySm, color: colors.neutral[600] },
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -62,7 +62,7 @@ const JobList: React.FC<JobListProps> = ({
       data={jobs}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => (
-        <JobCard job={item} onPress={onJobPress} />
+        <JobCard job={item} onPress={onJobPress} isSaved={false} />
       )}
       contentContainerStyle={[styles.listContent, contentContainerStyle]}
       showsVerticalScrollIndicator={false}

@@ -97,7 +97,7 @@ class AuthServiceTest {
 
         assertThatThrownBy(() -> authService.register(registerRequest))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessage("Email already in use");
+                .hasMessage("Este email já está cadastrado");
 
         verify(userRepository).existsByEmail(registerRequest.email());
         verify(userRepository, never()).save(any());
@@ -134,7 +134,7 @@ class AuthServiceTest {
 
         assertThatThrownBy(() -> authService.login(loginRequest))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessage("User not found");
+                .hasMessage("Usuário não encontrado");
 
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
         verify(userRepository).findByEmail(loginRequest.email());

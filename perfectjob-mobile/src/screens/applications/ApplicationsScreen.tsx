@@ -1,92 +1,108 @@
-import React from 'react';
+import React, { useCallback } from 'react'
 import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  SafeAreaView,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { colors } from '@/design-system/tokens/colors';
-import { typography } from '@/design-system/tokens/typography';
-import { spacing } from '@/design-system/tokens/spacing';
-import Icon from '@/components/ui/Icon';
+  View, Text, StyleSheet, FlatList, TouchableOpacity,
+  SafeAreaView, ActivityIndicator, RefreshControl,
+} from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+import { colors } from '@/design-system/tokens/colors'
+import { typography } from '@/design-system/tokens/typography'
+import { spacing } from '@/design-system/tokens/spacing'
+import { useMyApplications } from '@/hooks/useApplications'
+import { toApplication, type ApplicationView } from '@/services/api/mappers'
+import Icon from '@/components/ui/Icon'
 
-export type ApplicationStatus = 'pending' | 'reviewed' | 'rejected' | 'hired';
+const ApplicationsScreen: React.FC = () => {
+  const navigation = useNavigation<any>()
+  const {
+    data,
+    isLoading,
+    isError,
+    refetch,
+    isRefetching,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useMyApplications()
 
-export interface Application {
-  id: string;
-  jobTitle: string;
-  company: string;
-  status: ApplicationStatus;
-  appliedAt: string;
-}
+  const applications: ApplicationView[] =
+    data?.pages.flatMap((page) => page.content.map(toApplication)) ?? []
 
-const STATUS_CONFIG: Record<
-  ApplicationStatus,
-  { label: string; bg: string; text: string }
-> = {
-  pending: { label: 'Pendente', bg: colors.warning.light, text: colors.warning.dark },
-  reviewed: { label: 'Em análise', bg: colors.info.light, text: colors.info.dark },
-  rejected: { label: 'Recusado', bg: colors.error.light, text: colors.error.dark },
-  hired: { label: 'Contratado', bg: colors.success.light, text: colors.success.dark },
-};
+  const handleJobPress = (item: ApplicationView) => {
+    navigation.navigate('JobDetail', { slug: item.jobSlug })
+  }
 
-const MOCK_APPLICATIONS: Application[] = [
-  {
-    id: '1', jobTitle: 'Desenvolvedor React Native', company: 'TechCorp',
-    status: 'pending', appliedAt: '2025-04-20',
-  },
-  {
-    id: '2', jobTitle: 'Engenheiro de Software', company: 'InovaLabs',
-    status: 'reviewed', appliedAt: '2025-04-18',
-  },
-  {
-    id: '3', jobTitle: 'Desenvolvedor Fullstack', company: 'StartupXYZ',
-    status: 'rejected', appliedAt: '2025-04-10',
-  },
-  {
-    id: '4', jobTitle: 'Tech Lead Mobile', company: 'BigTech',
-    status: 'hired', appliedAt: '2025-03-28',
-  },
-];
-
-interface ApplicationsScreenProps {
-  applications?: Application[];
-}
-
-const ApplicationsScreen: React.FC<ApplicationsScreenProps> = ({
-  applications = MOCK_APPLICATIONS,
-}) => {
-  const navigation = useNavigation<any>();
-
-  const renderItem = ({ item }: { item: Application }) => {
-    const config = STATUS_CONFIG[item.status];
-    return (
+  const renderItem = useCallback(
+    ({ item }: { item: ApplicationView }) => (
       <TouchableOpacity
-        onPress={() => navigation.navigate('JobDetail', { slug: item.id })}
         activeOpacity={0.9}
+        style={styles.card}
+        onPress={() => handleJobPress(item)}
       >
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <View style={styles.cardInfo}>
-              <Text style={styles.jobTitle} numberOfLines={1}>
-                {item.jobTitle}
-              </Text>
-              <Text style={styles.company}>{item.company}</Text>
-            </View>
-            <View style={[styles.badge, { backgroundColor: config.bg }]}>
-              <Text style={[styles.badgeText, { color: config.text }]}>
-                {config.label}
-              </Text>
-            </View>
+        <View style={styles.cardHeader}>
+          <View style={styles.cardInfo}>
+            <Text style={styles.jobTitle} numberOfLines={1}>
+              {item.jobTitle}
+            </Text>
+            <Text style={styles.company}>{item.companyName}</Text>
           </View>
-          <Text style={styles.date}>Candidatado em {item.appliedAt}</Text>
+          <View style={[styles.badge, { backgroundColor: item.statusBg }]}>
+            <Text style={[styles.badgeText, { color: item.statusText }]}>
+              {item.statusLabel}
+            </Text>
+          </View>
         </View>
+        <Text style={styles.date}>Candidatado em {item.createdAtLabel}</Text>
       </TouchableOpacity>
-    );
-  };
+    ),
+    []
+  )
+
+  const handleEndReached = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage()
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+
+  const renderFooter = useCallback(() => {
+    if (!isFetchingNextPage) return null
+    return (
+      <View style={styles.footer}>
+        <ActivityIndicator size="small" color={colors.primary[500]} />
+      </View>
+    )
+  }, [isFetchingNextPage])
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Minhas Candidaturas</Text>
+        </View>
+        <View style={styles.emptyContainer}>
+          <ActivityIndicator size="large" color={colors.primary[500]} />
+        </View>
+      </SafeAreaView>
+    )
+  }
+
+  if (isError) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Minhas Candidaturas</Text>
+        </View>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyTitle}>Não foi possível carregar</Text>
+          <Text style={styles.emptySubtitle}>
+            Verifique sua conexão e tente novamente.
+          </Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={() => refetch()}>
+            <Text style={styles.retryBtnText}>Tentar novamente</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    )
+  }
 
   if (applications.length === 0) {
     return (
@@ -100,12 +116,11 @@ const ApplicationsScreen: React.FC<ApplicationsScreenProps> = ({
           </View>
           <Text style={styles.emptyTitle}>Nenhuma candidatura</Text>
           <Text style={styles.emptySubtitle}>
-            Você ainda não se candidatou a nenhuma vaga. Explore as vagas e
-            candidate-se!
+            Você ainda não se candidatou a nenhuma vaga. Explore as vagas e candidate-se!
           </Text>
         </View>
       </SafeAreaView>
-    );
+    )
   }
 
   return (
@@ -115,14 +130,25 @@ const ApplicationsScreen: React.FC<ApplicationsScreenProps> = ({
       </View>
       <FlatList
         data={applications}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => String(item.id)}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={refetch}
+            tintColor={colors.primary[500]}
+            colors={[colors.primary[500]]}
+          />
+        }
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={renderFooter}
       />
     </SafeAreaView>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.neutral[50] },
@@ -135,6 +161,7 @@ const styles = StyleSheet.create({
     color: colors.neutral[900],
   },
   listContent: { paddingHorizontal: spacing[4], paddingBottom: spacing[6] },
+  footer: { paddingVertical: spacing[4], alignItems: 'center' },
   card: {
     backgroundColor: colors.white, borderRadius: 14,
     padding: spacing[5], marginBottom: spacing[3],
@@ -172,8 +199,19 @@ const styles = StyleSheet.create({
   },
   emptySubtitle: {
     fontSize: typography.fontSize.body, color: colors.neutral[500],
-    textAlign: 'center',
+    textAlign: 'center', marginBottom: spacing[4],
   },
-});
+  retryBtn: {
+    backgroundColor: colors.primary[500],
+    paddingHorizontal: spacing[6],
+    paddingVertical: spacing[3],
+    borderRadius: 8,
+  },
+  retryBtnText: {
+    color: colors.white,
+    fontSize: typography.fontSize.body,
+    fontWeight: typography.fontWeight.semibold as any,
+  },
+})
 
-export default ApplicationsScreen;
+export default ApplicationsScreen

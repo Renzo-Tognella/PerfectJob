@@ -28,8 +28,8 @@ export const jobApi = {
     return response.data;
   },
 
-  getFeatured: async (): Promise<JobResponse[]> => {
-    const response = await apiClient.get('/v1/jobs/featured');
-    return response.data;
+  getFeatured: async (): Promise<PageResponse<JobResponse>> => {
+    const response = await apiClient.get<PageResponse<JobResponse>>('/v1/jobs/featured')
+    return response.data
   },
 };

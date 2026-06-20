@@ -5,6 +5,7 @@ import com.perfectjob.model.enums.JobStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -17,13 +18,25 @@ import java.util.Optional;
 @Repository
 public interface JobRepository extends JpaRepository<Job, Long>, JpaSpecificationExecutor<Job> {
 
+    @EntityGraph(attributePaths = {"company"})
     Page<Job> findByStatus(JobStatus status, Pageable pageable);
 
+    @EntityGraph(attributePaths = {"company"})
     Page<Job> findByCompanyId(Long companyId, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"company"})
+    @Query("SELECT j FROM Job j WHERE j.id = :id")
+    Optional<Job> findByIdWithCompany(@Param("id") Long id);
+
+    @EntityGraph(attributePaths = {"company"})
+    @Query("SELECT j FROM Job j WHERE j.slug = :slug")
+    Optional<Job> findBySlugWithCompany(@Param("slug") String slug);
 
     Optional<Job> findBySlug(String slug);
 
     boolean existsBySlug(String slug);
+
+    long countByStatus(JobStatus status);
 
     @Query(value = "SELECT * FROM jobs j " +
             "WHERE to_tsvector('portuguese', j.title || ' ' || COALESCE(j.description, '')) " +
@@ -50,6 +63,11 @@ public interface JobRepository extends JpaRepository<Job, Long>, JpaSpecificatio
             nativeQuery = true)
     List<String> suggestTitles(@Param("prefix") String prefix);
 
+    @EntityGraph(attributePaths = {"company"})
     @Query("SELECT j FROM Job j WHERE j.status = 'ACTIVE' AND (j.expiresAt IS NULL OR j.expiresAt > CURRENT_TIMESTAMP)")
     Page<Job> findActiveJobs(Pageable pageable);
+
+    @Override
+    @EntityGraph(attributePaths = {"company"})
+    Page<Job> findAll(Specification<Job> spec, Pageable pageable);
 }

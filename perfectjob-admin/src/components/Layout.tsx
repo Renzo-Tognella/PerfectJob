@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard,
   Briefcase,
@@ -20,17 +20,14 @@ const navItems = [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation()
-  const navigate = useNavigate()
-  const { user, logout } = useAuthStore()
+  const user = useAuthStore((s) => s.user)
 
   const handleLogout = () => {
-    logout()
-    navigate('/login')
+    useAuthStore.getState().logout()
   }
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
       <aside className="w-[240px] bg-white shadow-md flex flex-col">
         <div className="p-6">
           <h1 className="text-xl font-bold text-[#2B5FC2]">PerfectJob</h1>
@@ -69,9 +66,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top bar */}
         <header className="bg-white shadow-sm px-8 py-4 flex items-center justify-between">
           <div />
           <div className="flex items-center gap-3">
@@ -79,12 +74,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <User className="w-4 h-4 text-white" />
             </div>
             <span className="text-sm font-medium text-gray-700">
-              {user?.name || 'Usuário'}
+              {user?.fullName || 'Usuário'}
             </span>
           </div>
         </header>
 
-        {/* Content */}
         <main className="flex-1 overflow-auto p-8">
           {children}
         </main>

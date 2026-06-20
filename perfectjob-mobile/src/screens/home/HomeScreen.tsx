@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'
 import {
   View,
   Text,
@@ -6,19 +6,22 @@ import {
   StyleSheet,
   TouchableOpacity,
   SafeAreaView,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import HeroSection from './components/HeroSection';
-import CategoryGrid from './components/CategoryGrid';
-import FeaturedJobs from './components/FeaturedJobs';
-import JobCard from '../../components/shared/JobCard';
-import { Job, Category, Company } from '../../types';
-import { colors } from '../../design-system/tokens/colors';
-import { typography } from '../../design-system/tokens/typography';
-import { spacing } from '../../design-system/tokens/spacing';
-import Icon from '../../components/ui/Icon';
+  ActivityIndicator,
+} from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+import HeroSection from './components/HeroSection'
+import CategoryGrid from './components/CategoryGrid'
+import FeaturedJobs from './components/FeaturedJobs'
+import JobCard from '../../components/shared/JobCard'
+import { Job, Category } from '../../types'
+import { colors } from '../../design-system/tokens/colors'
+import { typography } from '../../design-system/tokens/typography'
+import { spacing } from '../../design-system/tokens/spacing'
+import { useFeaturedJobs } from '../../hooks/useJobs'
+import { useSearchJobs } from '../../hooks/useJobs'
+import Icon from '../../components/ui/Icon'
 
-const TRENDING_SKILLS = ['React', 'Python', 'UX', 'Data', 'DevOps'];
+const TRENDING_SKILLS = ['React', 'Python', 'UX', 'Data', 'DevOps']
 
 const CATEGORIES: Category[] = [
   { id: '1', name: 'Tecnologia', jobCount: 1240, icon: { family: 'MaterialIcons', name: 'computer' } },
@@ -27,62 +30,37 @@ const CATEGORIES: Category[] = [
   { id: '4', name: 'Marketing', jobCount: 521, icon: { family: 'MaterialIcons', name: 'campaign' } },
   { id: '5', name: 'Vendas', jobCount: 489, icon: { family: 'MaterialIcons', name: 'handshake' } },
   { id: '6', name: 'RH', jobCount: 312, icon: { family: 'MaterialIcons', name: 'groups' } },
-];
+]
 
-const FEATURED_JOBS: Job[] = [
-  {
-    id: '1', title: 'Desenvolvedor React Native', company: 'TechCorp',
-    location: 'São Paulo, SP', salaryRange: 'R$ 8.000 - R$ 12.000',
-    skills: ['React Native', 'TypeScript', 'Node.js'], postedAt: '2 dias atrás', matchPercentage: 95,
-  },
-  {
-    id: '2', title: 'Product Designer', company: 'DesignStudio',
-    location: 'Remoto', salaryRange: 'R$ 7.000 - R$ 10.000',
-    skills: ['Figma', 'UI/UX', 'Design System'], postedAt: '1 dia atrás', matchPercentage: 88,
-  },
-  {
-    id: '3', title: 'Cientista de Dados', company: 'DataDriven',
-    location: 'Rio de Janeiro, RJ', salaryRange: 'R$ 10.000 - R$ 15.000',
-    skills: ['Python', 'SQL', 'Machine Learning'], postedAt: '3 dias atrás', matchPercentage: 92,
-  },
-];
-
-const RECENT_JOBS: Job[] = [
-  {
-    id: '4', title: 'Desenvolvedor Backend Java', company: 'FinTech Solutions',
-    location: 'São Paulo, SP', salaryRange: 'R$ 9.000 - R$ 14.000',
-    skills: ['Java', 'Spring Boot', 'PostgreSQL'], postedAt: '5 horas atrás', matchPercentage: 85,
-  },
-  {
-    id: '5', title: 'Analista de Marketing Digital', company: 'Growth Agency',
-    location: 'Remoto', salaryRange: 'R$ 5.000 - R$ 7.500',
-    skills: ['SEO', 'Google Ads', 'Analytics'], postedAt: '1 dia atrás', matchPercentage: 78,
-  },
-];
-
-const COMPANIES: Company[] = [
+const COMPANIES: { id: string; name: string }[] = [
   { id: '1', name: 'TechCorp' }, { id: '2', name: 'DesignStudio' },
   { id: '3', name: 'DataDriven' }, { id: '4', name: 'FinTech' },
   { id: '5', name: 'Growth' },
-];
+]
 
 const HomeScreen: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const navigation = useNavigation<any>();
+  const [searchQuery, setSearchQuery] = useState('')
+  const navigation = useNavigation<any>()
+
+  const { data: featuredJobs, isLoading: featuredLoading } = useFeaturedJobs()
+  const { data: recentData, isLoading: recentLoading } = useSearchJobs({ size: 4 })
+
+  const recentJobs = recentData?.pages?.[0]?.jobs || []
+  const displayedFeatured = featuredJobs?.slice(0, 3) || []
 
   const handleJobPress = (job: Job) => {
-    navigation.navigate('JobDetail', { slug: job.id });
-  };
+    navigation.navigate('JobDetail', { slug: (job as any).slug })
+  }
 
   const handleCategoryPress = (category: Category) => {
-    navigation.navigate('Search', { category: category.name });
-  };
+    navigation.navigate('Search', { category: category.name })
+  }
 
   const handleSearchSubmit = () => {
     if (searchQuery.trim()) {
-      navigation.navigate('Search', { query: searchQuery.trim() });
+      navigation.navigate('Search', { query: searchQuery.trim() })
     }
-  };
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -90,7 +68,6 @@ const HomeScreen: React.FC = () => {
         style={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.logo}>PerfectJob</Text>
           <TouchableOpacity activeOpacity={0.8} style={styles.bellBtn}>
@@ -98,14 +75,12 @@ const HomeScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Hero */}
         <HeroSection
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           onSearchSubmit={handleSearchSubmit}
         />
 
-        {/* Trending Chips */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -118,24 +93,30 @@ const HomeScreen: React.FC = () => {
           ))}
         </ScrollView>
 
-        {/* Categories */}
         <CategoryGrid
           categories={CATEGORIES}
           onCategoryPress={handleCategoryPress}
         />
 
-        {/* Featured Jobs */}
-        <FeaturedJobs jobs={FEATURED_JOBS} onJobPress={handleJobPress} />
+        {featuredLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="small" color={colors.primary[500]} />
+          </View>
+        ) : displayedFeatured.length > 0 ? (
+          <FeaturedJobs jobs={displayedFeatured} onJobPress={handleJobPress} />
+        ) : null}
 
-        {/* Recent Jobs */}
         <View style={styles.recentSection}>
           <Text style={styles.sectionTitle}>Vagas Recentes</Text>
-          {RECENT_JOBS.map((job) => (
-            <JobCard key={job.id} job={job} onPress={handleJobPress} />
-          ))}
+          {recentLoading ? (
+            <ActivityIndicator size="small" color={colors.primary[500]} />
+          ) : (
+            recentJobs.map((job) => (
+              <JobCard key={job.id} job={job} onPress={handleJobPress} isSaved={false} />
+            ))
+          )}
         </View>
 
-        {/* Company List */}
         <View style={styles.companySection}>
           <Text style={styles.sectionTitle}>Empresas em Destaque</Text>
           <ScrollView
@@ -157,8 +138,8 @@ const HomeScreen: React.FC = () => {
         </View>
       </ScrollView>
     </SafeAreaView>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.white },
@@ -191,6 +172,10 @@ const styles = StyleSheet.create({
     color: colors.primary[700],
     fontWeight: typography.fontWeight.medium as '500',
   },
+  loadingContainer: {
+    paddingVertical: spacing[6],
+    alignItems: 'center',
+  },
   recentSection: { paddingHorizontal: spacing[4], paddingVertical: spacing[4] },
   sectionTitle: {
     fontSize: typography.fontSize.h4,
@@ -215,6 +200,6 @@ const styles = StyleSheet.create({
     color: colors.neutral[700],
     fontWeight: typography.fontWeight.medium as '500',
   },
-});
+})
 
-export default HomeScreen;
+export default HomeScreen

@@ -11,5 +11,6 @@ public record CompanyResponse(
     String industry,
     Integer foundedYear,
     Double rating,
-    Integer ratingCount
+    Integer ratingCount,
+    Long ownerUserId
 ) {}

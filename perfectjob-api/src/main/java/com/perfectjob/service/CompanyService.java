@@ -6,18 +6,25 @@ import com.perfectjob.exception.DuplicateResourceException;
 import com.perfectjob.exception.ResourceNotFoundException;
 import com.perfectjob.model.Company;
 import com.perfectjob.repository.CompanyRepository;
+import com.perfectjob.security.CurrentUser;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class CompanyService {
 
     private final CompanyRepository companyRepository;
 
-    public CompanyResponse create(CreateCompanyRequest request) {
+    @CacheEvict(value = "companies", allEntries = true)
+    public CompanyResponse create(CreateCompanyRequest request, CurrentUser currentUser) {
         String normalizedSlug = normalizeSlug(request.slug());
 
         if (companyRepository.existsBySlug(normalizedSlug)) {
@@ -35,12 +42,14 @@ public class CompanyService {
                 .foundedYear(request.foundedYear())
                 .rating(0.0)
                 .ratingCount(0)
+                .ownerUserId(currentUser.id())
                 .build();
 
         Company saved = companyRepository.save(company);
         return toResponse(saved);
     }
 
+    @Cacheable(value = "companies", key = "#slug")
     public CompanyResponse findBySlug(String slug) {
         Company company = companyRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Company not found with slug: " + slug));
@@ -51,9 +60,12 @@ public class CompanyService {
         return companyRepository.findAll(pageable).map(this::toResponse);
     }
 
-    public CompanyResponse update(Long id, CreateCompanyRequest request) {
+    @CacheEvict(value = "companies", allEntries = true)
+    public CompanyResponse update(Long id, CreateCompanyRequest request, CurrentUser currentUser) {
         Company company = companyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Company not found with id: " + id));
+
+        assertCanModify(company, currentUser);
 
         String normalizedSlug = normalizeSlug(request.slug());
 
@@ -74,11 +86,22 @@ public class CompanyService {
         return toResponse(updated);
     }
 
-    public void delete(Long id) {
-        if (!companyRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Company not found with id: " + id);
+    @CacheEvict(value = "companies", allEntries = true)
+    public void delete(Long id, CurrentUser currentUser) {
+        Company company = companyRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Company not found with id: " + id));
+
+        assertCanModify(company, currentUser);
+        companyRepository.delete(company);
+    }
+
+    private void assertCanModify(Company company, CurrentUser currentUser) {
+        if (currentUser.isAdmin()) {
+            return;
         }
-        companyRepository.deleteById(id);
+        if (company.getOwnerUserId() == null || !company.getOwnerUserId().equals(currentUser.id())) {
+            throw new AccessDeniedException("You do not own this company");
+        }
     }
 
     private String normalizeSlug(String slug) {
@@ -97,7 +120,8 @@ public class CompanyService {
                 company.getIndustry(),
                 company.getFoundedYear(),
                 company.getRating(),
-                company.getRatingCount()
+                company.getRatingCount(),
+                company.getOwnerUserId()
         );
     }
 }

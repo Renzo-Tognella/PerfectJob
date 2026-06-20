@@ -1,336 +1,364 @@
-import { useState, useEffect } from 'react'
-import { X } from 'lucide-react'
-import * as jobApi from '../services/api/jobApi'
-import * as companyApi from '../services/api/companyApi'
-import type { Job, JobInput } from '../services/api/jobApi'
-import type { Company } from '../services/api/companyApi'
+import { useEffect, useState, type KeyboardEvent } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { X as XIcon } from 'lucide-react';
+import { useCompanies } from '@/hooks/useCompanies';
+import { useCreateJob, useUpdateJob } from '@/hooks/useJobs';
+import type { Job, JobInput } from '@/services/api/jobApi';
+import { Modal } from '@/components/ui/Modal';
+import { Input } from '@/components/ui/Input';
+import { Textarea } from '@/components/ui/Textarea';
+import { Select } from '@/components/ui/Select';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Spinner } from '@/components/ui/Spinner';
+import { toast } from '@/components/ui/Toast';
+import {
+  jobSchema,
+  workModelOptions,
+  experienceLevelOptions,
+  jobTypeOptions,
+  contractTypeOptions,
+  type JobFormInput,
+} from '@/schemas/job';
 
 interface JobFormModalProps {
-  job: Job | null
-  onClose: () => void
-  onSave: () => void
+  job: Job | null;
+  onClose: () => void;
+  onSave: () => void;
 }
 
-const workModelOptions = [
-  { value: 'remote', label: 'Remoto' },
-  { value: 'hybrid', label: 'Híbrido' },
-  { value: 'onsite', label: 'Presencial' },
-]
+const toFormInput = (job: Job | null): JobFormInput => {
+  if (!job) {
+    const defaultExpires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0];
+    return {
+      title: '',
+      companyId: 0,
+      description: '',
+      requirements: '',
+      benefits: '',
+      workModel: 'REMOTE',
+      experienceLevel: 'MID',
+      jobType: 'FULL_TIME',
+      contractType: 'CLT',
+      locationCity: '',
+      locationState: '',
+      skills: [],
+      expiresAt: defaultExpires,
+    };
+  }
 
-const experienceLevelOptions = [
-  { value: 'junior', label: 'Júnior' },
-  { value: 'mid', label: 'Pleno' },
-  { value: 'senior', label: 'Sênior' },
-  { value: 'lead', label: 'Lead' },
-  { value: 'principal', label: 'Principal' },
-]
+  return {
+    title: job.title,
+    companyId: job.companyId,
+    description: job.description,
+    requirements: job.requirements || '',
+    benefits: job.benefits || '',
+    workModel: job.workModel as JobFormInput['workModel'],
+    experienceLevel: job.experienceLevel as JobFormInput['experienceLevel'],
+    jobType: job.jobType as JobFormInput['jobType'],
+    contractType: job.contractType as JobFormInput['contractType'],
+    salaryMin: job.salaryMin,
+    salaryMax: job.salaryMax,
+    locationCity: job.locationCity || '',
+    locationState: job.locationState || '',
+    skills: job.skills || [],
+    expiresAt: job.expiresAt ? job.expiresAt.split('T')[0] : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+  };
+};
 
-const jobTypeOptions = [
-  { value: 'fulltime', label: 'Tempo Integral' },
-  { value: 'parttime', label: 'Meio Período' },
-  { value: 'freelance', label: 'Freelance' },
-  { value: 'internship', label: 'Estágio' },
-]
-
-const contractTypeOptions = [
-  { value: 'clt', label: 'CLT' },
-  { value: 'pj', label: 'PJ' },
-  { value: 'cooperado', label: 'Cooperado' },
-]
+const toApiPayload = (data: JobFormInput): JobInput => ({
+  ...data,
+  requirements: data.requirements || '',
+  benefits: data.benefits || '',
+  salaryMin: data.salaryMin,
+  salaryMax: data.salaryMax,
+  locationCity: data.locationCity,
+  locationState: data.locationState,
+  skills: data.skills,
+  expiresAt: new Date(data.expiresAt).toISOString(),
+});
 
 export function JobFormModal({ job, onClose, onSave }: JobFormModalProps) {
-  const [companies, setCompanies] = useState<Company[]>([])
-  const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState<Partial<JobInput>>({
-    title: '',
-    description: '',
-    requirements: '',
-    benefits: '',
-    salaryMin: undefined,
-    salaryMax: undefined,
-    workModel: 'remote',
-    experienceLevel: 'mid',
-    jobType: 'fulltime',
-    contractType: 'clt',
-    location: '',
-    skills: [],
-    expiresAt: '',
-    companyId: '',
-  })
+  const { data: companies = [], isLoading: companiesLoading } = useCompanies();
+  const createJob = useCreateJob();
+  const updateJob = useUpdateJob();
+  const [skillInput, setSkillInput] = useState('');
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    control,
+    formState: { errors, isSubmitting },
+    setValue,
+    watch,
+  } = useForm<JobFormInput>({
+    resolver: zodResolver(jobSchema),
+    defaultValues: toFormInput(job),
+  });
+
+  const skills = watch('skills') ?? [];
 
   useEffect(() => {
-    const loadCompanies = async () => {
-      try {
-        const data = await companyApi.getAll()
-        setCompanies(data)
-      } catch (error) {
-        console.error('Failed to load companies:', error)
-      }
+    reset(toFormInput(job));
+  }, [job, reset]);
+
+  const addSkill = (raw: string) => {
+    const trimmed = raw.trim();
+    if (!trimmed) return;
+    if (skills.includes(trimmed)) return;
+    if (skills.length >= 20) {
+      toast.error('Máximo 20 skills');
+      return;
     }
-    loadCompanies()
-  }, [])
+    setValue('skills', [...skills, trimmed], { shouldValidate: true });
+  };
 
-  useEffect(() => {
-    if (job) {
-      setFormData({
-        title: job.title,
-        description: job.description,
-        requirements: job.requirements,
-        benefits: job.benefits || '',
-        salaryMin: job.salaryMin,
-        salaryMax: job.salaryMax,
-        workModel: job.workModel,
-        experienceLevel: job.experienceLevel,
-        jobType: job.jobType,
-        contractType: job.contractType,
-        location: job.location || '',
-        skills: job.skills,
-        expiresAt: job.expiresAt ? job.expiresAt.split('T')[0] : '',
-        companyId: job.companyId,
-      })
+  const removeSkill = (skill: string) => {
+    setValue(
+      'skills',
+      skills.filter((s) => s !== skill),
+      { shouldValidate: true }
+    );
+  };
+
+  const handleSkillKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addSkill(skillInput);
+      setSkillInput('');
+    } else if (e.key === 'Backspace' && !skillInput && skills.length > 0) {
+      removeSkill(skills[skills.length - 1]);
     }
-  }, [job])
+  };
 
-  const handleChange = (field: keyof JobInput, value: string | number | string[]) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-
+  const onSubmit = handleSubmit(async (data) => {
     try {
-      const data: JobInput = {
-        title: formData.title || '',
-        description: formData.description || '',
-        requirements: formData.requirements || '',
-        benefits: formData.benefits,
-        salaryMin: formData.salaryMin ? Number(formData.salaryMin) : undefined,
-        salaryMax: formData.salaryMax ? Number(formData.salaryMax) : undefined,
-        workModel: formData.workModel || 'remote',
-        experienceLevel: formData.experienceLevel || 'mid',
-        jobType: formData.jobType || 'fulltime',
-        contractType: formData.contractType || 'clt',
-        location: formData.location,
-        skills: formData.skills || [],
-        expiresAt: formData.expiresAt,
-        companyId: formData.companyId || '',
-      }
-
+      const payload = toApiPayload(data);
       if (job) {
-        await jobApi.update(job.id, data)
+        await updateJob.mutateAsync({ id: job.id, data: payload });
+        toast.success('Vaga atualizada com sucesso');
       } else {
-        await jobApi.create(data)
+        await createJob.mutateAsync(payload);
+        toast.success('Vaga criada com sucesso');
       }
-      onSave()
-    } catch (error) {
-      console.error('Failed to save job:', error)
-      alert('Erro ao salvar vaga. Tente novamente.')
-    } finally {
-      setLoading(false)
+      onSave();
+    } catch {
+      toast.error('Erro ao salvar vaga. Tente novamente.');
     }
-  }
-
-  const skillsString = (formData.skills || []).join(', ')
+  });
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {job ? 'Editar Vaga' : 'Nova Vaga'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+    <Modal
+      isOpen
+      onClose={onClose}
+      title={job ? 'Editar Vaga' : 'Nova Vaga'}
+      size="lg"
+    >
+      {companiesLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Spinner size="lg" />
         </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Empresa</label>
-            <select
-              value={formData.companyId || ''}
-              onChange={(e) => handleChange('companyId', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5FC2] focus:border-transparent"
-              required
-            >
-              <option value="">Selecione uma empresa</option>
-              {companies.map((company) => (
-                <option key={company.id} value={company.id}>{company.name}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Título</label>
-            <input
-              type="text"
-              value={formData.title || ''}
-              onChange={(e) => handleChange('title', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5FC2] focus:border-transparent"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
-            <textarea
-              value={formData.description || ''}
-              onChange={(e) => handleChange('description', e.target.value)}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5FC2] focus:border-transparent"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Requisitos</label>
-            <textarea
-              value={formData.requirements || ''}
-              onChange={(e) => handleChange('requirements', e.target.value)}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5FC2] focus:border-transparent"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Benefícios</label>
-            <textarea
-              value={formData.benefits || ''}
-              onChange={(e) => handleChange('benefits', e.target.value)}
-              rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5FC2] focus:border-transparent"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Salário Mínimo</label>
-              <input
-                type="number"
-                value={formData.salaryMin || ''}
-                onChange={(e) => handleChange('salaryMin', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5FC2] focus:border-transparent"
+      ) : (
+        <form onSubmit={onSubmit} className="space-y-4">
+          <Controller
+            name="companyId"
+            control={control}
+            render={({ field }) => (
+              <Select
+                label="Empresa"
+                placeholder="Selecione uma empresa"
+                options={companies.map((c) => ({ value: c.id, label: c.name }))}
+                value={field.value || ''}
+                onChange={(e) => field.onChange(Number(e.target.value))}
+                error={errors.companyId?.message}
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Salário Máximo</label>
-              <input
-                type="number"
-                value={formData.salaryMax || ''}
-                onChange={(e) => handleChange('salaryMax', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5FC2] focus:border-transparent"
-              />
-            </div>
+            )}
+          />
+
+          <Input
+            label="Título"
+            {...register('title')}
+            error={errors.title?.message}
+            placeholder="Ex: Desenvolvedor Full Stack Pleno"
+          />
+
+          <Textarea
+            label="Descrição"
+            {...register('description')}
+            error={errors.description?.message}
+            rows={3}
+            placeholder="Descreva as responsabilidades e o escopo da vaga..."
+          />
+
+          <Textarea
+            label="Requisitos"
+            {...register('requirements')}
+            error={errors.requirements?.message}
+            rows={3}
+            placeholder="Tecnologias, experiências e conhecimentos necessários..."
+          />
+
+          <Textarea
+            label="Benefícios"
+            {...register('benefits')}
+            error={errors.benefits?.message}
+            rows={2}
+            placeholder="VR, VA, plano de saúde, home office..."
+          />
+
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Salário Mínimo"
+              type="number"
+              min="0"
+              {...register('salaryMin', { valueAsNumber: true })}
+              error={errors.salaryMin?.message}
+              placeholder="5000"
+            />
+            <Input
+              label="Salário Máximo"
+              type="number"
+              min="0"
+              {...register('salaryMax', { valueAsNumber: true })}
+              error={errors.salaryMax?.message}
+              placeholder="10000"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Modelo de Trabalho</label>
-              <select
-                value={formData.workModel || 'remote'}
-                onChange={(e) => handleChange('workModel', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5FC2] focus:border-transparent"
-              >
-                {workModelOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nível de Experiência</label>
-              <select
-                value={formData.experienceLevel || 'mid'}
-                onChange={(e) => handleChange('experienceLevel', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5FC2] focus:border-transparent"
-              >
-                {experienceLevelOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-            </div>
+            <Controller
+              name="workModel"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  label="Modelo de Trabalho"
+                  options={workModelOptions as unknown as { value: string; label: string }[]}
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={errors.workModel?.message}
+                />
+              )}
+            />
+            <Controller
+              name="experienceLevel"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  label="Nível de Experiência"
+                  options={experienceLevelOptions as unknown as { value: string; label: string }[]}
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={errors.experienceLevel?.message}
+                />
+              )}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Vaga</label>
-              <select
-                value={formData.jobType || 'fulltime'}
-                onChange={(e) => handleChange('jobType', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5FC2] focus:border-transparent"
-              >
-                {jobTypeOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+            <Controller
+              name="jobType"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  label="Tipo de Vaga"
+                  options={jobTypeOptions as unknown as { value: string; label: string }[]}
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={errors.jobType?.message}
+                />
+              )}
+            />
+            <Controller
+              name="contractType"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  label="Tipo de Contrato"
+                  options={contractTypeOptions as unknown as { value: string; label: string }[]}
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={errors.contractType?.message}
+                />
+              )}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Cidade"
+              {...register('locationCity')}
+              error={errors.locationCity?.message}
+              placeholder="São Paulo"
+            />
+            <Input
+              label="Estado"
+              {...register('locationState')}
+              error={errors.locationState?.message}
+              placeholder="SP"
+            />
+          </div>
+
+          <div className="w-full">
+            <label className="block text-sm font-medium text-neutral-700 mb-1">Skills</label>
+            <div className="w-full min-h-10 px-3 py-2 rounded-md border border-neutral-300 bg-white focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent">
+              <div className="flex flex-wrap gap-1.5 items-center">
+                {skills.map((skill) => (
+                  <Badge key={skill} variant="info" className="gap-1">
+                    {skill}
+                    <button
+                      type="button"
+                      onClick={() => removeSkill(skill)}
+                      className="hover:text-red-600"
+                      aria-label={`Remover ${skill}`}
+                    >
+                      <XIcon className="h-3 w-3" />
+                    </button>
+                  </Badge>
                 ))}
-              </select>
+                <input
+                  type="text"
+                  value={skillInput}
+                  onChange={(e) => setSkillInput(e.target.value)}
+                  onKeyDown={handleSkillKeyDown}
+                  onBlur={() => {
+                    if (skillInput.trim()) {
+                      addSkill(skillInput);
+                      setSkillInput('');
+                    }
+                  }}
+                  placeholder={skills.length === 0 ? 'Digite uma skill e pressione Enter' : ''}
+                  className="flex-1 min-w-[120px] outline-none text-sm bg-transparent"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Contrato</label>
-              <select
-                value={formData.contractType || 'clt'}
-                onChange={(e) => handleChange('contractType', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5FC2] focus:border-transparent"
-              >
-                {contractTypeOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-            </div>
+            {errors.skills && <p className="text-sm text-error mt-1">{errors.skills.message}</p>}
+            <p className="text-sm text-neutral-500 mt-1">Pressione Enter ou vírgula para adicionar</p>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Localização</label>
-            <input
-              type="text"
-              value={formData.location || ''}
-              onChange={(e) => handleChange('location', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5FC2] focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Skills (separadas por vírgula)</label>
-            <input
-              type="text"
-              value={skillsString}
-              onChange={(e) => handleChange('skills', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))}
-              placeholder="React, TypeScript, Node.js"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5FC2] focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Expira em</label>
-            <input
-              type="date"
-              value={formData.expiresAt || ''}
-              onChange={(e) => handleChange('expiresAt', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5FC2] focus:border-transparent"
-            />
-          </div>
+          <Input
+            label="Expira em"
+            type="date"
+            {...register('expiresAt')}
+            error={errors.expiresAt?.message}
+          />
 
           <div className="flex items-center justify-end gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-            >
+            <Button type="button" variant="secondary" onClick={onClose}>
               Cancelar
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              disabled={loading}
-              className="px-4 py-2 text-sm font-medium text-white bg-[#2B5FC2] rounded-lg hover:bg-[#234D9E] transition-colors disabled:opacity-50"
+              loading={isSubmitting || createJob.isPending || updateJob.isPending}
             >
-              {loading ? 'Salvando...' : 'Salvar'}
-            </button>
+              Salvar
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
-  )
+      )}
+    </Modal>
+  );
 }

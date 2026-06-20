@@ -3,34 +3,55 @@ package com.perfectjob.service;
 import com.perfectjob.dto.request.CreateJobRequest;
 import com.perfectjob.dto.request.SearchJobRequest;
 import com.perfectjob.dto.response.JobResponse;
+import com.perfectjob.dto.response.JobStatsResponse;
 import com.perfectjob.event.JobPostedEvent;
+import com.perfectjob.exception.ResourceNotFoundException;
 import com.perfectjob.model.Company;
 import com.perfectjob.model.Job;
 import com.perfectjob.model.enums.ExperienceLevel;
 import com.perfectjob.model.enums.JobStatus;
 import com.perfectjob.model.enums.WorkModel;
 import jakarta.persistence.criteria.Predicate;
+import com.perfectjob.repository.ApplicationRepository;
 import com.perfectjob.repository.CompanyRepository;
 import com.perfectjob.repository.JobRepository;
+import com.perfectjob.security.CurrentUser;
+import com.perfectjob.service.mapper.JobMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class JobService {
 
     private final JobRepository jobRepository;
     private final CompanyRepository companyRepository;
+    private final ApplicationRepository applicationRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    public JobResponse create(CreateJobRequest request) {
+    @CacheEvict(value = "jobs", allEntries = true)
+    public JobResponse create(CreateJobRequest request, CurrentUser currentUser) {
+        Company company = companyRepository.findById(request.companyId())
+                .orElseThrow(() -> new ResourceNotFoundException("Company not found with id: " + request.companyId()));
+
+        if (!currentUser.isAdmin() && (company.getOwnerUserId() == null
+                || !company.getOwnerUserId().equals(currentUser.id()))) {
+            throw new AccessDeniedException("You do not own this company");
+        }
+
         Job job = Job.builder()
                 .title(request.title())
                 .companyId(request.companyId())
@@ -53,13 +74,14 @@ public class JobService {
 
         Job saved = jobRepository.save(job);
         eventPublisher.publishEvent(new JobPostedEvent(saved.getId(), saved.getCompanyId(), saved.getTitle()));
-        return toResponse(saved);
+        return JobMapper.toResponse(saved);
     }
 
+    @Cacheable(value = "jobs", key = "#slug")
     public JobResponse findBySlug(String slug) {
-        Job job = jobRepository.findBySlug(slug)
-                .orElseThrow(() -> new RuntimeException("Job not found"));
-        return toResponse(job);
+        Job job = jobRepository.findBySlugWithCompany(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Job", "slug", slug));
+        return JobMapper.toResponse(job);
     }
 
     public Page<JobResponse> search(SearchJobRequest request, Pageable pageable) {
@@ -76,20 +98,32 @@ public class JobService {
             jobs = jobRepository.findAll(spec, pageable);
         }
 
-        return jobs.map(this::toResponse);
+        return jobs.map(JobMapper::toResponse);
     }
 
     public Page<JobResponse> findByCompany(Long companyId, Pageable pageable) {
         return jobRepository.findByCompanyId(companyId, pageable)
-                .map(this::toResponse);
+                .map(JobMapper::toResponse);
     }
 
-    public JobResponse update(Long id, CreateJobRequest request) {
+    @CacheEvict(value = "jobs", allEntries = true)
+    public JobResponse update(Long id, CreateJobRequest request, CurrentUser currentUser) {
         Job job = jobRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Job not found"));
 
+        assertCanModifyJob(job, currentUser);
+
+        if (request.companyId() != null && !request.companyId().equals(job.getCompanyId())) {
+            Company newCompany = companyRepository.findById(request.companyId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Company not found with id: " + request.companyId()));
+            if (!currentUser.isAdmin() && (newCompany.getOwnerUserId() == null
+                    || !newCompany.getOwnerUserId().equals(currentUser.id()))) {
+                throw new AccessDeniedException("You do not own the target company");
+            }
+            job.setCompanyId(request.companyId());
+        }
+
         job.setTitle(request.title());
-        job.setCompanyId(request.companyId());
         job.setDescription(request.description());
         job.setRequirements(request.requirements());
         job.setBenefits(request.benefits());
@@ -105,19 +139,23 @@ public class JobService {
         job.setExpiresAt(request.expiresAt());
 
         Job updated = jobRepository.save(job);
-        return toResponse(updated);
+        return JobMapper.toResponse(updated);
     }
 
-    public JobResponse closeJob(Long id) {
+    @CacheEvict(value = "jobs", allEntries = true)
+    public JobResponse closeJob(Long id, CurrentUser currentUser) {
         Job job = jobRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Job not found"));
+
+        assertCanModifyJob(job, currentUser);
+
         job.setStatus(JobStatus.CLOSED);
         Job updated = jobRepository.save(job);
-        return toResponse(updated);
+        return JobMapper.toResponse(updated);
     }
 
     public Page<JobResponse> searchFullText(String keyword, Pageable pageable) {
-        return jobRepository.searchFullText(keyword, pageable).map(this::toResponse);
+        return jobRepository.searchFullText(keyword, pageable).map(JobMapper::toResponse);
     }
 
     public List<String> suggestTitles(String prefix) {
@@ -140,7 +178,28 @@ public class JobService {
         .and(JobSpecification.byWorkModel(workModel))
         .and(JobSpecification.byExperienceLevel(experienceLevel));
 
-        return jobRepository.findAll(spec, pageable).map(this::toResponse);
+        return jobRepository.findAll(spec, pageable).map(JobMapper::toResponse);
+    }
+
+    @Cacheable(value = "stats", key = "'global'")
+    public JobStatsResponse getStats() {
+        long activeJobs = jobRepository.countByStatus(JobStatus.ACTIVE);
+        long totalApplications = applicationRepository.count();
+        long applicationsToday = applicationRepository.countByCreatedAtAfter(
+                LocalDate.now().atStartOfDay());
+        long totalCompanies = companyRepository.count();
+        return new JobStatsResponse(activeJobs, totalApplications, applicationsToday, totalCompanies);
+    }
+
+    private void assertCanModifyJob(Job job, CurrentUser currentUser) {
+        if (currentUser.isAdmin()) {
+            return;
+        }
+        Company company = companyRepository.findById(job.getCompanyId()).orElse(null);
+        if (company == null || company.getOwnerUserId() == null
+                || !company.getOwnerUserId().equals(currentUser.id())) {
+            throw new AccessDeniedException("You do not own the company that owns this job");
+        }
     }
 
     private String generateSlug(String title) {
@@ -149,39 +208,5 @@ public class JobService {
                 .trim()
                 .replaceAll("\\s+", "-");
         return base + "-" + System.currentTimeMillis();
-    }
-
-    private JobResponse toResponse(Job job) {
-        String companyName = companyRepository.findById(job.getCompanyId())
-                .map(Company::getName)
-                .orElse("Unknown");
-
-        return new JobResponse(
-                job.getId(),
-                job.getCompanyId(),
-                companyName,
-                job.getTitle(),
-                job.getSlug(),
-                job.getDescription(),
-                job.getRequirements(),
-                job.getBenefits(),
-                job.getSalaryMin(),
-                job.getSalaryMax(),
-                job.getSalaryCurrency(),
-                job.getWorkModel(),
-                job.getExperienceLevel(),
-                job.getJobType(),
-                job.getContractType(),
-                job.getLocationCity(),
-                job.getLocationState(),
-                job.getLocationCountry(),
-                job.getSkills(),
-                job.getStatus(),
-                job.getViews(),
-                job.getApplicationsCount(),
-                job.getCreatedAt(),
-                job.getUpdatedAt(),
-                job.getExpiresAt()
-        );
     }
 }

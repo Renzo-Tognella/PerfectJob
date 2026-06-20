@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
@@ -12,34 +11,38 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/hooks/useAuth';
+import { loginSchema, type LoginInput } from '@/schemas/auth';
 import { colors } from '@/design-system/tokens/colors';
 import { typography } from '@/design-system/tokens/typography';
 import { spacing } from '@/design-system/tokens/spacing';
 import Icon from '@/components/ui/Icon';
+import { FormField } from '@/components/ui/FormField';
 
 interface LoginScreenProps {
   onNavigateToRegister?: () => void;
 }
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const { login, isLoading, error } = useAuth();
   const navigation = useNavigation<any>();
 
-  const handleLogin = async () => {
-    if (!email.trim() || !password.trim()) return;
+  const { control, handleSubmit, formState: { isValid } } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+    mode: 'onBlur',
+    defaultValues: { email: '', password: '' },
+  });
+
+  const onSubmit = async (data: LoginInput) => {
     try {
-      await login({ email: email.trim(), password });
-      navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
+      await login({ email: data.email.trim(), password: data.password });
     } catch {
       // Error is handled in useAuth
     }
   };
-
-  const isFormValid = email.trim() && password.trim();
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -59,41 +62,40 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister }) => {
 
           {/* Form */}
           <View style={styles.form}>
-            {/* Email Input */}
-            <View style={[styles.inputContainer, email ? styles.inputFocused : null]}>
-              <Icon name="email" size={20} color={email ? colors.primary[500] : colors.neutral[400]} />
-              <TextInput
-                style={styles.input}
-                placeholder="Email"
-                placeholderTextColor={colors.neutral[400]}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                value={email}
-                onChangeText={setEmail}
-              />
-            </View>
+            <FormField
+              control={control}
+              name="email"
+              label="Email"
+              placeholder="seu@email.com"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              required
+            />
 
-            {/* Password Input */}
-            <View style={[styles.inputContainer, password ? styles.inputFocused : null]}>
-              <Icon name="lock" size={20} color={password ? colors.primary[500] : colors.neutral[400]} />
-              <TextInput
-                style={[styles.input, { flex: 1 }]}
-                placeholder="Senha"
-                placeholderTextColor={colors.neutral[400]}
-                secureTextEntry={!showPassword}
-                value={password}
-                onChangeText={setPassword}
-              />
+            <FormField
+              control={control}
+              name="password"
+              label="Senha"
+              placeholder="Sua senha"
+              secureTextEntry={!showPassword}
+              required
+            />
+
+            <View style={styles.passwordActions}>
               <TouchableOpacity
                 onPress={() => setShowPassword(!showPassword)}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                style={styles.showPasswordBtn}
               >
                 <Icon
                   family="Ionicons"
                   name={showPassword ? 'eye-off' : 'eye'}
-                  size={20}
-                  color={colors.neutral[400]}
+                  size={16}
+                  color={colors.neutral[600]}
                 />
+                <Text style={styles.showPasswordText}>
+                  {showPassword ? 'Ocultar' : 'Mostrar'} senha
+                </Text>
               </TouchableOpacity>
             </View>
 
@@ -113,9 +115,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister }) => {
             {/* Login Button */}
             <TouchableOpacity
               activeOpacity={0.8}
-              style={[styles.button, !isFormValid && styles.buttonDisabled]}
-              onPress={handleLogin}
-              disabled={isLoading || !isFormValid}
+              style={[styles.button, (!isValid || isLoading) && styles.buttonDisabled]}
+              onPress={handleSubmit(onSubmit)}
+              disabled={isLoading || !isValid}
             >
               {isLoading ? (
                 <ActivityIndicator color={colors.white} />
@@ -165,35 +167,9 @@ const styles = StyleSheet.create({
     fontWeight: typography.fontWeight.medium as '500',
   },
   form: { width: '100%' },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    borderWidth: 1.5,
-    borderColor: colors.neutral[300],
-    borderRadius: 12,
-    paddingHorizontal: spacing[4],
-    marginBottom: spacing[4],
-    height: 52,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  inputFocused: {
-    borderColor: colors.primary[400],
-    shadowColor: colors.primary[500],
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  input: {
-    flex: 1,
-    fontSize: typography.fontSize.body,
-    color: colors.neutral[900],
-    marginLeft: spacing[3],
-    height: '100%',
-  },
+  passwordActions: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: spacing[2] },
+  showPasswordBtn: { flexDirection: 'row', alignItems: 'center', gap: spacing[1] },
+  showPasswordText: { fontSize: typography.fontSize.bodySm, color: colors.neutral[600] },
   forgotContainer: { alignItems: 'flex-end', marginBottom: spacing[6] },
   forgotText: {
     fontSize: typography.fontSize.bodySm,

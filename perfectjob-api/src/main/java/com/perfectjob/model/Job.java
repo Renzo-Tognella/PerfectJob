@@ -29,6 +29,10 @@ public class Job {
     @Column(name = "company_id", nullable = false)
     private Long companyId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "company_id", insertable = false, updatable = false)
+    private Company company;
+
     @Column(nullable = false)
     private String title;
 

@@ -48,6 +48,9 @@ public class Company {
     @Column(name = "rating_count")
     private Integer ratingCount;
 
+    @Column(name = "owner_user_id")
+    private Long ownerUserId;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

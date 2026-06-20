@@ -8,13 +8,17 @@ import com.perfectjob.model.User;
 import com.perfectjob.repository.UserRepository;
 import com.perfectjob.security.JwtProvider;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class AuthService {
 
@@ -32,18 +36,22 @@ public class AuthService {
                 .fullName(request.fullName())
                 .email(request.email())
                 .passwordHash(passwordEncoder.encode(request.password()))
+                .role(com.perfectjob.model.enums.Role.CANDIDATE)
                 .build();
 
-        userRepository.save(user);
+        User saved = userRepository.save(user);
 
-        String token = jwtProvider.generateToken(user.getEmail(), user.getRole().name());
+        log.info("AUDIT: user registered id={} email={} role={}",
+                saved.getId(), saved.getEmail(), saved.getRole());
+
+        String token = jwtProvider.generateToken(saved.getEmail(), saved.getRole().name());
 
         return new AuthResponse(
                 token,
                 "Bearer",
-                user.getEmail(),
-                user.getFullName(),
-                user.getRole().name()
+                saved.getEmail(),
+                saved.getFullName(),
+                saved.getRole().name()
         );
     }
 

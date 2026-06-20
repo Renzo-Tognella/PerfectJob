@@ -27,7 +27,7 @@ const FeaturedJobs: React.FC<FeaturedJobsProps> = ({
         data={jobs}
         renderItem={({ item }) => (
           <View style={styles.cardWrapper}>
-            <JobCard job={item} onPress={onJobPress} />
+            <JobCard job={item} onPress={onJobPress} isSaved={false} />
           </View>
         )}
         keyExtractor={(item) => item.id}
