@@ -1,6 +1,6 @@
 import { ExpoConfig } from 'expo/config';
 
-const apiUrl = process.env.API_URL || 'http://localhost:8080/api';
+const apiUrl = process.env.API_URL || 'http://192.168.15.11:8080/api';
 const isDev = process.env.APP_VARIANT === 'development';
 
 const config: ExpoConfig = {
@@ -19,25 +19,21 @@ const config: ExpoConfig = {
   ios: {
     bundleIdentifier: 'com.perfectjob.app',
     supportsTablet: true,
-    infoPlist: isDev
-      ? { NSAppTransportSecurity: { NSAllowsArbitraryLoads: true } }
-      : {},
+    infoPlist: {
+      NSAppTransportSecurity: {
+        NSAllowsArbitraryLoads: true,
+        NSAllowsLocalNetworking: true,
+      },
+    },
   },
   android: {
     package: 'com.perfectjob.app',
-    adaptiveIcon: {
-      foregroundImage: './assets/adaptive-icon.png',
-      backgroundColor: '#ffffff',
-    },
-    ...(isDev ? { usesCleartextTraffic: true } : {}),
-  },
-  web: {
-    favicon: './assets/favicon.png',
+    adaptiveIcon: { foregroundImage: './assets/adaptive-icon.png' },
+    usesCleartextTraffic: true,
   },
   plugins: ['expo-secure-store'],
   extra: {
     apiUrl,
-    appVariant: process.env.APP_VARIANT ?? 'development',
     eas: { projectId: 'c5e9c4e0-0000-0000-0000-000000000000' },
   },
 };

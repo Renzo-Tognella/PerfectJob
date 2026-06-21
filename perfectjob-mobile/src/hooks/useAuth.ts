@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import { authApi, type LoginData, type RegisterData } from '@/services/api/authApi';
 import { useAuthStore } from '@/store/useAuthStore';
 import { extractErrorMessage } from '@/services/api/client';
+import { ENV } from '@/config/env';
 
 export const useLogin = () => {
   const setAuth = useAuthStore((state) => state.setAuth);
@@ -14,6 +15,10 @@ export const useLogin = () => {
         fullName: data.fullName,
         role: data.role,
       });
+    },
+    onError: (error) => {
+      console.log('[DEBUG] Login error:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+      console.log('[DEBUG] API URL:', ENV.API_URL);
     },
   });
 };
@@ -29,6 +34,10 @@ export const useRegister = () => {
         fullName: data.fullName,
         role: data.role,
       });
+    },
+    onError: (error) => {
+      console.log('[DEBUG] Register error:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+      console.log('[DEBUG] API URL:', ENV.API_URL);
     },
   });
 };
