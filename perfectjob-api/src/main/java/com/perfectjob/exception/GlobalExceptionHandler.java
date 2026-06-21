@@ -86,6 +86,12 @@ public class GlobalExceptionHandler {
         return buildResponseWithDetails(HttpStatus.BAD_REQUEST, message, details);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST,
+                ex.getMessage() != null ? ex.getMessage() : "Requisição inválida");
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntime(RuntimeException ex) {
         log.error("Unexpected error: {}", ex.getMessage(), ex);

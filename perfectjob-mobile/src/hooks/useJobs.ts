@@ -52,3 +52,10 @@ export const useSearchSuggestions = (prefix: string) => {
     enabled: prefix.length >= 2,
   })
 }
+
+export const useTrendingSkills = (limit = 10) => {
+  return useQuery({
+    queryKey: ['jobs', 'trending-skills', limit],
+    queryFn: () => jobApi.getTrendingSkills(limit),
+  })
+}

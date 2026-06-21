@@ -28,5 +28,6 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
     Page<Application> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
     long countByCreatedAtAfter(LocalDateTime date);
+    long countByCandidateId(Long candidateId);
     long count();
 }

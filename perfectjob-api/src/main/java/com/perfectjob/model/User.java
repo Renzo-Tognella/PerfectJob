@@ -10,6 +10,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -50,6 +52,34 @@ public class User {
 
     @Column(name = "github_url")
     private String githubUrl;
+
+    // ---- Candidate profile (populated manually or via CV analysis) ----
+
+    private String headline;
+
+    @Column(name = "location_city")
+    private String locationCity;
+
+    @Column(name = "location_state")
+    private String locationState;
+
+    @Column(name = "years_experience")
+    private Integer yearsExperience;
+
+    @Column(name = "resume_url")
+    private String resumeUrl;
+
+    @Column(name = "resume_text", columnDefinition = "TEXT")
+    private String resumeText;
+
+    @Column(name = "resume_updated_at")
+    private LocalDateTime resumeUpdatedAt;
+
+    @ElementCollection
+    @CollectionTable(name = "user_skills", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "skill")
+    @Builder.Default
+    private List<String> skills = new ArrayList<>();
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

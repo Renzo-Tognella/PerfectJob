@@ -104,6 +104,13 @@
             <version>${springdoc.version}</version>
         </dependency>
 
+        <!-- PDF text extraction for CV/resume analysis -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>3.0.3</version>
+        </dependency>
+
         <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

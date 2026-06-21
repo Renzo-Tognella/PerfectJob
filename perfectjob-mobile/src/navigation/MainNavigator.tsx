@@ -6,12 +6,14 @@ import SearchScreen from '@/screens/search/SearchScreen';
 import SavedJobsScreen from '@/screens/saved-jobs/SavedJobsScreen';
 import ApplicationsScreen from '@/screens/applications/ApplicationsScreen';
 import ProfileScreen from '@/screens/profile/ProfileScreen';
+import EditProfileScreen from '@/screens/profile/EditProfileScreen';
 import Icon from '@/components/ui/Icon';
 import { colors } from '@/design-system/tokens/colors';
 
 export type MainStackParamList = {
   Tabs: undefined;
   JobDetail: { slug: string };
+  EditProfile: undefined;
 };
 
 export type TabParamList = {
@@ -65,6 +67,11 @@ export function MainNavigator() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Tabs" component={TabNavigator} />
       <Stack.Screen name="JobDetail" component={JobDetailScreen} options={{ headerShown: false }} />
+      <Stack.Screen
+        name="EditProfile"
+        component={EditProfileScreen}
+        options={{ headerShown: true, title: 'Editar perfil' }}
+      />
     </Stack.Navigator>
   );
 }

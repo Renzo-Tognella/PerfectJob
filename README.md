@@ -144,6 +144,11 @@ O painel fica disponivel em `http://localhost:5173`.
 | GET | `/v1/search/suggest` | Autocompletar titulos | Nao |
 | GET | `/v1/notifications` | Listar notificacoes | Sim |
 | PATCH | `/v1/notifications/{id}/read` | Marcar como lida | Sim |
+| GET | `/v1/jobs/trending-skills` | Skills mais requisitadas (com contagem) | Nao |
+| GET | `/v1/profile/me` | Perfil completo do candidato | Sim |
+| PATCH | `/v1/profile/me` | Atualizar perfil (campos, skills, experiencias) | Sim |
+| POST | `/v1/profile/me/resume` | Enviar e analisar curriculo (PDF/TXT) | Sim |
+| POST | `/v1/admin/ingestion/run` | Importar vagas de APIs externas | Sim (ADMIN) |
 
 ---
 
@@ -156,6 +161,9 @@ Criar um arquivo `.env` na raiz do projeto (ver `.env.example`):
 | `DB_PASSWORD` | Senha do PostgreSQL | `devpass` |
 | `JWT_SECRET` | Chave de assinatura JWT | `change-me-in-production` |
 | `API_URL` | URL base da API | `http://localhost:8080/api` |
+| `INGESTION_ENABLED` | Liga o scraping agendado de vagas externas | `false` |
+| `INGESTION_LIMIT` | Vagas importadas por fonte a cada execucao | `50` |
+| `INGESTION_CRON` | Expressao cron do agendamento | `0 0 */6 * * *` |
 
 ---
 
@@ -167,7 +175,9 @@ Criar um arquivo `.env` na raiz do projeto (ver `.env.example`):
 - Candidatura a vagas
 - Salvamento de vagas favoritas
 - Acompanhamento de status das candidaturas (Pendente, Em analise, Recusado, Contratado)
-- Perfil com habilidades e curriculo
+- Perfil completo: titulo, localizacao, anos de experiencia, competencias, experiencias e formacao
+- **Analise de curriculo:** envio de PDF que extrai automaticamente competencias, experiencias, formacao e contatos para o perfil
+- Skills em alta e empresas em destaque vindas do backend (sem dados mockados)
 - Notificacoes
 
 ### Recrutador (Painel Web)
@@ -175,6 +185,15 @@ Criar um arquivo `.env` na raiz do projeto (ver `.env.example`):
 - CRUD completo de vagas
 - CRUD completo de empresas
 - Acompanhamento de candidaturas recebidas
+
+### Ingestao de vagas (Webscraping via API)
+- Importacao automatica de vagas a partir de APIs publicas gratuitas (Remotive e Arbeitnow)
+- Os dados externos sao normalizados e gravados exatamente no schema da tabela `jobs` (com deduplicacao por `source` + `external_id`)
+- Execucao agendada (configuravel via `INGESTION_*`) ou manual por um admin via `POST /v1/admin/ingestion/run`
+
+### Analise de curriculo (CV Analyzer)
+- Servico que extrai de um curriculo (PDF/texto) competencias, experiencias profissionais, formacao academica e contatos
+- Suporta curriculos em portugues e ingles; os dados alimentam o perfil do candidato
 
 ---
 

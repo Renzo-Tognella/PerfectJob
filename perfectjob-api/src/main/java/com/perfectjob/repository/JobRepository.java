@@ -36,6 +36,8 @@ public interface JobRepository extends JpaRepository<Job, Long>, JpaSpecificatio
 
     boolean existsBySlug(String slug);
 
+    boolean existsBySourceAndExternalId(String source, String externalId);
+
     long countByStatus(JobStatus status);
 
     @Query(value = "SELECT * FROM jobs j " +
@@ -66,6 +68,15 @@ public interface JobRepository extends JpaRepository<Job, Long>, JpaSpecificatio
     @EntityGraph(attributePaths = {"company"})
     @Query("SELECT j FROM Job j WHERE j.status = 'ACTIVE' AND (j.expiresAt IS NULL OR j.expiresAt > CURRENT_TIMESTAMP)")
     Page<Job> findActiveJobs(Pageable pageable);
+
+    @Query(value = "SELECT js.skill AS skill, COUNT(*) AS cnt " +
+            "FROM job_skills js JOIN jobs j ON j.id = js.job_id " +
+            "WHERE j.status = 'ACTIVE' " +
+            "GROUP BY js.skill " +
+            "ORDER BY cnt DESC, js.skill ASC " +
+            "LIMIT :limit",
+            nativeQuery = true)
+    List<Object[]> findTopSkills(@Param("limit") int limit);
 
     @Override
     @EntityGraph(attributePaths = {"company"})

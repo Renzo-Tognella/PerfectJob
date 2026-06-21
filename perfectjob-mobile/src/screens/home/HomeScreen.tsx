@@ -17,26 +17,10 @@ import { Job, Category } from '../../types'
 import { colors } from '../../design-system/tokens/colors'
 import { typography } from '../../design-system/tokens/typography'
 import { spacing } from '../../design-system/tokens/spacing'
-import { useFeaturedJobs } from '../../hooks/useJobs'
-import { useSearchJobs } from '../../hooks/useJobs'
+import { useFeaturedJobs, useSearchJobs, useTrendingSkills } from '../../hooks/useJobs'
+import { useCompanies } from '../../hooks/useCompanies'
+import { buildCategoriesFromSkills } from '../../services/home/categories'
 import Icon from '../../components/ui/Icon'
-
-const TRENDING_SKILLS = ['React', 'Python', 'UX', 'Data', 'DevOps']
-
-const CATEGORIES: Category[] = [
-  { id: '1', name: 'Tecnologia', jobCount: 1240, icon: { family: 'MaterialIcons', name: 'computer' } },
-  { id: '2', name: 'Dados', jobCount: 856, icon: { family: 'Ionicons', name: 'bar-chart' } },
-  { id: '3', name: 'Design', jobCount: 643, icon: { family: 'MaterialIcons', name: 'palette' } },
-  { id: '4', name: 'Marketing', jobCount: 521, icon: { family: 'MaterialIcons', name: 'campaign' } },
-  { id: '5', name: 'Vendas', jobCount: 489, icon: { family: 'MaterialIcons', name: 'handshake' } },
-  { id: '6', name: 'RH', jobCount: 312, icon: { family: 'MaterialIcons', name: 'groups' } },
-]
-
-const COMPANIES: { id: string; name: string }[] = [
-  { id: '1', name: 'TechCorp' }, { id: '2', name: 'DesignStudio' },
-  { id: '3', name: 'DataDriven' }, { id: '4', name: 'FinTech' },
-  { id: '5', name: 'Growth' },
-]
 
 const HomeScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('')
@@ -44,16 +28,28 @@ const HomeScreen: React.FC = () => {
 
   const { data: featuredJobs, isLoading: featuredLoading } = useFeaturedJobs()
   const { data: recentData, isLoading: recentLoading } = useSearchJobs({ size: 4 })
+  const { data: trendingSkills, isLoading: trendingLoading } = useTrendingSkills(8)
+  const { data: companies, isLoading: companiesLoading } = useCompanies()
 
   const recentJobs = recentData?.pages?.[0]?.jobs || []
   const displayedFeatured = featuredJobs?.slice(0, 3) || []
+  const trending = trendingSkills ?? []
+  const categories: Category[] = buildCategoriesFromSkills(trending, 6)
 
   const handleJobPress = (job: Job) => {
     navigation.navigate('JobDetail', { slug: (job as any).slug })
   }
 
   const handleCategoryPress = (category: Category) => {
-    navigation.navigate('Search', { category: category.name })
+    navigation.navigate('Search', { query: category.name })
+  }
+
+  const handleSkillPress = (skill: string) => {
+    navigation.navigate('Search', { query: skill })
+  }
+
+  const handleCompanyPress = (companyName: string) => {
+    navigation.navigate('Search', { query: companyName })
   }
 
   const handleSearchSubmit = () => {
@@ -64,10 +60,7 @@ const HomeScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView
-        style={styles.container}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={styles.logo}>PerfectJob</Text>
           <TouchableOpacity activeOpacity={0.8} style={styles.bellBtn}>
@@ -81,22 +74,32 @@ const HomeScreen: React.FC = () => {
           onSearchSubmit={handleSearchSubmit}
         />
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.trendingContainer}
-        >
-          {TRENDING_SKILLS.map((skill) => (
-            <TouchableOpacity key={skill} activeOpacity={0.8} style={styles.chip}>
-              <Text style={styles.chipText}>{skill}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        {trending.length > 0 ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.trendingContainer}
+          >
+            {trending.map((item) => (
+              <TouchableOpacity
+                key={item.skill}
+                activeOpacity={0.8}
+                style={styles.chip}
+                onPress={() => handleSkillPress(item.skill)}
+              >
+                <Text style={styles.chipText}>{item.skill}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        ) : null}
 
-        <CategoryGrid
-          categories={CATEGORIES}
-          onCategoryPress={handleCategoryPress}
-        />
+        {trendingLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="small" color={colors.primary[500]} />
+          </View>
+        ) : categories.length > 0 ? (
+          <CategoryGrid categories={categories} onCategoryPress={handleCategoryPress} />
+        ) : null}
 
         {featuredLoading ? (
           <View style={styles.loadingContainer}>
@@ -110,32 +113,41 @@ const HomeScreen: React.FC = () => {
           <Text style={styles.sectionTitle}>Vagas Recentes</Text>
           {recentLoading ? (
             <ActivityIndicator size="small" color={colors.primary[500]} />
-          ) : (
+          ) : recentJobs.length > 0 ? (
             recentJobs.map((job) => (
               <JobCard key={job.id} job={job} onPress={handleJobPress} isSaved={false} />
             ))
+          ) : (
+            <Text style={styles.emptyText}>Nenhuma vaga disponível no momento.</Text>
           )}
         </View>
 
-        <View style={styles.companySection}>
-          <Text style={styles.sectionTitle}>Empresas em Destaque</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.companyList}
-          >
-            {COMPANIES.map((company) => (
-              <View key={company.id} style={styles.companyCard}>
-                <View style={styles.companyLogo}>
-                  <Text style={styles.companyLogoText}>
-                    {company.name.charAt(0).toUpperCase()}
-                  </Text>
-                </View>
-                <Text style={styles.companyName}>{company.name}</Text>
-              </View>
-            ))}
-          </ScrollView>
-        </View>
+        {companiesLoading ? null : (companies && companies.length > 0) ? (
+          <View style={styles.companySection}>
+            <Text style={styles.sectionTitle}>Empresas em Destaque</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.companyList}
+            >
+              {companies.slice(0, 10).map((company) => (
+                <TouchableOpacity
+                  key={company.id}
+                  style={styles.companyCard}
+                  activeOpacity={0.8}
+                  onPress={() => handleCompanyPress(company.name)}
+                >
+                  <View style={styles.companyLogo}>
+                    <Text style={styles.companyLogoText}>
+                      {company.name.charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                  <Text style={styles.companyName} numberOfLines={1}>{company.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   )
@@ -182,9 +194,10 @@ const styles = StyleSheet.create({
     fontWeight: typography.fontWeight.semibold as '600',
     color: colors.neutral[900], marginBottom: spacing[4],
   },
+  emptyText: { fontSize: typography.fontSize.bodySm, color: colors.neutral[500] },
   companySection: { paddingVertical: spacing[4], paddingBottom: spacing[8] },
   companyList: { paddingHorizontal: spacing[4], gap: spacing[3] },
-  companyCard: { alignItems: 'center', marginRight: spacing[4] },
+  companyCard: { alignItems: 'center', marginRight: spacing[4], width: 80 },
   companyLogo: {
     width: 64, height: 64, borderRadius: 16,
     backgroundColor: colors.neutral[100],

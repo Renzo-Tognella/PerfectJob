@@ -4,6 +4,7 @@ import com.perfectjob.dto.request.CreateJobRequest;
 import com.perfectjob.dto.request.SearchJobRequest;
 import com.perfectjob.dto.response.JobResponse;
 import com.perfectjob.dto.response.JobStatsResponse;
+import com.perfectjob.dto.response.SkillCountResponse;
 import com.perfectjob.event.JobPostedEvent;
 import com.perfectjob.exception.ResourceNotFoundException;
 import com.perfectjob.model.Company;
@@ -160,6 +161,13 @@ public class JobService {
 
     public List<String> suggestTitles(String prefix) {
         return jobRepository.suggestTitles(prefix);
+    }
+
+    public List<SkillCountResponse> getTrendingSkills(int limit) {
+        int bounded = Math.min(Math.max(limit, 1), 50);
+        return jobRepository.findTopSkills(bounded).stream()
+                .map(row -> new SkillCountResponse((String) row[0], ((Number) row[1]).longValue()))
+                .toList();
     }
 
     public Page<JobResponse> findActiveJobs(Pageable pageable) {

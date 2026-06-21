@@ -1,6 +1,7 @@
 import apiClient from './client';
 import type { JobResponse } from '@/types/job';
 import type { PageResponse } from '@/types/page';
+import type { SkillCount } from '@/types/skill';
 
 export interface SearchJobParams {
   keyword?: string;
@@ -30,6 +31,13 @@ export const jobApi = {
 
   getFeatured: async (): Promise<PageResponse<JobResponse>> => {
     const response = await apiClient.get<PageResponse<JobResponse>>('/v1/jobs/featured')
+    return response.data
+  },
+
+  getTrendingSkills: async (limit = 10): Promise<SkillCount[]> => {
+    const response = await apiClient.get<SkillCount[]>('/v1/jobs/trending-skills', {
+      params: { limit },
+    })
     return response.data
   },
 };

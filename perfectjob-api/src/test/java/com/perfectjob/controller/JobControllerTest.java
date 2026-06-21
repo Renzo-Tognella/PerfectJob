@@ -90,6 +90,21 @@ class JobControllerTest {
     }
 
     @Test
+    void trendingSkills_shouldReturnSkillCounts() throws Exception {
+        when(jobService.getTrendingSkills(5)).thenReturn(List.of(
+                new com.perfectjob.dto.response.SkillCountResponse("Java", 12L),
+                new com.perfectjob.dto.response.SkillCountResponse("React", 8L)));
+
+        mockMvc.perform(get("/v1/jobs/trending-skills")
+                        .param("limit", "5")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].skill").value("Java"))
+                .andExpect(jsonPath("$[0].count").value(12))
+                .andExpect(jsonPath("$[1].skill").value("React"));
+    }
+
+    @Test
     void stats_shouldReturnStats() throws Exception {
         when(jobService.getStats()).thenReturn(new JobStatsResponse(0L, 42L, 0L, 0L));
 

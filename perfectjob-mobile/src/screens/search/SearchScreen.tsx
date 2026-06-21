@@ -1,10 +1,10 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
   FlatList, KeyboardAvoidingView, Platform, SafeAreaView,
   ActivityIndicator,
 } from 'react-native'
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation, useRoute } from '@react-navigation/native'
 import { colors } from '@/design-system/tokens/colors'
 import { typography } from '@/design-system/tokens/typography'
 import { spacing } from '@/design-system/tokens/spacing'
@@ -34,8 +34,18 @@ const LEVEL_MAP: Record<string, string> = {
 
 const SearchScreen = () => {
   const navigation = useNavigation<any>()
-  const [query, setQuery] = useState('')
+  const route = useRoute<any>()
+  const initialQuery: string = route.params?.query ?? route.params?.category ?? ''
+  const [query, setQuery] = useState(initialQuery)
   const [activeFilter, setActiveFilter] = useState('Todas as vagas')
+
+  // Pre-fill / update the search when navigated with a query (e.g. from Home).
+  useEffect(() => {
+    const incoming = route.params?.query ?? route.params?.category
+    if (incoming) {
+      setQuery(incoming)
+    }
+  }, [route.params?.query, route.params?.category])
   const [filterVisible, setFilterVisible] = useState(false)
   const [advancedFilters, setAdvancedFilters] = useState<Filters>({
     workModel: [],

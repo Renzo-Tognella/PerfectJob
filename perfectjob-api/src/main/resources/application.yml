@@ -32,6 +32,10 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
 
 jwt:
   secret: ${JWT_SECRET:default-temporary-secret-change-in-production-with-32-chars-min}
@@ -41,3 +45,16 @@ server:
   port: 8080
   servlet:
     context-path: /api
+
+# External job ingestion (webscraping via public APIs). Disabled by default;
+# enable in production with INGESTION_ENABLED=true.
+perfectjob:
+  ingestion:
+    enabled: ${INGESTION_ENABLED:false}
+    limit-per-source: ${INGESTION_LIMIT:50}
+    cron: ${INGESTION_CRON:0 0 */6 * * *}
+    sources:
+      remotive:
+        url: ${REMOTIVE_URL:https://remotive.com/api/remote-jobs}
+      arbeitnow:
+        url: ${ARBEITNOW_URL:https://www.arbeitnow.com/api/job-board-api}

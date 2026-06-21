@@ -59,6 +59,12 @@ public class JobController {
         return ResponseEntity.ok(jobService.suggestTitles(q));
     }
 
+    @GetMapping("/trending-skills")
+    public ResponseEntity<List<com.perfectjob.dto.response.SkillCountResponse>> trendingSkills(
+            @RequestParam(name = "limit", defaultValue = "10") int limit) {
+        return ResponseEntity.ok(jobService.getTrendingSkills(limit));
+    }
+
     @GetMapping("/stats")
     public ResponseEntity<JobStatsResponse> stats() {
         return ResponseEntity.ok(jobService.getStats());
