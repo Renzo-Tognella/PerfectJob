@@ -2,6 +2,7 @@ package com.perfectjob.service.resume;
 
 import com.perfectjob.dto.response.EducationDto;
 import com.perfectjob.dto.response.ExperienceDto;
+import com.perfectjob.dto.response.LanguageDto;
 import com.perfectjob.dto.response.ResumeAnalysisResponse;
 import org.junit.jupiter.api.Test;
 
@@ -131,8 +132,27 @@ class ResumeAnalyzerTest {
         assertThat(result.skills()).isEmpty();
         assertThat(result.experiences()).isEmpty();
         assertThat(result.education()).isEmpty();
+        assertThat(result.languages()).isEmpty();
         assertThat(result.email()).isNull();
         assertThat(result.yearsExperience()).isNull();
+    }
+
+    @Test
+    void extractLanguages_detectsLanguageAndLevel() {
+        List<LanguageDto> langs = analyzer.extractLanguages(
+                "Idiomas\nInglês - Avançado\nEspanhol (Básico)\nPortuguês - Nativo");
+
+        assertThat(langs).extracting(LanguageDto::name).contains("Inglês", "Espanhol", "Português");
+        LanguageDto ingles = langs.stream().filter(l -> l.name().equals("Inglês")).findFirst().orElseThrow();
+        assertThat(ingles.level()).isEqualTo("Avançado");
+    }
+
+    @Test
+    void analyze_separatesLanguagesFromSkills() {
+        ResumeAnalysisResponse r = analyzer.analyze("Competências\nJava, Python\n\nIdiomas\nInglês - Fluente");
+
+        assertThat(r.languages()).extracting(LanguageDto::name).contains("Inglês");
+        assertThat(r.skills()).doesNotContain("Inglês", "English");
     }
 
     @Test

@@ -3,16 +3,19 @@ package com.perfectjob.service;
 import com.perfectjob.dto.request.UpdateProfileRequest;
 import com.perfectjob.dto.response.EducationDto;
 import com.perfectjob.dto.response.ExperienceDto;
+import com.perfectjob.dto.response.LanguageDto;
 import com.perfectjob.dto.response.ProfileResponse;
 import com.perfectjob.dto.response.ResumeAnalysisResponse;
 import com.perfectjob.exception.ResourceNotFoundException;
 import com.perfectjob.model.User;
 import com.perfectjob.model.UserEducation;
 import com.perfectjob.model.UserExperience;
+import com.perfectjob.model.UserLanguage;
 import com.perfectjob.repository.ApplicationRepository;
 import com.perfectjob.repository.SavedJobRepository;
 import com.perfectjob.repository.UserEducationRepository;
 import com.perfectjob.repository.UserExperienceRepository;
+import com.perfectjob.repository.UserLanguageRepository;
 import com.perfectjob.repository.UserRepository;
 import com.perfectjob.service.resume.PdfTextExtractor;
 import com.perfectjob.service.resume.ResumeAnalyzer;
@@ -43,6 +46,7 @@ public class ProfileService {
     private final UserRepository userRepository;
     private final UserExperienceRepository experienceRepository;
     private final UserEducationRepository educationRepository;
+    private final UserLanguageRepository languageRepository;
     private final ApplicationRepository applicationRepository;
     private final SavedJobRepository savedJobRepository;
     private final ResumeAnalyzer resumeAnalyzer;
@@ -98,6 +102,9 @@ public class ProfileService {
         if (request.education() != null) {
             replaceEducation(userId, request.education());
         }
+        if (request.languages() != null) {
+            replaceLanguages(userId, request.languages());
+        }
 
         return toResponse(findUser(userId));
     }
@@ -137,9 +144,11 @@ public class ProfileService {
 
         replaceExperiences(userId, analysis.experiences());
         replaceEducation(userId, analysis.education());
+        replaceLanguages(userId, analysis.languages());
 
-        log.info("AUDIT: resume analyzed for userId={} skills={} experiences={} education={}",
-                userId, analysis.skills().size(), analysis.experiences().size(), analysis.education().size());
+        log.info("AUDIT: resume analyzed for userId={} skills={} experiences={} education={} languages={}",
+                userId, analysis.skills().size(), analysis.experiences().size(),
+                analysis.education().size(), analysis.languages().size());
 
         return analysis;
     }
@@ -199,6 +208,25 @@ public class ProfileService {
         }
     }
 
+    private void replaceLanguages(Long userId, List<LanguageDto> items) {
+        languageRepository.deleteByUserId(userId);
+        if (items == null) {
+            return;
+        }
+        int order = 0;
+        for (LanguageDto l : items) {
+            if (l == null || isBlank(l.name())) {
+                continue;
+            }
+            languageRepository.save(UserLanguage.builder()
+                    .userId(userId)
+                    .language(l.name().strip())
+                    .level(blankToNull(l.level()))
+                    .displayOrder(order++)
+                    .build());
+        }
+    }
+
     private ProfileResponse toResponse(User user) {
         List<ExperienceDto> experiences = experienceRepository
                 .findByUserIdOrderByDisplayOrderAsc(user.getId())
@@ -212,6 +240,12 @@ public class ProfileService {
                 .stream()
                 .map(e -> new EducationDto(e.getInstitution(), e.getDegree(), e.getFieldOfStudy(),
                         e.getStartYear(), e.getEndYear()))
+                .toList();
+
+        List<LanguageDto> languages = languageRepository
+                .findByUserIdOrderByDisplayOrderAsc(user.getId())
+                .stream()
+                .map(l -> new LanguageDto(l.getLanguage(), l.getLevel()))
                 .toList();
 
         long applicationsCount = applicationRepository.countByCandidateId(user.getId());
@@ -236,6 +270,7 @@ public class ProfileService {
                 new ArrayList<>(user.getSkills() == null ? List.of() : user.getSkills()),
                 experiences,
                 education,
+                languages,
                 applicationsCount,
                 savedJobsCount
         );

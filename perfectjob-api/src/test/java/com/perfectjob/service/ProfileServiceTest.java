@@ -3,16 +3,19 @@ package com.perfectjob.service;
 import com.perfectjob.dto.request.UpdateProfileRequest;
 import com.perfectjob.dto.response.EducationDto;
 import com.perfectjob.dto.response.ExperienceDto;
+import com.perfectjob.dto.response.LanguageDto;
 import com.perfectjob.dto.response.ProfileResponse;
 import com.perfectjob.dto.response.ResumeAnalysisResponse;
 import com.perfectjob.model.User;
 import com.perfectjob.model.UserEducation;
 import com.perfectjob.model.UserExperience;
+import com.perfectjob.model.UserLanguage;
 import com.perfectjob.model.enums.Role;
 import com.perfectjob.repository.ApplicationRepository;
 import com.perfectjob.repository.SavedJobRepository;
 import com.perfectjob.repository.UserEducationRepository;
 import com.perfectjob.repository.UserExperienceRepository;
+import com.perfectjob.repository.UserLanguageRepository;
 import com.perfectjob.repository.UserRepository;
 import com.perfectjob.service.resume.PdfTextExtractor;
 import com.perfectjob.service.resume.ResumeAnalyzer;
@@ -41,6 +44,7 @@ class ProfileServiceTest {
     @Mock private UserRepository userRepository;
     @Mock private UserExperienceRepository experienceRepository;
     @Mock private UserEducationRepository educationRepository;
+    @Mock private UserLanguageRepository languageRepository;
     @Mock private ApplicationRepository applicationRepository;
     @Mock private SavedJobRepository savedJobRepository;
     @Mock private ResumeAnalyzer resumeAnalyzer;
@@ -68,6 +72,8 @@ class ProfileServiceTest {
         when(educationRepository.findByUserIdOrderByDisplayOrderAsc(1L)).thenReturn(List.of(
                 UserEducation.builder().userId(1L).institution("USP").degree("BSc")
                         .fieldOfStudy("CS").startYear(2015).endYear(2019).displayOrder(0).build()));
+        when(languageRepository.findByUserIdOrderByDisplayOrderAsc(1L)).thenReturn(List.of(
+                UserLanguage.builder().userId(1L).language("Inglês").level("Avançado").displayOrder(0).build()));
         when(applicationRepository.countByCandidateId(1L)).thenReturn(3L);
         when(savedJobRepository.countByUserId(1L)).thenReturn(2L);
 
@@ -78,6 +84,9 @@ class ProfileServiceTest {
         assertThat(response.experiences()).hasSize(1);
         assertThat(response.experiences().get(0).title()).isEqualTo("Dev");
         assertThat(response.education()).hasSize(1);
+        assertThat(response.languages()).hasSize(1);
+        assertThat(response.languages().get(0).name()).isEqualTo("Inglês");
+        assertThat(response.languages().get(0).level()).isEqualTo("Avançado");
         assertThat(response.applicationsCount()).isEqualTo(3L);
         assertThat(response.savedJobsCount()).isEqualTo(2L);
     }
@@ -88,12 +97,14 @@ class ProfileServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(experienceRepository.findByUserIdOrderByDisplayOrderAsc(1L)).thenReturn(List.of());
         when(educationRepository.findByUserIdOrderByDisplayOrderAsc(1L)).thenReturn(List.of());
+        when(languageRepository.findByUserIdOrderByDisplayOrderAsc(1L)).thenReturn(List.of());
 
         UpdateProfileRequest request = new UpdateProfileRequest(
                 "New Name", "Senior Developer", "11999998888", "bio", null, null, null,
                 "São Paulo", "SP", 7,
                 List.of("Java", "java", "Spring", "spring "),
                 List.of(new ExperienceDto("Backend Dev", "Acme", "2019", "2021", "did things")),
+                null,
                 null);
 
         profileService.updateProfile(1L, request);
@@ -125,7 +136,8 @@ class ProfileServiceTest {
                 "https://linkedin.com/in/x", "https://github.com/x", 5,
                 List.of("Java", "React"),
                 List.of(new ExperienceDto("Dev", "Acme", "2020", null, "desc")),
-                List.of(new EducationDto("USP", "BSc", "CS", 2015, 2019)));
+                List.of(new EducationDto("USP", "BSc", "CS", 2015, 2019)),
+                List.of(new LanguageDto("Inglês", "Avançado")));
         when(resumeAnalyzer.analyze(anyString())).thenReturn(analysis);
 
         byte[] content = "meu curriculo".getBytes(StandardCharsets.UTF_8);
@@ -144,6 +156,8 @@ class ProfileServiceTest {
         verify(experienceRepository).save(org.mockito.ArgumentMatchers.any(UserExperience.class));
         verify(educationRepository).deleteByUserId(1L);
         verify(educationRepository).save(org.mockito.ArgumentMatchers.any(UserEducation.class));
+        verify(languageRepository).deleteByUserId(1L);
+        verify(languageRepository).save(org.mockito.ArgumentMatchers.any(UserLanguage.class));
     }
 
     @Test
@@ -152,7 +166,7 @@ class ProfileServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(pdfTextExtractor.extract(org.mockito.ArgumentMatchers.any())).thenReturn("texto do pdf");
         when(resumeAnalyzer.analyze("texto do pdf")).thenReturn(new ResumeAnalysisResponse(
-                null, null, null, null, null, null, List.of(), List.of(), List.of()));
+                null, null, null, null, null, null, List.of(), List.of(), List.of(), List.of()));
 
         profileService.analyzeResume(1L, new byte[]{1, 2, 3}, "cv.pdf", "application/pdf");
 

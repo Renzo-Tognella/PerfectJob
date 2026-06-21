@@ -16,6 +16,7 @@ public record ResumeAnalysisResponse(
         Integer yearsExperience,
         List<String> skills,
         List<ExperienceDto> experiences,
-        List<EducationDto> education
+        List<EducationDto> education,
+        List<LanguageDto> languages
 ) {
 }

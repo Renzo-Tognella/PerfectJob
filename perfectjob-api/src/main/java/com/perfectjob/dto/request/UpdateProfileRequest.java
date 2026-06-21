@@ -2,6 +2,7 @@ package com.perfectjob.dto.request;
 
 import com.perfectjob.dto.response.EducationDto;
 import com.perfectjob.dto.response.ExperienceDto;
+import com.perfectjob.dto.response.LanguageDto;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
@@ -26,6 +27,7 @@ public record UpdateProfileRequest(
         @Min(0) @Max(80) Integer yearsExperience,
         @Size(max = 60) List<@Size(max = 100) String> skills,
         @Size(max = 50) List<ExperienceDto> experiences,
-        @Size(max = 50) List<EducationDto> education
+        @Size(max = 50) List<EducationDto> education,
+        @Size(max = 30) List<LanguageDto> languages
 ) {
 }

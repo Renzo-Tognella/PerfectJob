@@ -4,6 +4,7 @@ import {
   formatEducationTitle,
   formatEducationYears,
   formatYearsExperience,
+  formatLanguage,
   summarizeResumeAnalysis,
 } from '@/services/profile/profileFormat';
 
@@ -35,12 +36,18 @@ describe('profileFormat', () => {
     expect(formatYearsExperience(null)).toBeNull();
   });
 
+  it('formats a language with and without level', () => {
+    expect(formatLanguage({ name: 'Inglês', level: 'Avançado' })).toBe('Inglês — Avançado');
+    expect(formatLanguage({ name: 'Inglês' })).toBe('Inglês');
+  });
+
   it('summarizes a resume analysis', () => {
     const summary = summarizeResumeAnalysis({
       skills: ['Java', 'React'],
       experiences: [{ title: 'Dev' }],
       education: [],
+      languages: [{ name: 'Inglês', level: 'Avançado' }],
     });
-    expect(summary).toBe('2 competências · 1 experiência · 0 formações');
+    expect(summary).toBe('2 competências · 1 experiência · 0 formações · 1 idioma');
   });
 });

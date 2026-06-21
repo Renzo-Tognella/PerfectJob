@@ -14,7 +14,7 @@ import { useProfile, useUploadResume } from '@/hooks/useProfile'
 import { extractErrorMessage } from '@/services/api/client'
 import {
   formatLocation, formatExperiencePeriod, formatEducationTitle,
-  formatEducationYears, formatYearsExperience, summarizeResumeAnalysis,
+  formatEducationYears, formatYearsExperience, formatLanguage, summarizeResumeAnalysis,
 } from '@/services/profile/profileFormat'
 import Icon from '@/components/ui/Icon'
 
@@ -178,6 +178,22 @@ const ProfileScreen = () => {
             ))
           ) : (
             <Text style={styles.emptyText}>Nenhuma formação cadastrada.</Text>
+          )}
+        </View>
+
+        {/* Idiomas */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Idiomas</Text>
+          {profile?.languages?.length ? (
+            <View style={styles.chipsWrap}>
+              {profile.languages.map((lang, idx) => (
+                <View key={`${lang.name}-${idx}`} style={styles.chip}>
+                  <Text style={styles.chipText}>{formatLanguage(lang)}</Text>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <Text style={styles.emptyText}>Nenhum idioma cadastrado.</Text>
           )}
         </View>
 

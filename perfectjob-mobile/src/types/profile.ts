@@ -14,6 +14,13 @@ export interface EducationDto {
   endYear?: number | null;
 }
 
+export interface LanguageDto {
+  name: string;
+  level?: string | null;
+}
+
+export const LANGUAGE_LEVELS = ['Básico', 'Intermediário', 'Avançado', 'Fluente', 'Nativo'] as const;
+
 export interface ProfileResponse {
   id: number;
   email: string;
@@ -33,6 +40,7 @@ export interface ProfileResponse {
   skills: string[];
   experiences: ExperienceDto[];
   education: EducationDto[];
+  languages: LanguageDto[];
   applicationsCount: number;
   savedJobsCount: number;
 }
@@ -47,6 +55,7 @@ export interface ResumeAnalysisResponse {
   skills: string[];
   experiences: ExperienceDto[];
   education: EducationDto[];
+  languages: LanguageDto[];
 }
 
 export interface UpdateProfilePayload {
@@ -63,4 +72,5 @@ export interface UpdateProfilePayload {
   skills?: string[];
   experiences?: ExperienceDto[];
   education?: EducationDto[];
+  languages?: LanguageDto[];
 }

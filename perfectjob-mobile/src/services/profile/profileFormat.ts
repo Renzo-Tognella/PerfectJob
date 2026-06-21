@@ -1,4 +1,4 @@
-import type { EducationDto, ExperienceDto, ResumeAnalysisResponse } from '@/types/profile';
+import type { EducationDto, ExperienceDto, LanguageDto, ResumeAnalysisResponse } from '@/types/profile';
 
 /** "São Paulo, SP" | "São Paulo" | null */
 export function formatLocation(
@@ -39,6 +39,11 @@ export function formatYearsExperience(years?: number | null): string | null {
   return years === 1 ? '1 ano de experiência' : `${years} anos de experiência`;
 }
 
+/** "Inglês — Avançado" | "Inglês" */
+export function formatLanguage(lang: LanguageDto): string {
+  return lang.level ? `${lang.name} — ${lang.level}` : lang.name;
+}
+
 /** Human summary of what a CV analysis extracted, e.g.
  *  "8 competências · 2 experiências · 1 formação". */
 export function summarizeResumeAnalysis(analysis: ResumeAnalysisResponse): string {
@@ -46,8 +51,10 @@ export function summarizeResumeAnalysis(analysis: ResumeAnalysisResponse): strin
   const skills = analysis.skills?.length ?? 0;
   const experiences = analysis.experiences?.length ?? 0;
   const education = analysis.education?.length ?? 0;
+  const languages = analysis.languages?.length ?? 0;
   parts.push(`${skills} ${skills === 1 ? 'competência' : 'competências'}`);
   parts.push(`${experiences} ${experiences === 1 ? 'experiência' : 'experiências'}`);
   parts.push(`${education} ${education === 1 ? 'formação' : 'formações'}`);
+  parts.push(`${languages} ${languages === 1 ? 'idioma' : 'idiomas'}`);
   return parts.join(' · ');
 }

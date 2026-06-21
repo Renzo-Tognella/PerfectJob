@@ -5,6 +5,7 @@ import com.perfectjob.controller.v1.ProfileController;
 import com.perfectjob.dto.request.UpdateProfileRequest;
 import com.perfectjob.dto.response.EducationDto;
 import com.perfectjob.dto.response.ExperienceDto;
+import com.perfectjob.dto.response.LanguageDto;
 import com.perfectjob.dto.response.ProfileResponse;
 import com.perfectjob.dto.response.ResumeAnalysisResponse;
 import com.perfectjob.model.enums.Role;
@@ -62,6 +63,7 @@ class ProfileControllerTest {
                 List.of("Java", "React"),
                 List.of(new ExperienceDto("Dev", "Acme", "2020", null, "desc")),
                 List.of(new EducationDto("USP", "BSc", "CS", 2015, 2019)),
+                List.of(new LanguageDto("Inglês", "Avançado")),
                 4L, 2L);
     }
 
@@ -79,6 +81,8 @@ class ProfileControllerTest {
                 .andExpect(jsonPath("$.fullName").value("João Silva"))
                 .andExpect(jsonPath("$.skills[0]").value("Java"))
                 .andExpect(jsonPath("$.experiences[0].company").value("Acme"))
+                .andExpect(jsonPath("$.languages[0].name").value("Inglês"))
+                .andExpect(jsonPath("$.languages[0].level").value("Avançado"))
                 .andExpect(jsonPath("$.applicationsCount").value(4))
                 .andExpect(jsonPath("$.savedJobsCount").value(2));
     }
@@ -90,7 +94,7 @@ class ProfileControllerTest {
 
         UpdateProfileRequest request = new UpdateProfileRequest(
                 "João Silva", "Desenvolvedor Full Stack", null, null, null, null, null,
-                null, null, 5, List.of("Java"), null, null);
+                null, null, 5, List.of("Java"), null, null, null);
 
         mockMvc.perform(patch("/v1/profile/me")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -105,7 +109,8 @@ class ProfileControllerTest {
                 "Dev", "a@b.com", "11999", "https://linkedin.com/in/x", "https://github.com/x",
                 5, List.of("Java", "Spring Boot"),
                 List.of(new ExperienceDto("Dev", "Acme", "2020", null, "d")),
-                List.of(new EducationDto("USP", "BSc", "CS", 2015, 2019)));
+                List.of(new EducationDto("USP", "BSc", "CS", 2015, 2019)),
+                List.of(new LanguageDto("Inglês", "Avançado")));
         when(profileService.analyzeResume(anyLong(), any(), any(), any())).thenReturn(analysis);
 
         MockMultipartFile file = new MockMultipartFile(

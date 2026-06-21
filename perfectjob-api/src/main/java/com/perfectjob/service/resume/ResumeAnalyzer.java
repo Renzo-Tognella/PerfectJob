@@ -2,6 +2,7 @@ package com.perfectjob.service.resume;
 
 import com.perfectjob.dto.response.EducationDto;
 import com.perfectjob.dto.response.ExperienceDto;
+import com.perfectjob.dto.response.LanguageDto;
 import com.perfectjob.dto.response.ResumeAnalysisResponse;
 import org.springframework.stereotype.Component;
 
@@ -62,14 +63,38 @@ public class ResumeAnalyzer {
             // Analytics
             "Excel", "Power BI", "Tableau", "Looker",
             // AI / ML
-            "Machine Learning", "Deep Learning", "Data Science", "NLP", "Computer Vision",
-            // Languages (spoken)
-            "Inglês", "English", "Espanhol", "Spanish"
+            "Machine Learning", "Deep Learning", "Data Science", "NLP", "Computer Vision"
+            // NOTE: spoken languages are handled separately (see LANGUAGE_ALIASES)
     );
 
     /** Pre-compiled patterns keyed by canonical skill, longest first so that
      *  compound skills (e.g. "React Native") are matched before their parts. */
     private static final Map<String, Pattern> SKILL_PATTERNS = buildSkillPatterns();
+
+    /** Spoken languages: canonical name -> recognized aliases (lowercase). */
+    private static final Map<String, List<String>> LANGUAGE_ALIASES = Map.ofEntries(
+            Map.entry("Inglês", List.of("inglês", "ingles", "english")),
+            Map.entry("Espanhol", List.of("espanhol", "spanish", "español", "espanol")),
+            Map.entry("Português", List.of("português", "portugues", "portuguese")),
+            Map.entry("Francês", List.of("francês", "frances", "french", "français", "francais")),
+            Map.entry("Alemão", List.of("alemão", "alemao", "german", "deutsch")),
+            Map.entry("Italiano", List.of("italiano", "italian")),
+            Map.entry("Mandarim", List.of("mandarim", "mandarin", "chinês", "chines", "chinese")),
+            Map.entry("Japonês", List.of("japonês", "japones", "japanese"))
+    );
+
+    /** Proficiency keyword (lowercase) -> canonical level, checked most-specific first. */
+    private static final List<Map.Entry<String, String>> LEVEL_KEYWORDS = List.of(
+            Map.entry("nativo", "Nativo"), Map.entry("native", "Nativo"), Map.entry("materna", "Nativo"),
+            Map.entry("fluente", "Fluente"), Map.entry("fluent", "Fluente"), Map.entry("fluência", "Fluente"),
+            Map.entry("avançado", "Avançado"), Map.entry("avancado", "Avançado"), Map.entry("advanced", "Avançado"),
+            Map.entry("intermediário", "Intermediário"), Map.entry("intermediario", "Intermediário"),
+            Map.entry("intermediate", "Intermediário"),
+            Map.entry("básico", "Básico"), Map.entry("basico", "Básico"), Map.entry("basic", "Básico"),
+            Map.entry("iniciante", "Básico"), Map.entry("beginner", "Básico")
+    );
+
+    private static final Map<String, Pattern> LANGUAGE_PATTERNS = buildLanguagePatterns();
 
     private static final Pattern EMAIL =
             Pattern.compile("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
@@ -90,7 +115,7 @@ public class ResumeAnalyzer {
             "(" + TOKEN + ")\\s*(?:-|–|—|até|to)\\s*(" + END_TOKEN + ")",
             Pattern.CASE_INSENSITIVE);
 
-    private enum Section { SUMMARY, EXPERIENCE, EDUCATION, SKILLS, OTHER }
+    private enum Section { SUMMARY, EXPERIENCE, EDUCATION, SKILLS, LANGUAGES, OTHER }
 
     public ResumeAnalysisResponse analyze(String rawText) {
         String text = rawText == null ? "" : rawText.replace("\r\n", "\n").replace("\r", "\n");
@@ -101,6 +126,16 @@ public class ResumeAnalyzer {
         List<ExperienceDto> experiences = parseExperiences(sections.getOrDefault(Section.EXPERIENCE, List.of()));
         List<EducationDto> education = parseEducation(sections.getOrDefault(Section.EDUCATION, List.of()));
         List<String> skills = extractSkills(text, sections.getOrDefault(Section.SKILLS, List.of()));
+        List<LanguageDto> languages = extractLanguages(text);
+
+        // Languages must not also show up as skills.
+        if (!languages.isEmpty()) {
+            Set<String> langNames = new java.util.HashSet<>();
+            for (LanguageDto l : languages) {
+                langNames.add(l.name().toLowerCase());
+            }
+            skills = skills.stream().filter(s -> !langNames.contains(s.toLowerCase())).toList();
+        }
 
         return new ResumeAnalysisResponse(
                 detectHeadline(lines, sections),
@@ -111,7 +146,8 @@ public class ResumeAnalyzer {
                 estimateYearsOfExperience(experiences),
                 skills,
                 experiences,
-                education
+                education,
+                languages
         );
     }
 
@@ -200,6 +236,64 @@ public class ResumeAnalyzer {
     }
 
     // ---------------------------------------------------------------------
+    // Languages (idiomas)
+    // ---------------------------------------------------------------------
+
+    public List<LanguageDto> extractLanguages(String rawText) {
+        List<LanguageDto> result = new ArrayList<>();
+        if (rawText == null || rawText.isBlank()) {
+            return result;
+        }
+        Map<String, String> byLanguage = new LinkedHashMap<>();
+        for (String line : rawText.lines().toList()) {
+            if (line.isBlank()) {
+                continue;
+            }
+            String level = detectLevel(line);
+            for (Map.Entry<String, Pattern> entry : LANGUAGE_PATTERNS.entrySet()) {
+                if (entry.getValue().matcher(line).find()) {
+                    String lang = entry.getKey();
+                    if (!byLanguage.containsKey(lang)) {
+                        byLanguage.put(lang, level);
+                    } else if (byLanguage.get(lang) == null && level != null) {
+                        byLanguage.put(lang, level);
+                    }
+                }
+            }
+        }
+        for (Map.Entry<String, String> e : byLanguage.entrySet()) {
+            result.add(new LanguageDto(e.getKey(), e.getValue()));
+        }
+        return result;
+    }
+
+    private static String detectLevel(String line) {
+        String l = line.toLowerCase();
+        for (Map.Entry<String, String> keyword : LEVEL_KEYWORDS) {
+            if (l.contains(keyword.getKey())) {
+                return keyword.getValue();
+            }
+        }
+        return null;
+    }
+
+    private static Map<String, Pattern> buildLanguagePatterns() {
+        Map<String, Pattern> map = new LinkedHashMap<>();
+        for (Map.Entry<String, List<String>> e : LANGUAGE_ALIASES.entrySet()) {
+            StringBuilder alt = new StringBuilder();
+            for (String alias : e.getValue()) {
+                if (alt.length() > 0) {
+                    alt.append("|");
+                }
+                alt.append(Pattern.quote(alias));
+            }
+            map.put(e.getKey(), Pattern.compile(
+                    "(?<![\\p{L}])(?:" + alt + ")(?![\\p{L}])", Pattern.CASE_INSENSITIVE));
+        }
+        return map;
+    }
+
+    // ---------------------------------------------------------------------
     // Contacts
     // ---------------------------------------------------------------------
 
@@ -278,6 +372,9 @@ public class ResumeAnalyzer {
                 "technical skills", "tecnologias", "conhecimentos", "hard skills",
                 "competências técnicas", "competencias tecnicas")) {
             return Section.SKILLS;
+        }
+        if (matchesAny(l, "idiomas", "languages", "línguas", "linguas", "language")) {
+            return Section.LANGUAGES;
         }
         if (matchesAny(l, "resumo", "objetivo", "summary", "objective", "perfil",
                 "perfil profissional", "about", "sobre")) {
