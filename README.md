@@ -71,45 +71,74 @@ PerfectJob/
 
 ### Pre-requisitos
 
-- Docker e Docker Compose
-- Java 21+
-- Node.js 20+ com npm
-- Maven (ou usar o wrapper `./mvnw`)
+- **Docker e Docker Compose** (obrigatorio)
+- **Node.js 20+ com npm** (obrigatorio - app mobile e admin)
+- **Java 21** (opcional) - se nao tiver Java no host, a API sobe automaticamente
+  via container Docker. Para o celular, instale o **Expo Go**.
 
-### 1. Subir a infraestrutura
+### Opcao A - Automatico (recomendado)
 
-```bash
-./setup.sh
-```
-
-Ou manualmente:
+Um unico comando sobe **tudo**: PostgreSQL, Redis, API, app mobile (Expo) e admin.
 
 ```bash
-docker compose up -d
+./start.sh
 ```
 
-Isso sobe o PostgreSQL 16 (porta 5432) e o Redis 7 (porta 6379).
+O script:
+- detecta o **IP da sua rede (LAN)** e configura o app mobile para apontar para ele
+  (escreve `perfectjob-mobile/.env`), para funcionar em **celular fisico**;
+- usa o **Java do host** se houver Java 21+, senao roda a API **via Docker** (sem precisar instalar JDK);
+- sobe o **Expo em modo `--offline`** (evita o erro 500 de modo nao-interativo/tunnel);
+- aplica as migrations do banco automaticamente (Flyway).
 
-### 2. Rodar o Backend
+Ao final ele imprime os enderecos. No celular, abra o **Expo Go** e aponte para
+`exp://SEU_IP_DA_LAN:8081` (o celular precisa estar na **mesma rede Wi-Fi** do computador).
+
+Para parar tudo:
+
+```bash
+./stop.sh
+```
+
+### Opcao B - Manual
+
+**1. Infraestrutura (PostgreSQL + Redis):**
+
+```bash
+docker compose up -d postgres redis
+```
+
+**2. Backend (API):**
 
 ```bash
 cd perfectjob-api
-./mvnw spring-boot:run
+./mvnw spring-boot:run            # requer Java 21 no host
 ```
 
-A API fica disponivel em `http://localhost:8080/api`.
+Sem Java no host, rode via Docker:
 
-### 3. Rodar o App Mobile
+```bash
+docker run --rm -p 8080:8080 --add-host=host.docker.internal:host-gateway \
+  -e DB_URL=jdbc:postgresql://host.docker.internal:5432/perfectjob \
+  -e DB_USER=perfectjob -e DB_PASSWORD=perfectjob -e REDIS_HOST=host.docker.internal \
+  -v "$PWD/perfectjob-api":/app -w /app \
+  maven:3.9-eclipse-temurin-21 mvn spring-boot:run
+```
+
+A API fica em `http://localhost:8080/api` (Swagger em `/swagger-ui.html`).
+
+**3. App Mobile (Expo):**
 
 ```bash
 cd perfectjob-mobile
 npm install
-npx expo start
+echo "API_URL=http://SEU_IP_DA_LAN:8080/api" > .env   # IP da LAN p/ celular fisico
+npx expo start --offline                               # --offline evita erro 500
 ```
 
-Escanear o QR Code com o app Expo Go no celular.
+Abra o **Expo Go** e aponte para `exp://SEU_IP_DA_LAN:8081`.
 
-### 4. Rodar o Painel Admin
+**4. Painel Admin (Vite):**
 
 ```bash
 cd perfectjob-admin
@@ -117,7 +146,18 @@ npm install
 npm run dev
 ```
 
-O painel fica disponivel em `http://localhost:5173`.
+O painel fica em `http://localhost:5173`.
+
+### Solucao de problemas
+
+- **Expo Go: "There was a problem... HTTP 500 ... non-interactive mode"** — o Metro
+  precisa rodar em `npx expo start --offline`. O `./start.sh` ja faz isso.
+- **App abre mas da "erro inesperado" / login nao funciona** — o bundle esta com
+  `localhost` em vez do IP da LAN. `localhost` no celular = o proprio celular.
+  Garanta `API_URL=http://SEU_IP:8080/api` no `.env` e **force o reload** no Expo Go
+  (mate o app e reabra). O `./start.sh` configura o IP automaticamente.
+- **API nao sobe por falta de Java** — use o `./start.sh` (cai para Docker) ou o
+  comando Docker da Opcao B.
 
 ---
 
