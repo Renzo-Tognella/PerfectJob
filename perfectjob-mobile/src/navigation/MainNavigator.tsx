@@ -9,6 +9,7 @@ import ResumePreviewScreen from '@/screens/resume-preview/ResumePreviewScreen';
 import ProfileScreen from '@/screens/profile/ProfileScreen';
 import EditProfileScreen from '@/screens/profile/EditProfileScreen';
 import Icon from '@/components/ui/Icon';
+import { ConnectionBanner } from '@/components/shared/ConnectionBanner';
 import { colors } from '@/design-system/tokens/colors';
 
 export type MainStackParamList = {
@@ -66,15 +67,18 @@ function TabNavigator() {
 
 export function MainNavigator() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Tabs" component={TabNavigator} />
-      <Stack.Screen name="JobDetail" component={JobDetailScreen} options={{ headerShown: false }} />
-      <Stack.Screen
-        name="EditProfile"
-        component={EditProfileScreen}
-        options={{ headerShown: true, title: 'Editar perfil' }}
-      />
-      <Stack.Screen name="ResumePreview" component={ResumePreviewScreen} options={{ headerShown: false }} />
-    </Stack.Navigator>
+    <>
+      <ConnectionBanner />
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Tabs" component={TabNavigator} />
+        <Stack.Screen name="JobDetail" component={JobDetailScreen} options={{ headerShown: false }} />
+        <Stack.Screen
+          name="EditProfile"
+          component={EditProfileScreen}
+          options={{ headerShown: true, title: 'Editar perfil' }}
+        />
+        <Stack.Screen name="ResumePreview" component={ResumePreviewScreen} options={{ headerShown: false }} />
+      </Stack.Navigator>
+    </>
   );
 }

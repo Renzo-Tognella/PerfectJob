@@ -3,6 +3,14 @@ import {
 } from '@tanstack/react-query';
 import { resumeApi } from '@/services/api/resumeApi';
 import type { GenerateResumeRequest, ResumeResponse, ResumeDetailResponse } from '@/types/resume';
+import { useIsBackendReachable } from '@/hooks/useHealthCheck';
+
+export class BackendUnreachableError extends Error {
+  constructor() {
+    super('Sem conexão com o servidor');
+    this.name = 'BackendUnreachableError';
+  }
+}
 
 export function useResumes() {
   return useInfiniteQuery<import('@/types/page').PageResponse<ResumeResponse>, Error>({
@@ -15,8 +23,12 @@ export function useResumes() {
 
 export function useGenerateResume() {
   const queryClient = useQueryClient();
+  const reachable = useIsBackendReachable();
   return useMutation<ResumeResponse, Error, GenerateResumeRequest>({
-    mutationFn: (req) => resumeApi.generate(req),
+    mutationFn: (req) => {
+      if (!reachable) return Promise.reject(new BackendUnreachableError());
+      return resumeApi.generate(req);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['resumes'] });
     },

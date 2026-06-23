@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  SafeAreaView, StatusBar, Alert, ActivityIndicator, Linking,
+  SafeAreaView, StatusBar, Alert, ActivityIndicator, Linking, Modal,
 } from 'react-native'
 import { useRoute, useNavigation, RouteProp, CommonActions } from '@react-navigation/native'
 import { colors } from '@/design-system/tokens/colors'
@@ -10,6 +10,7 @@ import { spacing } from '@/design-system/tokens/spacing'
 import { useJobDetail } from '@/hooks/useJobs'
 import { useIsJobSaved, useToggleSavedJob } from '@/hooks/useSavedJobs'
 import { useGenerateResume } from '@/hooks/useResumes'
+import { useIsBackendReachable } from '@/hooks/useHealthCheck'
 import { extractErrorMessage } from '@/services/api/client'
 import type { MainStackParamList } from '@/navigation/types'
 import { useAuthStore } from '@/store/useAuthStore'
@@ -33,6 +34,7 @@ const JobDetailScreen = () => {
   const { data: isSaved, isLoading: isSavedLoading } = useIsJobSaved(jobId ?? 0)
   const toggleSaved = useToggleSavedJob()
   const generateResume = useGenerateResume()
+  const isBackendReachable = useIsBackendReachable()
 
   const handleGenerate = () => {
     if (!isAuthenticated) {
@@ -54,11 +56,18 @@ const JobDetailScreen = () => {
     }
 
     if (!job || jobId === null) return
+    if (!isBackendReachable) {
+      Alert.alert('Sem conexão', 'Verifique sua conexão com o servidor e tente novamente.')
+      return
+    }
 
     generateResume.mutate(
       { jobId },
       {
         onSuccess: (resume) => {
+          const state = navigation.getState?.() as any
+          const currentRoute = state?.routes?.[state.index]?.name
+          if (currentRoute === 'ResumePreview') return
           navigation.navigate('ResumePreview', { resumeId: resume.id })
         },
         onError: (error) => {
@@ -254,15 +263,17 @@ const JobDetailScreen = () => {
         <TouchableOpacity
           style={[
             styles.applyBtn,
-            generateResume.isPending && styles.applyBtnDisabled,
+            (generateResume.isPending || !isBackendReachable) && styles.applyBtnDisabled,
           ]}
           onPress={handleGenerate}
           activeOpacity={0.9}
-          disabled={generateResume.isPending}
+          disabled={generateResume.isPending || !isBackendReachable}
           accessibilityRole="button"
           accessibilityLabel="Gerar currículo para esta vaga"
         >
-          {generateResume.isPending ? (
+          {!isBackendReachable ? (
+            <Text style={styles.applyBtnText}>Sem conexão com o servidor</Text>
+          ) : generateResume.isPending ? (
             <View style={styles.btnContent}>
               <ActivityIndicator color={colors.white} />
               <Text style={styles.applyBtnText}>Gerando currículo...</Text>
@@ -272,6 +283,21 @@ const JobDetailScreen = () => {
           )}
         </TouchableOpacity>
       </View>
+
+      <Modal
+        transparent
+        visible={generateResume.isPending}
+        animationType="fade"
+        onRequestClose={() => undefined}
+      >
+        <View style={styles.overlayBackdrop}>
+          <View style={styles.overlayCard}>
+            <ActivityIndicator size="large" color={colors.primary[500]} />
+            <Text style={styles.overlayTitle}>Gerando currículo...</Text>
+            <Text style={styles.overlaySubtitle}>Isso pode levar até 2 minutos</Text>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   )
 }
@@ -377,7 +403,26 @@ const styles = StyleSheet.create({
   },
   applyBtnText: {
     color: colors.white, fontSize: typography.fontSize.body,
-    fontWeight: typography.fontWeight.semibold as any,
+    fontWeight: typography.fontWeight.semibold as '600',
+  },
+  overlayBackdrop: {
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.45)',
+    alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing[6],
+  },
+  overlayCard: {
+    backgroundColor: colors.white, borderRadius: 16,
+    paddingVertical: spacing[6], paddingHorizontal: spacing[6],
+    alignItems: 'center', gap: spacing[3], minWidth: 220,
+  },
+  overlayTitle: {
+    fontSize: typography.fontSize.h5,
+    fontWeight: typography.fontWeight.semibold as '600',
+    color: colors.neutral[900],
+  },
+  overlaySubtitle: {
+    fontSize: typography.fontSize.bodySm,
+    color: colors.neutral[600],
+    textAlign: 'center',
   },
   btnContent: {
     flexDirection: 'row', alignItems: 'center', gap: spacing[2],

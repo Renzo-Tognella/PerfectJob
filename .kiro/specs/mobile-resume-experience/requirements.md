@@ -146,3 +146,59 @@ This spec owns all mobile-side changes: navigation reconfiguration, screen rewor
 5. If the generation API returns a 500 error, the app shall display a generic server error message.
 6. The ResumesScreen and ResumePreviewScreen shall each display appropriate loading, error, and empty states consistent with the existing design patterns used in ApplicationsScreen.
 7. All user-facing error messages shall be in Portuguese (pt-BR).
+
+### Requirement 9: Backend Connectivity Health Check
+
+**Objective:** As a candidate, I want the app to verify that the backend API is reachable before I try to use resume features, so that I am not stuck with cryptic network errors mid-flow.
+
+#### Acceptance Criteria
+
+1. When the mobile app starts (cold boot, app foreground, or auth-success transition), the app shall issue a lightweight health probe (e.g. `GET /actuator/health` or a known-public endpoint) to the configured `ENV.API_URL`.
+2. If the health probe succeeds, the app shall proceed silently with no UI change.
+3. If the health probe fails with a network error (DNS, connection refused, timeout), the app shall display a persistent connection banner at the top of the main navigator (above the tab bar, below the status bar) with the message "Sem conexão com o servidor" and a "Tentar novamente" action.
+4. The banner shall remain visible while the probe continues to fail and shall auto-dismiss when a subsequent probe succeeds.
+5. While the banner is visible, the "Gerar Currículo" button on JobDetailScreen and the "Ver PDF" action on ResumesScreen shall be disabled, and any in-progress resume-generation mutation shall be blocked from starting.
+6. The health probe shall be cached for at most 30 seconds so that rapid navigation does not re-probe on every screen mount.
+7. The probe URL shall be derived from `ENV.API_URL` (the same base URL used for resume API calls) — no separate configuration.
+8. The health probe endpoint shall be reachable without authentication.
+
+### Requirement 10: Robust Resume Generation Flow with Status Awareness
+
+**Objective:** As a candidate, I want resume generation to work reliably even when the backend takes longer than expected, so that I do not see partial results or cryptic errors mid-flow.
+
+#### Acceptance Criteria
+
+1. When the candidate taps "Gerar Currículo", the app shall call `POST /v1/resumes` with a timeout of at least 180 seconds to comfortably accommodate the typical ~68-second backend latency plus cold-start margin.
+2. While the mutation is in progress, the JobDetailScreen shall display a non-dismissable progress overlay with the text "Gerando currículo..." and a spinner, replacing the bottom button area.
+3. When `POST /v1/resumes` succeeds, the app shall navigate to ResumePreviewScreen with the returned resume `id` and shall invalidate the resumes list cache.
+4. When `POST /v1/resumes` fails with a 408 or axios timeout (`ECONNABORTED`), the app shall display an error message indicating the operation took too long and offer a "Tentar novamente" action that re-issues the request.
+5. When `POST /v1/resumes` fails with a 502 or 503, the app shall display a message indicating the AI service is temporarily unavailable and offer a "Tentar novamente" action.
+6. When `POST /v1/resumes` fails with a network error (DNS, connection refused), the app shall display a message indicating connection problems and a "Tentar novamente" action.
+7. The mutation `onSuccess` callback shall not perform any additional navigation if the navigation stack is already at the ResumePreviewScreen (idempotent).
+8. The mutation `onError` callback shall surface the error via an `Alert.alert` with the human-readable message extracted from the API response, never a raw axios error.
+
+### Requirement 11: JWT 401 Reauth CTA on PDF Download Failure
+
+**Objective:** As a candidate whose session token has expired, I want a clear path to re-authenticate when the PDF download fails, so that I am not stuck in an error loop.
+
+#### Acceptance Criteria
+
+1. When the `PdfViewer` component fetches the PDF and the response is 401, the viewer shall display an error state with the message "Sessão expirada. Faça login novamente." and a "Fazer login" button.
+2. The "Fazer login" button shall clear the auth store, navigate to the `Login` screen, and remove the `ResumePreview` route from the navigation stack.
+3. When the `PdfViewer` component fetches the PDF and the response is 403, the viewer shall display an error state with the message "Você não tem permissão para visualizar este currículo." and a "Voltar" button.
+4. When the `PdfViewer` component fetches the PDF and the response is 404, the viewer shall display an error state with the message "Currículo não encontrado." and a "Voltar" button.
+5. When the `PdfViewer` component fetches the PDF and the response is 5xx or a network error, the viewer shall display an error state with a "Tentar novamente" button that re-issues the download.
+6. The `PdfViewer` component shall accept an `onError` callback prop, and the parent `ResumePreviewScreen` shall wire this prop to the error-handling logic above (currently the prop is declared but not wired).
+7. The `ResumePreviewScreen` shall not attempt to recover from a 401 silently — the user must explicitly initiate re-login.
+
+### Requirement 12: PDF Content-Type Validation
+
+**Objective:** As a candidate, I want the PDF viewer to validate that the downloaded file is actually a PDF, so that I never see a blank or broken screen caused by rendering an HTML error page or empty response.
+
+#### Acceptance Criteria
+
+1. When the `PdfViewer` component downloads the PDF via `FileSystem.downloadAsync`, the component shall inspect the response `Content-Type` header.
+2. If the `Content-Type` header is missing or is not `application/pdf` (case-insensitive), the viewer shall treat the response as an error and surface the error state described in Requirement 11.
+3. The viewer shall also verify that the downloaded file size is greater than zero bytes; a 200 response with zero-byte body shall be treated as an error.
+4. The `resumeApi.getPdfUri` method shall perform the Content-Type check at the API layer and reject the promise if the response is not a valid PDF, so the validation lives in one place rather than being duplicated.
+5. The error message shown to the candidate for an invalid Content-Type shall be "Arquivo de currículo inválido. Tente gerar novamente.".

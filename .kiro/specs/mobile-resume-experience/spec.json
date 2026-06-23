@@ -1,22 +1,26 @@
 {
   "feature_name": "mobile-resume-experience",
   "created_at": "2026-06-22T00:00:00Z",
-  "updated_at": "2026-06-22T00:00:00Z",
+  "updated_at": "2026-06-23T15:30:00Z",
   "language": "en",
-  "phase": "tasks",
+  "phase": "requirements",
   "approvals": {
     "requirements": {
       "generated": true,
-      "approved": true
+      "approved": false,
+      "note": "Extended with Requirements 9-12 (Backend Connectivity Health Check, Robust Resume Generation Flow with Status Awareness, JWT 401 Reauth CTA, PDF Content-Type Validation) following live testing on real device. Pending re-approval."
     },
     "design": {
       "generated": true,
-      "approved": true
+      "approved": true,
+      "note": "Outdated: covers Requirements 1-8 only. Needs regeneration for Requirements 9-12."
     },
     "tasks": {
       "generated": true,
-      "approved": true
+      "approved": true,
+      "note": "Outdated: covers Requirements 1-8 only. Needs regeneration for Requirements 9-12."
     }
   },
-  "ready_for_implementation": true
+  "ready_for_implementation": false,
+  "extension_reason": "Phase 2 robustness fix per .kiro/steering/roadmap.md Phase 2. 4 new requirements added to fix real-device bugs discovered during live testing of Phase 1 implementation."
 }

@@ -8,6 +8,7 @@ import { colors } from '@/design-system/tokens/colors';
 import { typography } from '@/design-system/tokens/typography';
 import { spacing } from '@/design-system/tokens/spacing';
 import { useResumes } from '@/hooks/useResumes';
+import { useIsBackendReachable } from '@/hooks/useHealthCheck';
 import { toResume, type ResumeView } from '@/services/api/mappers';
 import Icon from '@/components/ui/Icon';
 
@@ -23,15 +24,17 @@ const ResumesScreen: React.FC = () => {
     hasNextPage,
     isFetchingNextPage,
   } = useResumes();
+  const isBackendReachable = useIsBackendReachable();
 
   const resumes: ResumeView[] =
     data?.pages.flatMap((page) => page.content.map(toResume)) ?? [];
 
   const handleViewPdf = useCallback(
     (item: ResumeView) => {
+      if (!isBackendReachable) return;
       navigation.navigate('ResumePreview', { resumeId: item.id });
     },
-    [navigation]
+    [navigation, isBackendReachable]
   );
 
   const renderItem = useCallback(
@@ -40,6 +43,7 @@ const ResumesScreen: React.FC = () => {
         activeOpacity={0.9}
         style={styles.card}
         onPress={() => handleViewPdf(item)}
+        disabled={!isBackendReachable}
         accessibilityRole="button"
         accessibilityLabel={`Ver currículo para ${item.jobTitle}`}
       >
@@ -58,15 +62,18 @@ const ResumesScreen: React.FC = () => {
           </View>
         </View>
         <TouchableOpacity
-          style={styles.viewPdfBtn}
+          style={[styles.viewPdfBtn, !isBackendReachable && styles.viewPdfBtnDisabled]}
           onPress={() => handleViewPdf(item)}
           activeOpacity={0.85}
+          disabled={!isBackendReachable}
         >
-          <Text style={styles.viewPdfBtnText}>Ver PDF</Text>
+          <Text style={styles.viewPdfBtnText}>
+            {isBackendReachable ? 'Ver PDF' : 'Sem conexão'}
+          </Text>
         </TouchableOpacity>
       </TouchableOpacity>
     ),
-    [handleViewPdf]
+    [handleViewPdf, isBackendReachable]
   );
 
   const handleEndReached = useCallback(() => {
@@ -201,6 +208,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[3],
     borderRadius: 10,
     alignItems: 'center',
+  },
+  viewPdfBtnDisabled: {
+    backgroundColor: colors.neutral[300],
   },
   viewPdfBtnText: {
     color: colors.white,

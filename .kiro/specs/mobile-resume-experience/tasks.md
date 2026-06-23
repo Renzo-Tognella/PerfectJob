@@ -204,6 +204,70 @@ Use whichever pattern fits the work breakdown:
   - _Boundary: Testing_
   - _Depends: 4.1_
 
+- [ ] 12. Backend Connectivity Health Check (Requirement 9)
+- [ ] 12.1 Create `src/hooks/useHealthCheck.ts` and `src/components/shared/ConnectionBanner.tsx`
+  - `useHealthCheck`: TanStack Query `useQuery` with `queryKey: ['health']`, `queryFn` issues `GET ${ENV.API_URL}/actuator/health` via a bare `fetch` (no auth header, short 5s timeout), `staleTime: 30000` (30s cache), `refetchOnWindowFocus: true`, `retry: 1`
+  - `ConnectionBanner`: a top-of-screen banner with red background and "Sem conexão com o servidor" text + "Tentar novamente" button that calls `refetch()`
+  - Mount `ConnectionBanner` in `MainNavigator` so it overlays all main tabs when health fails
+  - Export a `useIsBackendReachable()` derived from the same query so screens can disable actions
+  - **Done**: With API stopped, banner appears within 5s of app start; with API up, banner never appears; killing API mid-session makes banner reappear within 30s
+  - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8_
+  - _Boundary: Hooks, Components, Navigation_
+- [ ] 12.2 Disable resume actions when backend unreachable
+  - In `JobDetailScreen`, gate the "Gerar Currículo" button: when `!useIsBackendReachable()`, button is `disabled` with grey background and tooltip "Sem conexão com o servidor"
+  - In `ResumesScreen`, gate the "Ver PDF" button per-row with the same logic
+  - In `useGenerateResume`'s `mutate`, throw early if `!useIsBackendReachable()` so the mutation never starts when offline
+  - **Done**: No resume API call can be initiated while banner is visible
+  - _Requirements: 9.5_
+  - _Boundary: Screens, Hooks_
+  - _Depends: 12.1_
+
+- [ ] 13. Robust Resume Generation Flow (Requirement 10)
+- [ ] 13.1 Increase POST timeout to 180s and add progress overlay
+  - In `src/services/api/resumeApi.ts`, change `PDF_GENERATION_TIMEOUT_MS` from 120_000 to 180_000
+  - In `JobDetailScreen.handleGenerate`, wrap the mutation in a non-dismissable `Modal` overlay (transparent background, centered spinner + "Gerando currículo..." text) shown while `generateResume.isPending`
+  - The bottom "Gerar Currículo" button is hidden while the overlay is up (no double-tap)
+  - On `onSuccess`: dismiss overlay → invalidate → navigate (idempotent: check `navigation.getState()` first)
+  - On `onError`: dismiss overlay → `Alert.alert` with the `extractErrorMessage(err)` message; do NOT auto-navigate
+  - Update `useGenerateResume`'s `onSuccess` to be a no-op (navigation handled by screen) so the hook stays transport-only
+  - **Done**: With backend taking 68s, the overlay stays visible the whole time; with backend offline (ECONNREFUSED), the error alert appears within 5s; with backend timing out at 180s, the "took too long" alert appears
+  - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8_
+  - _Boundary: Service, Screens, Hooks_
+
+- [ ] 14. JWT 401 Reauth CTA (Requirement 11)
+- [ ] 14.1 Wire PdfViewer's onError callback and route 401 to re-login
+  - In `src/components/shared/PdfViewer.tsx`, accept and call the `onError` prop with the axios error after the download attempt
+  - In `ResumePreviewScreen`, wire `onError` to a new handler that inspects `error.response?.status`:
+    - 401: clear `useAuthStore`, call `navigation.reset()` to `Auth` stack → `Login` screen, show toast "Sessão expirada"
+    - 403: show inline error "Você não tem permissão..." with "Voltar" button → `navigation.goBack()`
+    - 404: show inline error "Currículo não encontrado." with "Voltar" button → `navigation.goBack()`
+    - 5xx or network: show inline error "Erro ao carregar..." with "Tentar novamente" button that re-triggers the download
+  - **Done**: With a stale token, tapping "Ver PDF" redirects to Login within 3s; with a deleted resume (404), "Voltar" appears; with backend 500, "Tentar novamente" works
+  - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7_
+  - _Boundary: Components, Screens, Navigation_
+  - _Depends: 13.1_
+
+- [ ] 15. PDF Content-Type Validation (Requirement 12)
+- [ ] 15.1 Validate Content-Type and size in resumeApi.getPdfUri
+  - In `src/services/api/resumeApi.ts`, after `FileSystem.downloadAsync`:
+    - Read `downloadRes.headers['content-type']` (case-insensitive); if missing or not starting with `application/pdf`, throw a `NotPdfError` with message "Arquivo de currículo inválido. Tente gerar novamente."
+    - If `downloadRes.status >= 400`, throw `HttpError(status)` as before
+    - After download, `FileSystem.getInfoAsync(localUri)` and reject if size is 0
+  - Export a custom `isNotPdfError(err)` helper so the viewer can show the specific message
+  - **Done**: With backend returning JSON 404 body via a fake endpoint, the viewer surfaces the "invalid PDF" message instead of rendering garbage
+  - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5_
+  - _Boundary: Service, Types_
+
+- [ ] 15.2 Add tests for the 4 new robustness layers
+  - Test `useHealthCheck` query returns `false` when fetch rejects; `true` when resolves
+  - Test `resumeApi.getPdfUri` throws `NotPdfError` when Content-Type is `text/html`
+  - Test `resumeApi.getPdfUri` throws when downloaded file size is 0
+  - Test `useGenerateResume` early-returns when `!useIsBackendReachable()`
+  - **Done**: All 4 new tests pass; existing 19 mobile tests still pass
+  - _Requirements: 9, 10, 11, 12_
+  - _Boundary: Testing_
+  - _Depends: 12.1, 13.1, 14.1, 15.1_
+
 ## Requirement Coverage Summary
 
 | Requirement | Tasks |
@@ -216,6 +280,10 @@ Use whichever pattern fits the work breakdown:
 | 6.1–6.9 | 1.1, 2.1, 2.2, 4.1 |
 | 7.1–7.8 | 10.1, 10.2 |
 | 8.1–8.7 | 6.1, 7.1, 8.1 |
+| 9.1–9.8 | 12.1, 12.2 |
+| 10.1–10.8 | 13.1 |
+| 11.1–11.7 | 14.1 |
+| 12.1–12.5 | 15.1, 15.2 |
 
 ## Parallel Execution Waves
 
@@ -229,3 +297,8 @@ Use whichever pattern fits the work breakdown:
 | 6 | 9.1 | Navigation depends on both screens (Waves 4-5) |
 | 7 | 10.1, 10.2 | Removal depends on navigation no longer referencing applications |
 | 8 | 11.1, 11.2 | Tests depend on all implementation being complete |
+| **9 (Phase 2)** | **12.1** | **Health check is independent foundation for all 4 new robustness tasks** |
+| **10** | **13.1** | **Longer timeout + overlay independent of health check** |
+| **11** | **12.2, 15.1** | **Action gating + content-type validation both depend on Task 12.1** |
+| **12** | **14.1** | **Reauth CTA depends on content-type validation for consistent error handling** |
+| **13** | **15.2** | **Tests depend on all robustness tasks being complete** |
