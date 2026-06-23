@@ -184,7 +184,7 @@
   - _Depends: 6.2_
 
 - [ ] 7. Phase 2 — Tests for the new behaviors
-- [ ] 7.1 Extend `LatexTemplateBuilderTest` for categorized skills, languages, and spacing
+- [x] 7.1 Extend `LatexTemplateBuilderTest` for categorized skills, languages, and spacing
   - Update the existing `sampleTailoredContent` helper to construct a `TailoredResumeContent` with the new `categorizedSkills` field
   - Add a test that asserts the rendered LaTeX contains the five category headings in canonical order: Linguagens, Frameworks, Bancos de Dados, Ferramentas e Plataformas, Metodologias
   - Add a test that asserts categories with zero items (e.g., a candidate with no databases) are absent from the output
