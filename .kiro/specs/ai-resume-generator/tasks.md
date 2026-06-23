@@ -171,7 +171,7 @@
   - _Requirements: 11.1_
   - _Boundary: TailoredResumeContent_
 
-- [ ] 6.3 Update `LatexTemplateBuilder` for categorized skills, the languages section, and visual section spacing
+- [x] 6.3 Update `LatexTemplateBuilder` for categorized skills, the languages section, and visual section spacing
   - Change `writeSkills` to accept `List<CategorizedSkill>` and render categories in the fixed order Linguagens → Frameworks → Bancos de Dados → Ferramentas e Plataformas → Metodologias, skipping any category that is missing or has zero items
   - Add a new `writeLanguages(List<LanguageDto>)` method that renders the "Idiomas" section using the same `section()` helper as the other sections; render each entry as `Language (Level)` in the order they appear in the profile; omit the entire method call when the list is null or empty
   - Call `writeLanguages` from `build()` after `writeEducation` and before `writeFooter`

@@ -1,10 +1,13 @@
 package com.perfectjob.service.resume.generate;
 
 import com.perfectjob.dto.response.EducationDto;
+import com.perfectjob.dto.response.LanguageDto;
 import com.perfectjob.dto.response.ProfileResponse;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Builds a complete LaTeX document string from structured LLM content + profile data.
@@ -12,6 +15,17 @@ import java.util.List;
  */
 @Component
 public class LatexTemplateBuilder {
+
+    private static final List<String> CATEGORY_ORDER = List.of(
+            "Linguagens",
+            "Frameworks",
+            "Bancos de Dados",
+            "Ferramentas e Plataformas",
+            "Metodologias"
+    );
+
+    private static final String SECTION_BODY_VSPACE = "\\vspace{0.20cm}\n";
+    private static final String SECTION_HEADING_VSPACE = "\\vspace{0.10cm}\n";
 
     /**
      * Returns a complete `.tex` document string. No I/O, deterministic.
@@ -25,6 +39,7 @@ public class LatexTemplateBuilder {
         writeSkills(sb, content.categorizedSkills());
         writeExperiences(sb, content.tailoredExperiences());
         writeEducation(sb, profile);
+        writeLanguages(sb, profile.languages());
         writeFooter(sb);
         return sb.toString();
     }
@@ -104,20 +119,31 @@ public class LatexTemplateBuilder {
         if (isBlank(summary)) return;
         section(sb, "Resumo Profissional");
         sb.append(escapeLatex(summary)).append("\n\n");
+        sb.append(SECTION_BODY_VSPACE);
     }
 
     private void writeSkills(StringBuilder sb, List<TailoredResumeContent.CategorizedSkill> categories) {
         if (categories == null || categories.isEmpty()) return;
-        section(sb, "Competências Técnicas");
-        sb.append("\\begin{itemize}\n");
-        for (TailoredResumeContent.CategorizedSkill c : categories) {
-            if (c == null || c.items() == null) continue;
-            for (String s : c.items()) {
-                if (s == null || s.isBlank()) continue;
-                sb.append("    \\item ").append(escapeLatex(s.strip())).append("\n");
-            }
+        Map<String, List<String>> byCategory = categories.stream()
+                .filter(c -> c != null && c.category() != null && c.items() != null && !c.items().isEmpty())
+                .collect(Collectors.toMap(
+                        TailoredResumeContent.CategorizedSkill::category,
+                        c -> c.items().stream()
+                                .filter(s -> s != null && !s.isBlank())
+                                .map(String::strip)
+                                .toList(),
+                        (a, b) -> a
+                ));
+        boolean any = false;
+        for (String category : CATEGORY_ORDER) {
+            List<String> items = byCategory.get(category);
+            if (items == null || items.isEmpty()) continue;
+            section(sb, category);
+            sb.append(String.join(", ", items.stream().map(LatexTemplateBuilder::escapeLatex).toList()))
+              .append("\n\n");
+            sb.append(SECTION_BODY_VSPACE);
+            any = true;
         }
-        sb.append("\\end{itemize}\n\n");
     }
 
     private void writeExperiences(StringBuilder sb, List<TailoredResumeContent.TailoredExperience> experiences) {
@@ -162,6 +188,7 @@ public class LatexTemplateBuilder {
             sb.append("\\vspace{0.10cm}\n");
         }
         sb.append("\n");
+        sb.append(SECTION_BODY_VSPACE);
     }
 
     private void writeEducation(StringBuilder sb, ProfileResponse p) {
@@ -188,6 +215,22 @@ public class LatexTemplateBuilder {
             sb.append(line).append(" \\\\\n");
         }
         sb.append("\n");
+        sb.append(SECTION_BODY_VSPACE);
+    }
+
+    private void writeLanguages(StringBuilder sb, List<LanguageDto> languages) {
+        if (languages == null || languages.isEmpty()) return;
+        section(sb, "Idiomas");
+        String joined = languages.stream()
+                .filter(l -> l != null && !isBlank(l.name()))
+                .map(l -> isBlank(l.level())
+                        ? escapeLatex(l.name())
+                        : escapeLatex(l.name()) + " (" + escapeLatex(l.level()) + ")")
+                .collect(Collectors.joining(" \\textbar\\ "));
+        if (!joined.isEmpty()) {
+            sb.append(joined).append("\n\n");
+        }
+        sb.append(SECTION_BODY_VSPACE);
     }
 
     private void writeFooter(StringBuilder sb) {
@@ -199,7 +242,7 @@ public class LatexTemplateBuilder {
           .append(escapeLatex(title.toUpperCase()))
           .append("}\\par\n");
         sb.append("{\\color{rulegray}\\hrule height 0.45pt}\n");
-        sb.append("\\vspace{0.05cm}\n");
+        sb.append(SECTION_HEADING_VSPACE);
     }
 
     // -----------------------------------------------------------------

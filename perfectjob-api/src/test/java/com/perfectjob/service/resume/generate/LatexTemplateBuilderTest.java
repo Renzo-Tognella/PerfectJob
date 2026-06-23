@@ -61,14 +61,20 @@ class LatexTemplateBuilderTest {
     }
 
     @Test
-    void build_includesHighlightedSkillsAsItemize() {
+    void build_includesCategorizedSkillsAsCompactLines() {
         String tex = builder.build(sampleTailoredContent(), sampleProfile());
 
-        // Section title is uppercased
-        assertThat(tex).contains("COMPETÊNCIAS TÉCNICAS");
+        // Each canonical category becomes its own section heading (R11.5)
+        assertThat(tex).contains("LINGUAGENS");
+        // Skills within a category render as a compact line, not an itemize list (R11.6)
+        assertThat(tex).contains("Java");
+        assertThat(tex).contains("Spring");
+        assertThat(tex).doesNotContain("\\item Java");
+        assertThat(tex).doesNotContain("\\item Spring");
+        // The old single "Competências Técnicas" parent section is no longer used
+        assertThat(tex).doesNotContain("COMPETÊNCIAS TÉCNICAS");
+        // hrule is still present (rule between heading and body)
         assertThat(tex).contains("\\hrule");
-        assertThat(tex).contains("\\item Java");
-        assertThat(tex).contains("\\item Spring");
     }
 
     @Test
