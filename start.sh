@@ -22,6 +22,16 @@ ADMIN_PORT=5173
 API_CONTAINER=perfectjob-api
 
 # ---------------------------------------------------------------------------
+# Carrega .env (OPENROUTER_API_KEY, DB_*, etc.) se existir.
+# ---------------------------------------------------------------------------
+if [ -f "${ROOT}/.env" ]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "${ROOT}/.env"
+  set +a
+fi
+
+# ---------------------------------------------------------------------------
 # Detecta o IP da LAN (para o celular alcancar a API/Metro)
 # ---------------------------------------------------------------------------
 detect_lan_ip() {
@@ -46,7 +56,8 @@ echo "  API_URL do mobile:   ${API_URL}"
 echo ""
 
 # ---------------------------------------------------------------------------
-# 0. Docker precisa estar rodando
+# 0. Docker precisa estar rodando (Postgres + Redis vivem no Docker mesmo
+#    quando a API roda no host).
 # ---------------------------------------------------------------------------
 if ! docker info >/dev/null 2>&1; then
   echo "ERRO: Docker nao esta rodando. Abra o Docker Desktop e tente de novo."
@@ -66,60 +77,60 @@ done
 echo " OK"
 
 # ---------------------------------------------------------------------------
-# 2. API (Spring Boot) - Java do host se houver Java 21+, senao via Docker
+# 2. API (Spring Boot) - Java do host se houver Java 21+ E tectonic local,
+#    senao via Docker (que baixa tectonic estaticamente).
 # ---------------------------------------------------------------------------
 echo "[2/5] API (Spring Boot)..."
+
+# Auto-instala tectonic local se ainda nao existir (uma vez so).
+if [ ! -x "${HOME}/.local/bin/tectonic" ]; then
+  bash "${ROOT}/scripts/install-tectonic.sh" || true
+fi
+
 JAVA_OK=0
 if command -v java >/dev/null 2>&1; then
   JV=$(java -version 2>&1 | head -1 | grep -oE '[0-9]+' | head -1)
   [ "${JV:-0}" -ge 21 ] && JAVA_OK=1
 fi
 
-if [ "$JAVA_OK" = "1" ]; then
-  echo "      usando Java do host ($(java -version 2>&1 | head -1))"
+TECTONIC_OK=0
+[ -x "${HOME}/.local/bin/tectonic" ] && TECTONIC_OK=1
+
+# Quando rodamos a API no host, o DB esta em localhost (nao em Docker).
+# Quando rodamos em Docker, o DB esta em host.docker.internal.
+export DB_URL="${DB_URL:-jdbc:postgresql://localhost:5432/perfectjob}"
+export DB_USER="${DB_USER:-perfectjob}"
+# O container postgres define POSTGRES_PASSWORD=perfectjob.
+export DB_PASSWORD="${DB_PASSWORD:-perfectjob}"
+export REDIS_HOST="${REDIS_HOST:-localhost}"
+export PERFECTJOB_RESUME_STORAGE_DIR="${ROOT}/data/resumes"
+
+if [ "$JAVA_OK" = "1" ] && [ "$TECTONIC_OK" = "1" ]; then
+  echo "      usando Java do host ($(java -version 2>&1 | head -1)) + tectonic local"
+  export PATH="${HOME}/.local/bin:$PATH"
+  export TECTONIC_PATH="${HOME}/.local/bin/tectonic"
+  # Mata qualquer API antiga nessa porta
+  old_pids=$(lsof -ti:${API_PORT} 2>/dev/null || true)
+  [ -n "$old_pids" ] && kill -9 $old_pids 2>/dev/null || true
   ( cd perfectjob-api && nohup ./mvnw -q -Dmaven.test.skip=true spring-boot:run \
       > /tmp/perfectjob-api.log 2>&1 & )
 else
-  echo "      Java nao encontrado no host -> rodando a API via Docker (maven:21)"
+  echo "      Java 21+ e/ou tectonic ausentes no host -> API via Docker"
+  export DB_URL="jdbc:postgresql://host.docker.internal:5432/perfectjob"
+  export DB_USER="perfectjob"
+  export DB_PASSWORD="perfectjob"
+  export REDIS_HOST="host.docker.internal"
+  export PERFECTJOB_RESUME_STORAGE_DIR="/app/data/resumes"
+  export TECTONIC_PATH="/usr/local/bin/tectonic"
   docker rm -f "$API_CONTAINER" >/dev/null 2>&1 || true
   docker run -d --name "$API_CONTAINER" -p ${API_PORT}:8080 \
     --add-host=host.docker.internal:host-gateway \
-    -e DB_URL=jdbc:postgresql://host.docker.internal:5432/perfectjob \
-    -e DB_USER=perfectjob -e DB_PASSWORD=perfectjob \
-    -e REDIS_HOST=host.docker.internal \
-    -e TECTONIC_PATH=/usr/local/bin/tectonic \
-    -e PERFECTJOB_RESUME_STORAGE_DIR=/app/data/resumes \
-    -e OPENROUTER_API_KEY="${OPENROUTER_API_KEY:-}" \
-    -e OPENROUTER_MODEL="${OPENROUTER_MODEL:-deepseek/deepseek-chat}" \
-    -e OPENROUTER_BASE_URL="${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}" \
+    -e DB_URL -e DB_USER -e DB_PASSWORD -e REDIS_HOST \
+    -e TECTONIC_PATH -e PERFECTJOB_RESUME_STORAGE_DIR \
+    -e OPENROUTER_API_KEY -e OPENROUTER_MODEL -e OPENROUTER_BASE_URL \
     -v "$ROOT/perfectjob-api":/app -w /app -v perfectjob-m2:/root/.m2 \
     -v "$ROOT/data/resumes":/app/data/resumes \
-    maven:3.9-eclipse-temurin-21 bash -c '
-      set -e
-      # Install tectonic (LaTeX engine) into the container
-      if ! command -v tectonic >/dev/null 2>&1; then
-        echo "Installing tectonic..."
-        # Detect container arch (the maven:3.9-eclipse-temurin-21 image on Apple Silicon
-        # is aarch64 even though the image name is x86_64). The musl-static binary works
-        # on both glibc and musl-based hosts because it's statically linked.
-        ARCH=$(uname -m)
-        if [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
-          TECTONIC_ASSET="tectonic-0.16.9-aarch64-unknown-linux-musl.tar.gz"
-        else
-          TECTONIC_ASSET="tectonic-0.16.9-x86_64-unknown-linux-gnu.tar.gz"
-        fi
-        curl -fsSL "https://github.com/tectonic-typesetting/tectonic/releases/download/tectonic@0.16.9/${TECTONIC_ASSET}" | tar -xz -C /tmp
-        mv /tmp/tectonic /usr/local/bin/tectonic
-        chmod +x /usr/local/bin/tectonic
-        # Warm font/asset cache by compiling a trivial doc
-        echo "Warming tectonic cache..."
-        (cd /tmp && mkdir -p tectonic-warm && cd tectonic-warm && \
-          printf "\\documentclass{article}\\begin{document}warm\\end{document}" > warm.tex && \
-          tectonic --keep-logs --outdir . warm.tex >/dev/null 2>&1) || echo "(tectonic warm-up skipped)"
-      fi
-      mkdir -p /app/data/resumes
-      mvn -q -Dmaven.test.skip=true spring-boot:run
-    ' >/dev/null
+    maven:3.9-eclipse-temurin-21 bash /app/scripts/docker-api-entrypoint.sh
 fi
 
 echo -n "      aguardando a API responder (compila+migra; pode demorar)"
@@ -146,7 +157,10 @@ cat > perfectjob-mobile/.env <<EOF
 API_URL=${API_URL}
 APP_VARIANT=development
 EOF
-( cd perfectjob-mobile && nohup npx expo start --offline --port ${METRO_PORT} \
+# Mata qualquer Metro antigo nessa porta
+old_pids=$(lsof -ti:${METRO_PORT} 2>/dev/null || true)
+[ -n "$old_pids" ] && kill -9 $old_pids 2>/dev/null || true
+( cd perfectjob-mobile && PATH="${HOME}/.local/bin:$PATH" nohup npx expo start --offline --port ${METRO_PORT} \
     > /tmp/perfectjob-mobile.log 2>&1 & )
 echo "      Metro (offline) na porta ${METRO_PORT}"
 
@@ -154,7 +168,9 @@ echo "      Metro (offline) na porta ${METRO_PORT}"
 # 5. Admin (Vite)
 # ---------------------------------------------------------------------------
 echo "[5/5] Admin (Vite)..."
-( cd perfectjob-admin && nohup npm run dev > /tmp/perfectjob-admin.log 2>&1 & )
+old_pids=$(lsof -ti:${ADMIN_PORT} 2>/dev/null || true)
+[ -n "$old_pids" ] && kill -9 $old_pids 2>/dev/null || true
+( cd perfectjob-admin && nohup npm run dev -- --port ${ADMIN_PORT} > /tmp/perfectjob-admin.log 2>&1 & )
 echo "      Admin na porta ${ADMIN_PORT}"
 
 echo ""
@@ -168,7 +184,7 @@ echo "  Mobile:  abra o Expo Go e aponte para  exp://${LAN_IP}:${METRO_PORT}"
 echo "           (o celular precisa estar na MESMA rede Wi-Fi)"
 echo ""
 echo "  Logs:"
-echo "    API:    docker logs -f ${API_CONTAINER}   (ou tail -f /tmp/perfectjob-api.log)"
+echo "    API:    tail -f /tmp/perfectjob-api.log"
 echo "    Mobile: tail -f /tmp/perfectjob-mobile.log"
 echo "    Admin:  tail -f /tmp/perfectjob-admin.log"
 echo ""

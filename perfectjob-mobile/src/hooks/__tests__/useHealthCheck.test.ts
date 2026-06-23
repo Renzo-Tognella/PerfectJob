@@ -53,3 +53,23 @@ describe('useHealthCheck', () => {
     );
   });
 });
+
+describe('useHealthCheck probe URL', () => {
+  it('probes ENV.API_URL + /v1/jobs (public, lightweight, no auth)', async () => {
+    const fetched: string[] = [];
+    const originalFetch = (global as any).fetch;
+    (global as any).fetch = jest.fn(async (url: string) => {
+      fetched.push(url);
+      return { ok: true } as any;
+    });
+
+    useQueryMock.mockReturnValue({ data: true });
+    useHealthCheck();
+    const lastCall = useQueryMock.mock.calls[useQueryMock.mock.calls.length - 1][0];
+    await lastCall.queryFn();
+
+    expect(fetched[0]).toBe('http://example.test/api/v1/jobs?page=0&size=1');
+
+    (global as any).fetch = originalFetch;
+  });
+});
