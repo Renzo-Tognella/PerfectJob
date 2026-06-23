@@ -150,3 +150,51 @@ This spec owns the entire backend pipeline: LLM integration (LangChain4j core de
 4. If the tectonic binary is not found, the system shall return a `500 Internal Server Error` with guidance to install tectonic.
 5. If the PDF file is missing from the filesystem when streaming is requested, the system shall return a `404 Not Found` error.
 6. If the filesystem is unwritable when saving a PDF, the system shall return a `500 Internal Server Error` with a message indicating storage failure.
+
+### Requirement 10: Per-Job Tailoring Enforcement
+
+**Objective:** As a candidate, I want each generated resume to be visibly tailored to the specific job posting so that recruiters can immediately see my fit for that role.
+
+#### Acceptance Criteria
+
+1. When a resume is generated for a specific job, the generated `professionalSummary` shall reference at least one concrete element of the job's title, required skills, or description.
+2. When a resume is generated for a specific job, each generated experience `bulletPoints` entry shall be rephrased to highlight an achievement relevant to the job's requirements, rather than reproducing the candidate's original profile description verbatim.
+3. The LLM instructions for resume generation shall contain at least three distinct rules requiring adaptation to the target job (such as referencing job title keywords, mapping candidate skills to job skills, and rephrasing bullets).
+4. When two different jobs are submitted in sequence for the same candidate profile, the generated `professionalSummary` texts for those two jobs shall differ in at least one of: wording, mentioned technologies, or mentioned achievements.
+5. The LLM call shall include both the candidate profile and the job posting as input; the system shall not generate resume content from the profile alone.
+
+### Requirement 11: Categorized Skills in Output
+
+**Objective:** As a candidate, I want the skills section of my generated resume to be grouped by category so that recruiters can quickly scan my technical breadth.
+
+#### Acceptance Criteria
+
+1. The structured LLM output shall include a `categorizedSkills` field, which is a list of category objects each containing a `category` name and a list of `items` (skill names).
+2. The LLM instructions shall define five canonical category names: "Linguagens", "Frameworks", "Bancos de Dados", "Ferramentas e Plataformas", "Metodologias".
+3. The LLM shall use only the canonical category names from criterion 2, and shall not invent new category names.
+4. The LLM shall omit any category that would have zero items, rather than emitting an empty list for that category.
+5. The rendered PDF shall display the categories in the fixed order: Linguagens, Frameworks, Bancos de Dados, Ferramentas e Plataformas, Metodologias.
+6. Within each category, the skills shall be displayed as a compact list of items on one or more lines, separated so each item is clearly readable.
+
+### Requirement 12: Languages Section in Resume
+
+**Objective:** As a candidate, I want my spoken languages and proficiency levels to appear as a distinct section in my generated resume so that recruiters know my language capabilities.
+
+#### Acceptance Criteria
+
+1. When the candidate profile contains at least one language, the rendered PDF shall include an "Idiomas" section.
+2. When the candidate profile contains no languages, the rendered PDF shall not include the "Idiomas" section.
+3. The "Idiomas" section heading shall use the same visual style as the other section headings in the resume.
+4. Each language shall be rendered in the format "Language (Level)", where Language is the language name and Level is the proficiency level from the candidate's profile.
+5. Multiple languages shall be rendered in the order they appear in the candidate's profile.
+
+### Requirement 13: Visual Separation Between Sections
+
+**Objective:** As a candidate, I want clear vertical space between the sections of my generated resume so that each section is easy to identify at a glance.
+
+#### Acceptance Criteria
+
+1. The rendered PDF shall have visible vertical space between the bottom of one section's content and the heading line of the next section.
+2. The rendered PDF shall have visible vertical space between a section's heading line and the first line of that section's body content.
+3. No section heading shall visually touch or overlap the next line of body text in the rendered PDF.
+4. The vertical spacing values shall be large enough to be visible at 100% zoom on a standard screen, and small enough that a typical single-page resume (header + summary + categorized skills + 2-3 experiences + education + languages) fits on one A4 page.

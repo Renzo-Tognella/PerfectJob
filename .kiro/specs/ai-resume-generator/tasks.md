@@ -152,3 +152,70 @@
   - All tests pass via `./mvnw test`
   - _Requirements: 2.4, 2.5, 9.2_
   - _Depends: 3.1_
+
+- [ ] 6. Phase 2 — Core pipeline changes (R10, R11, R12, R13)
+- [ ] 6.1 (P) Strengthen the LLM system prompt with tailoring rules and canonical skill categories
+  - Read the current `prompts/resume-content-system-prompt.txt` to understand the existing structure and JSON schema
+  - Add at least three distinct rules requiring adaptation to the target job: (1) the `professionalSummary` must reference at least one concrete element from the job's title, required skills, or description; (2) experience bullet points must be rephrased (not copied verbatim) to highlight achievements relevant to the job's requirements; (3) the categorized skills list must contain only skills the candidate has AND that are relevant to the job, ordered by relevance
+  - Add the five canonical category names ("Linguagens", "Frameworks", "Bancos de Dados", "Ferramentas e Plataformas", "Metodologias") with an explicit instruction that the LLM use only these names and omit any category that would have zero items
+  - The prompt file content matches the new requirements when read back; can be inspected via `cat` and the prompt file remains valid JSON schema with a few-shot example
+  - _Requirements: 10.1, 10.2, 10.3, 11.2, 11.3, 11.4_
+  - _Boundary: system prompt resource, ResumeContentAiService_
+
+- [ ] 6.2 (P) Replace `highlightedSkills` with `categorizedSkills` in `TailoredResumeContent`
+  - Add a new `CategorizedSkill(String category, List<String> items)` record in the same file (`service/resume/generate/TailoredResumeContent.java`)
+  - Remove the `List<String> highlightedSkills` field from the `TailoredResumeContent` record
+  - Add a new `List<CategorizedSkill> categorizedSkills` field in its place
+  - Update the call site in `LatexTemplateBuilder.build(...)` to use the new field
+  - The project compiles; the new `CategorizedSkill` record exists; the old `highlightedSkills` field is gone; no API/DTO/persisted state references `highlightedSkills`
+  - _Requirements: 11.1_
+  - _Boundary: TailoredResumeContent_
+
+- [ ] 6.3 Update `LatexTemplateBuilder` for categorized skills, the languages section, and visual section spacing
+  - Change `writeSkills` to accept `List<CategorizedSkill>` and render categories in the fixed order Linguagens → Frameworks → Bancos de Dados → Ferramentas e Plataformas → Metodologias, skipping any category that is missing or has zero items
+  - Add a new `writeLanguages(List<LanguageDto>)` method that renders the "Idiomas" section using the same `section()` helper as the other sections; render each entry as `Language (Level)` in the order they appear in the profile; omit the entire method call when the list is null or empty
+  - Call `writeLanguages` from `build()` after `writeEducation` and before `writeFooter`
+  - Update `section()` to emit a small `\vspace` (e.g., `0.10cm`) after the `\hrule` so body content does not touch the rule; have each section writer append a `\vspace` (e.g., `0.20cm`) at the end of its body so the next section's heading has breathing room
+  - Use conservative vspace values so a typical 1-page resume (header + summary + categorized skills + 2-3 experiences + education + languages) still fits on one A4 page
+  - The existing `LatexTemplateBuilderTest` is updated to construct `TailoredResumeContent` with `categorizedSkills` instead of `highlightedSkills` and continues to pass
+  - The generated LaTeX source visibly contains vspace tokens between sections and an "IDIOMAS" section when languages are present in the profile
+  - _Requirements: 11.5, 11.6, 12.1, 12.2, 12.3, 12.4, 12.5, 13.1, 13.2, 13.3, 13.4_
+  - _Boundary: LatexTemplateBuilder_
+  - _Depends: 6.2_
+
+- [ ] 7. Phase 2 — Tests for the new behaviors
+- [ ] 7.1 Extend `LatexTemplateBuilderTest` for categorized skills, languages, and spacing
+  - Update the existing `sampleTailoredContent` helper to construct a `TailoredResumeContent` with the new `categorizedSkills` field
+  - Add a test that asserts the rendered LaTeX contains the five category headings in canonical order: Linguagens, Frameworks, Bancos de Dados, Ferramentas e Plataformas, Metodologias
+  - Add a test that asserts categories with zero items (e.g., a candidate with no databases) are absent from the output
+  - Add a test that asserts the "IDIOMAS" section is present in the output when `profile.languages` is non-empty, with each entry rendered as `Language (Level)` in the order provided
+  - Add a test that asserts the "IDIOMAS" section is absent when `profile.languages` is null or empty
+  - Add a test that asserts `\vspace` tokens appear between every section's content and the next section's heading, and immediately after every `\hrule`
+  - All new tests pass via `./mvnw test -Dtest=LatexTemplateBuilderTest`
+  - _Requirements: 11.5, 11.6, 12.1, 12.2, 12.3, 12.4, 12.5, 13.1, 13.2, 13.3, 13.4_
+  - _Boundary: LatexTemplateBuilder, LatexTemplateBuilderTest_
+  - _Depends: 6.3_
+
+- [ ] 7.2 (P) Extend `ResumeGenerationServiceTest` to assert R10.5 (LLM call receives both profile and job)
+  - Add a test that mocks `ResumeContentAiService`, calls `generate(profile, job)`, and captures the argument values passed to the AI service
+  - Assert that both the profile JSON and the job context are non-empty in the captured call (the system must not generate resume content from the profile alone)
+  - All new tests pass via `./mvnw test -Dtest=ResumeGenerationServiceTest`
+  - _Requirements: 10.5_
+  - _Boundary: ResumeGenerationService, ResumeGenerationServiceTest_
+
+- [ ] 7.3 Add a prompt content test for R10.3 (≥3 tailoring rules in the prompt file)
+  - Create a new test class (e.g., `ResumeContentPromptTest` in `service/resume/generate/`) that loads the `prompts/resume-content-system-prompt.txt` resource as a `String` via `getClass().getResourceAsStream(...)`
+  - Assert that the prompt content contains at least three distinct tailoring-related instructions (regex for keywords like "mencione", "adapte", "reformule", "referencie", OR a structural count of rule bullets in a designated "Regras" section)
+  - The test passes via `./mvnw test -Dtest=ResumeContentPromptTest`
+  - _Requirements: 10.3_
+  - _Boundary: system prompt resource, ResumeContentPromptTest (new)_
+  - _Depends: 6.1_
+
+- [ ] 7.4* Add a manual E2E test for R10.4 (two different jobs → different summaries)
+  - Create a test gated by the `OPENROUTER_API_KEY` environment variable; skip cleanly via `Assumptions.assumeTrue(...)` when the key is missing
+  - Use the real LLM (no mocks) to generate two resumes for the same candidate profile but two different jobs
+  - Assert that the two generated `professionalSummary` texts differ in at least one of: wording, mentioned technologies, or mentioned achievements
+  - Marked as optional (manual E2E, slow, requires real LLM credentials, not part of CI)
+  - _Requirements: 10.4_
+  - _Boundary: ResumeGenerationService_
+  - _Depends: 6.1, 6.2, 6.3_

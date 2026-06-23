@@ -11,13 +11,17 @@
 
 **Users**: Job candidates use the REST API (via the mobile app) to generate, list, download, and delete tailored resumes. The API orchestrates an LLM call, LaTeX template filling, and tectonic PDF compilation.
 
-**Impact**: Replaces the entire Application subsystem (entity, controller, service, event, DTOs, table) with a Resume generation pipeline. Removes `applicationsCount` from `ProfileResponse` (adjacent impact on mobile/admin consumers).
+**Impact**: Replaces the entire Application subsystem (entity, controller, service, event, DTOs, table) with a Resume generation pipeline. Removes `applicationsCount` from `ProfileResponse` (adjacent impact on mobile/admin consumers). Phase 2 polish hardens the LLM output (R10), introduces categorized skills (R11), adds a languages section (R12), and tightens visual spacing between sections (R13) without changing the architecture or adding new components.
 
 ### Goals
 - Enable candidates to generate a polished, job-tailored PDF resume from their profile data + job requirements.
 - Separate LLM content generation (structured JSON) from LaTeX rendering (deterministic Java template builder) for reliability.
 - Fully remove the Application system and its database table.
 - Integrate LangChain4j core deps (not starter) on Spring Boot 3.3.5 via manual bean wiring.
+- **Phase 2 (R10)**: Enforce visible per-job tailoring in the LLM output by strengthening the system prompt with at least three distinct rules requiring adaptation to the target job.
+- **Phase 2 (R11)**: Render the skills section grouped by five canonical categories, populated by the LLM, displayed in a fixed order.
+- **Phase 2 (R12)**: Render the candidate's spoken languages as a distinct "Idiomas" section, omitted when the list is empty.
+- **Phase 2 (R13)**: Ensure clear visible vertical space between sections so headings do not visually touch body text, while keeping a typical 1-page resume on one A4 page.
 
 ### Non-Goals
 - Multiple resume templates (single fixed template).
@@ -25,6 +29,8 @@
 - Resume editing post-generation (regenerate instead).
 - Spring Boot upgrade.
 - Mobile UI changes (deferred to `mobile-resume-experience` spec).
+- **Phase 2 (R10)**: Post-LLM validation, re-ranking, or keyword-presence checks on the LLM output. Decided out of scope per user direction; OpenRouter/DeepSeek does not guarantee JSON mode and validation+retry would inflate latency and complexity for marginal benefit.
+- **Phase 2 (R12)**: Validating or cleaning the candidate's profile data (e.g., filtering corrupted `education` records). The `ai-resume-generator` spec does not own profile data quality.
 
 ## Boundary Commitments
 
@@ -121,6 +127,26 @@ graph TB
 - Existing patterns preserved: layered architecture, Lombok entities, Java record DTOs, static mapper utility, `@RestControllerAdvice` global exception handling.
 - New components rationale: Each pipeline stage is a separate class for testability and single responsibility.
 
+### Phase 2 — Polish Updates (Requirements 10–13)
+
+The polish work keeps the same pipeline and does **not** add new components. It modifies three existing files in `service/resume/generate/` plus the system prompt, and updates the unit tests.
+
+**Scope of change**:
+
+| File | Change | Requirements |
+|------|--------|--------------|
+| `prompts/resume-content-system-prompt.txt` | Strengthen tailoring rules (≥3); add canonical categories for skills; instruct LLM to use only those names; instruct LLM to omit empty categories | R10.1, R10.2, R10.3, R11.2, R11.3, R11.4 |
+| `TailoredResumeContent.java` | Replace `List<String> highlightedSkills` with `List<CategorizedSkill> categorizedSkills`; add new `CategorizedSkill(category, items)` record | R11.1, R11.2, R11.4 |
+| `LatexTemplateBuilder.java` | (a) Update `writeSkills` to render by category in fixed order; (b) add new `writeLanguages` method invoked from `build()`; (c) update `section()` and post-section spacing to satisfy R13 | R11.5, R11.6, R12.1, R12.2, R12.3, R12.4, R12.5, R13.1, R13.2, R13.3, R13.4 |
+
+**Why no new components**:
+- The LLM call site (`ResumeContentAiService` interface and proxy) does not change — only the prompt resource.
+- The structured record change is in-place (no parallel schema; the old field is removed, not deprecated).
+- The template additions are local to the existing class — `writeLanguages` is ~10 lines, `writeSkills` adapts in place.
+- The spacing change is a few `\vspace` constants inside `section()` and the per-section tail.
+
+**Boundary reaffirmation**: All changes stay inside the `service/resume/generate/` package. The REST API contract, `Resume` entity, `ResumeRepository`, `ResumeController`, and `ResumeService` are not touched. The `ProfileResponse` DTO is consumed as-is; the new `writeLanguages` reads `p.languages()` which is already present in the record.
+
 ### Technology Stack
 
 | Layer | Choice / Version | Role in Feature | Notes |
@@ -173,6 +199,10 @@ perfectjob-api/src/main/java/com/perfectjob/
 - `perfectjob-api/src/main/java/com/perfectjob/dto/response/ProfileResponse.java` — Remove `applicationsCount` field.
 - `.env.example` — Add `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`, `OPENROUTER_BASE_URL`, `TECTONIC_PATH`, `PERFECTJOB_RESUME_STORAGE_DIR`.
 - `start.sh` — Add tectonic download + font cache warm when in Docker mode.
+- **Phase 2 (R10, R11)**: `perfectjob-api/src/main/resources/prompts/resume-content-system-prompt.txt` — Strengthen tailoring rules (≥3), add canonical category names, instruct LLM to use only those names and omit empty categories.
+- **Phase 2 (R11)**: `perfectjob-api/src/main/java/com/perfectjob/service/resume/generate/TailoredResumeContent.java` — Replace `List<String> highlightedSkills` with `List<CategorizedSkill> categorizedSkills`; add `CategorizedSkill(String category, List<String> items)` record.
+- **Phase 2 (R11, R12, R13)**: `perfectjob-api/src/main/java/com/perfectjob/service/resume/generate/LatexTemplateBuilder.java` — Update `writeSkills` to render by category in fixed order; add `writeLanguages(List<LanguageDto>)`; update `section()` and per-section tail with vspace for visible separation.
+- **Phase 2 tests**: `perfectjob-api/src/test/java/com/perfectjob/service/resume/generate/LatexTemplateBuilderTest.java` — Add tests for categorized skills rendering, languages section (presence/absence), and vspace assertions. `ResumeGenerationServiceTest.java` — Add tests asserting the LLM call receives both profile and job context. `ResumeContentAiServiceTest.java` (if it exists, otherwise a new prompt-resource-loading test) — Assert the system prompt contains ≥3 tailoring rules.
 
 ### Deleted Files
 - `model/Application.java`
@@ -402,6 +432,12 @@ public record ResumeDetailResponse(
 | 7.1–7.6 | Application Removal | (deleted files), ProfileService, ProfileResponse | V10 migration | Startup |
 | 8.1–8.4 | Infrastructure | start.sh, .env.example, application.yml | Docker, config | Startup |
 | 9.1–9.6 | Error Handling | ResumeService, TectonicPdfCompiler, GlobalExceptionHandler | exception types | All flows |
+| 10.1, 10.2, 10.3, 10.5 | Per-Job Tailoring Enforcement (Phase 2) | `ResumeContentAiService`, `prompts/resume-content-system-prompt.txt` | @SystemMessage resource, AiServices proxy | Generation |
+| 10.4 | Per-Job Tailoring (different jobs → different summaries) | `ResumeGenerationService`, `ResumeContentAiService` | generate(userId, job) | Generation |
+| 11.1, 11.2, 11.3, 11.4 | Categorized Skills (Phase 2) | `TailoredResumeContent` (record + new `CategorizedSkill` record), system prompt | categorizedSkills field | Generation |
+| 11.5, 11.6 | Skills rendered by category in fixed order (Phase 2) | `LatexTemplateBuilder.writeSkills` | writeSkills(List<CategorizedSkill>) | Generation |
+| 12.1, 12.2, 12.3, 12.4, 12.5 | Languages section (Phase 2) | `LatexTemplateBuilder.writeLanguages` | writeLanguages(List<LanguageDto>) | Generation |
+| 13.1, 13.2, 13.3, 13.4 | Visual section spacing (Phase 2) | `LatexTemplateBuilder.section` (helper), each section writer | section() vspace constants | Generation |
 
 ## Components and Interfaces
 
@@ -492,7 +528,7 @@ interface ResumeGenerationService {
 | Field | Detail |
 |-------|--------|
 | Intent | Build a complete LaTeX document string from structured content + profile data |
-| Requirements | 3.1, 3.2, 3.3, 3.4, 3.5 |
+| Requirements | 3.1, 3.2, 3.3, 3.4, 3.5, **R11.5, R11.6, R12.1, R12.2, R12.3, R12.4, R12.5, R13.1, R13.2, R13.3, R13.4** |
 
 **Service Interface**:
 ```java
@@ -507,6 +543,9 @@ class LatexTemplateBuilder {
 - Colors hardcoded: `\definecolor{textgray}{HTML}{565656}`, `\definecolor{rulegray}{HTML}{8A8A8A}`.
 - Template structure: `\documentclass{article}` + `\usepackage{helvet}` + custom commands + `\begin{document}` + `\begin{cvcontent}` ... `\end{cvcontent}` + `\end{document}`.
 - Unit-testable: takes pure data in, returns a string, no I/O.
+- **Phase 2 (R11)**: `writeSkills` signature changes from `List<String>` to `List<CategorizedSkill>`. It iterates categories in the fixed order Linguagens → Frameworks → Bancos de Dados → Ferramentas e Plataformas → Metodologias, skipping any category that is missing or has an empty items list (R11.4). Within each category, items render as a compact comma-separated line.
+- **Phase 2 (R12)**: New `writeLanguages(List<LanguageDto>)` method. Renders the section heading `"Idiomas"` using the same `section()` helper as the other sections (R12.3). Body is one line per language in the format `"Language (Level)"` (R12.4), in the order they appear in the profile (R12.5). The entire method is a no-op when the list is null or empty (R12.2). Called from `build()` after `writeEducation()` and before `writeFooter()`.
+- **Phase 2 (R13)**: `section()` now emits a small vertical space (`\vspace{0.10cm}`) after the `\hrule` so the body content does not touch the rule (R13.2). Each section's writer appends a larger vertical space (`\vspace{0.20cm}`) at the end of its body so the next section's heading has breathing room (R13.1). Values are conservative to keep a typical 1-page resume on one A4 page (R13.4).
 
 ---
 
@@ -539,12 +578,13 @@ class TectonicPdfCompiler {
 | Field | Detail |
 |-------|--------|
 | Intent | Typed proxy for LLM structured output |
-| Requirements | 2.1, 2.2, 2.3 |
+| Requirements | 2.1, 2.3, **R10.1, R10.2, R10.3, R10.5, R11.2, R11.3, R11.4** |
 
 **Service Interface**:
 ```java
 interface ResumeContentAiService {
-    @SystemMessage(fromResource = "resume-content-system-prompt.txt")
+    @SystemMessage(fromResource = "prompts/resume-content-system-prompt.txt")
+    @UserMessage("CANDIDATE PROFILE:\n{{profile}}\n\n---\n\nJOB POSTING:\n{{job}}\n\n---\n\nGenerate the tailored resume JSON.")
     TailoredResumeContent generateTailoredContent(
         @V("profile") String profileJson,
         @V("job") String jobContext
@@ -553,15 +593,21 @@ interface ResumeContentAiService {
 ```
 - The system prompt (pt-BR) instructs the LLM to produce JSON matching `TailoredResumeContent` schema with a few-shot example.
 - LangChain4j `AiServices` parses the response into the record automatically.
+- **Phase 2 (R10)**: System prompt now contains at least three distinct rules requiring adaptation to the target job. Concretely: (1) `professionalSummary` must mention at least one element from the job's title, required skills, or description; (2) `tailoredExperiences[].bulletPoints` must be rephrased (not copied) to highlight achievements relevant to the job's requirements; (3) `categorizedSkills` must contain only skills the candidate has AND that are relevant to the job, ordered by relevance. Both the candidate profile and the job posting are included in the LLM call (R10.5).
+- **Phase 2 (R11)**: System prompt defines five canonical category names — "Linguagens", "Frameworks", "Bancos de Dados", "Ferramentas e Plataformas", "Metodologias" — and instructs the LLM to use only these names, omit empty categories.
 
 ---
 
 #### TailoredResumeContent (record)
 
+**Updated for Phase 2 (R11).** The `highlightedSkills` flat list is **replaced** by `categorizedSkills`, a list of `(category, items)` pairs. The LLM emits only the five canonical category names. The template renders them in a fixed order, omitting empty categories.
+
 ```java
+record CategorizedSkill(String category, List<String> items) {}
+
 record TailoredResumeContent(
     String professionalSummary,
-    List<String> highlightedSkills,
+    List<CategorizedSkill> categorizedSkills,   // ← Phase 2: replaces highlightedSkills (R11)
     List<TailoredExperience> tailoredExperiences
 ) {}
 
@@ -573,6 +619,8 @@ record TailoredExperience(
     List<String> bulletPoints
 ) {}
 ```
+
+**Migration impact**: The record is internal to `service/resume/generate/`. No API field, no DB column, no persisted state depends on `highlightedSkills`. The change is transparent to mobile, admin, and any external consumer.
 
 ---
 
@@ -669,9 +717,16 @@ All pipeline errors are caught in `ResumeService.generate()` and translated into
 
 ### Unit Tests
 - **LatexTemplateBuilder**: Given a fixed `TailoredResumeContent` + `ProfileResponse`, assert the output `.tex` string contains expected sections, commands, and escaped characters. (Tests `escapeLatex` for all special chars.)
+  - **Phase 2 (R11.5, R11.6)**: Given a `TailoredResumeContent` with categories in mixed order, assert the rendered LaTeX contains the categories in the canonical order (Linguagens, Frameworks, Bancos de Dados, Ferramentas e Plataformas, Metodologias), and empty categories are absent.
+  - **Phase 2 (R12.1, R12.3, R12.4, R12.5)**: Given a `ProfileResponse` with a non-empty `languages` list, assert the rendered LaTeX contains the section heading "IDIOMAS" and each language as `"Language (Level)"` in the order provided.
+  - **Phase 2 (R12.2)**: Given a `ProfileResponse` with empty `languages`, assert the rendered LaTeX does NOT contain "IDIOMAS".
+  - **Phase 2 (R13.1, R13.2, R13.3)**: Assert the rendered LaTeX contains `\vspace` between every section's content and the next section's heading, and that the rule (`\hrule`) is followed by a `\vspace` before the section's body.
+  - **Phase 2 (R13.4)**: With a typical full profile (3 experiences, education, languages, categorized skills), assert the rendered LaTeX is ≤ one A4 page (heuristic: count `\newpage` or assert the content fits in a fixed character budget proportional to a single page).
 - **TectonicPdfCompiler**: Mock `ProcessBuilder` / `Process`; assert exit code 0 returns bytes, non-zero throws `PdfCompilationException` with stderr, timeout triggers `destroyForcibly`.
 - **ResumeContentAiService**: Mock the LLM proxy; assert valid JSON parses into `TailoredResumeContent`; assert malformed JSON throws on first attempt.
+  - **Phase 2 (R10.3)**: Load the `prompts/resume-content-system-prompt.txt` resource and assert it contains at least three distinct tailoring rules (regex for keywords like "mencione", "adapte", "reformule", "referencie", or structural count of bullet items).
 - **ResumeGenerationService**: Mock all sub-components; assert happy-path returns `GenerationResult`; assert retry on first parse failure; assert error on second failure.
+  - **Phase 2 (R10.5)**: Assert the LLM call is invoked with both `profileJson` and `jobContext` non-empty in the user message (capture and assert the user-message template variables).
 
 ### Integration Tests
 - **ResumeService.generate()**: With mocked LLM + mocked tectonic (or `@MockBean`), assert a `Resume` is persisted, PDF file is written to a temp storage dir, and `ResumeResponse` is returned.
@@ -682,3 +737,5 @@ All pipeline errors are caught in `ResumeService.generate()` and translated into
 - **Full pipeline with real tectonic**: Generate a resume from a real profile + job; assert PDF is valid (opens in a reader, has correct content sections).
 - **Application removal**: Assert the app starts with no `Application` class, `applications` table is dropped, `ProfileResponse` has no `applicationsCount`.
 - **Missing API key**: Assert app starts; generation returns a clear error.
+- **Phase 2 (R10.4)**: Generate resumes for the same candidate profile with two different jobs; assert the two generated `professionalSummary` texts differ in at least one of: wording, mentioned technologies, or mentioned achievements. (Requires real `OPENROUTER_API_KEY`; runs as a slow test, gated by env var.)
+- **Phase 2 visual sanity check**: Render a resume and visually inspect that (a) each section heading has visible vertical space above and below, (b) "Idiomas" appears when languages exist, (c) skills are grouped under the five canonical category headings, (d) no section heading touches the next line of body text.
