@@ -18,20 +18,23 @@ export interface ChipProps {
 const SIZE_RECIPES: Record<ChipSize, { container: ViewStyle; text: TextStyle }> = {
   sm: {
     container: { paddingVertical: spacing[1], paddingHorizontal: spacing[3] },
-    text: { fontSize: typography.fontSize.bodySm },
+    text: { fontSize: typography.fontSize.caption },
   },
   md: {
     container: { paddingVertical: spacing[2], paddingHorizontal: spacing[3] },
-    text: { fontSize: typography.fontSize.body },
+    text: { fontSize: typography.fontSize.caption },
   },
   lg: {
     container: { paddingVertical: spacing[2], paddingHorizontal: spacing[4] },
-    text: { fontSize: typography.fontSize.body },
+    text: { fontSize: typography.fontSize.caption },
   },
 };
 
 /**
  * Pill-shaped chip for badges, tags, skill labels.
+ *
+ * Defaults match the dominant pattern in the codebase: caption font, medium
+ * weight, primary[700] text on primary[50] background.
  *
  * @example
  *   <Chip size="sm" label="Remoto" />
@@ -67,8 +70,8 @@ const styles = StyleSheet.create({
   },
   icon: { marginRight: spacing[1] },
   label: {
-    color: colors.primary[600],
-    fontWeight: typography.fontWeight.semibold as '600',
+    color: colors.primary[700],
+    fontWeight: typography.fontWeight.medium as '500',
   },
 });
 

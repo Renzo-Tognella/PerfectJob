@@ -6,7 +6,9 @@ import { useRoute, useNavigation, RouteProp, CommonActions } from '@react-naviga
 import { colors } from '@/design-system/tokens/colors';
 import { typography } from '@/design-system/tokens/typography';
 import { spacing } from '@/design-system/tokens/spacing';
+import { radius } from '@/design-system/tokens/radius';
 import Icon from '@/components/ui/Icon';
+import { IconButton } from '@/design-system/components/IconButton';
 import PdfViewer from '@/components/shared/PdfViewer';
 import { resumeApi, isResumePdfError } from '@/services/api/resumeApi';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -83,14 +85,11 @@ export default function ResumePreviewScreen() {
       <StatusBar barStyle="dark-content" />
 
       <View style={styles.header}>
-        <TouchableOpacity
+        <IconButton
+          icon={{ family: 'MaterialIcons', name: 'arrow-back', size: 22 }}
           onPress={() => navigation.goBack()}
-          style={styles.backBtn}
-          accessibilityRole="button"
           accessibilityLabel="Voltar"
-        >
-          <Icon family="MaterialIcons" name="arrow-back" size={22} color={colors.neutral[800]} />
-        </TouchableOpacity>
+        />
         <Text style={styles.headerTitle}>Currículo</Text>
         <View style={styles.headerSpacer} />
       </View>
@@ -142,11 +141,6 @@ const styles = StyleSheet.create({
     color: colors.neutral[900],
   },
   headerSpacer: { width: 40, height: 40 },
-  backBtn: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: colors.neutral[100],
-    alignItems: 'center', justifyContent: 'center',
-  },
   viewerContainer: { flex: 1 },
   errorWrap: {
     flex: 1,
@@ -165,7 +159,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary[500],
     paddingHorizontal: spacing[6],
     paddingVertical: spacing[3],
-    borderRadius: 12,
+    borderRadius: radius.lg,
   },
   errorBtnText: {
     color: colors.white,

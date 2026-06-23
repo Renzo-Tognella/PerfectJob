@@ -4,9 +4,10 @@ import {
   SafeAreaView, StatusBar, Alert, ActivityIndicator, Linking, Modal,
 } from 'react-native'
 import { useRoute, useNavigation, RouteProp, CommonActions } from '@react-navigation/native'
-import { colors } from '@/design-system/tokens/colors'
-import { typography } from '@/design-system/tokens/typography'
-import { spacing } from '@/design-system/tokens/spacing'
+import { colors, typography, spacing, radius } from '@/design-system/tokens'
+import { Chip } from '@/design-system/components/Chip'
+import { IconButton } from '@/design-system/components/IconButton'
+import { StickyBottomBar } from '@/design-system/components/StickyBottomBar'
 import { useJobDetail } from '@/hooks/useJobs'
 import { useIsJobSaved, useToggleSavedJob } from '@/hooks/useSavedJobs'
 import { useGenerateResume } from '@/hooks/useResumes'
@@ -108,9 +109,11 @@ const JobDetailScreen = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Icon family="MaterialIcons" name="arrow-back" size={22} color={colors.neutral[800]} />
-          </TouchableOpacity>
+          <IconButton
+            icon={{ family: 'MaterialIcons', name: 'arrow-back', size: 22 }}
+            onPress={() => navigation.goBack()}
+            accessibilityLabel="Voltar"
+          />
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary[500]} />
@@ -123,9 +126,11 @@ const JobDetailScreen = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Icon family="MaterialIcons" name="arrow-back" size={22} color={colors.neutral[800]} />
-          </TouchableOpacity>
+          <IconButton
+            icon={{ family: 'MaterialIcons', name: 'arrow-back', size: 22 }}
+            onPress={() => navigation.goBack()}
+            accessibilityLabel="Voltar"
+          />
         </View>
         <View style={styles.loadingContainer}>
           <Text style={styles.errorText}>Vaga não encontrada.</Text>
@@ -139,9 +144,11 @@ const JobDetailScreen = () => {
       <StatusBar barStyle="dark-content" />
 
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Icon family="MaterialIcons" name="arrow-back" size={22} color={colors.neutral[800]} />
-        </TouchableOpacity>
+        <IconButton
+          icon={{ family: 'MaterialIcons', name: 'arrow-back', size: 22 }}
+          onPress={() => navigation.goBack()}
+          accessibilityLabel="Voltar"
+        />
         {jobId !== null && (
           <TouchableOpacity
             onPress={handleToggleSave}
@@ -173,20 +180,36 @@ const JobDetailScreen = () => {
 
         <View style={styles.badgeRow}>
           {job.salary && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{job.salary}</Text>
-            </View>
+            <Chip
+              size="sm"
+              label={job.salary}
+              textStyle={{ color: colors.neutral[700] }}
+              style={{ backgroundColor: colors.neutral[100] }}
+            />
           )}
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{job.workModel}</Text>
-          </View>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{job.level}</Text>
-          </View>
+          {job.workModel && (
+            <Chip
+              size="sm"
+              label={job.workModel}
+              textStyle={{ color: colors.neutral[700] }}
+              style={{ backgroundColor: colors.neutral[100] }}
+            />
+          )}
+          {job.level && (
+            <Chip
+              size="sm"
+              label={job.level}
+              textStyle={{ color: colors.neutral[700] }}
+              style={{ backgroundColor: colors.neutral[100] }}
+            />
+          )}
           {job.contractType && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{job.contractType}</Text>
-            </View>
+            <Chip
+              size="sm"
+              label={job.contractType}
+              textStyle={{ color: colors.neutral[700] }}
+              style={{ backgroundColor: colors.neutral[100] }}
+            />
           )}
         </View>
 
@@ -228,9 +251,12 @@ const JobDetailScreen = () => {
           <View style={styles.skillRow}>
             {(job.skills?.length ?? 0) > 0 ? (
               job.skills!.map((skill, i) => (
-                <View key={i} style={styles.skillChip}>
-                  <Text style={styles.skillChipText}>{skill}</Text>
-                </View>
+                <Chip
+                  key={i}
+                  size="sm"
+                  label={skill}
+                  style={{ borderWidth: 1, borderColor: colors.primary[200] }}
+                />
               ))
             ) : (
               <Text style={styles.sectionBody}>Nenhuma habilidade informada.</Text>
@@ -259,7 +285,7 @@ const JobDetailScreen = () => {
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
-      <View style={styles.stickyBar}>
+      <StickyBottomBar>
         <TouchableOpacity
           style={[
             styles.applyBtn,
@@ -282,7 +308,7 @@ const JobDetailScreen = () => {
             <Text style={styles.applyBtnText}>Gerar Currículo</Text>
           )}
         </TouchableOpacity>
-      </View>
+      </StickyBottomBar>
 
       <Modal
         transparent
@@ -308,19 +334,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[4], paddingTop: spacing[2], paddingBottom: spacing[2],
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
   },
-  backBtn: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: colors.neutral[100],
-    alignItems: 'center', justifyContent: 'center',
-  },
   saveBtn: {
-    width: 40, height: 40, borderRadius: 20,
+    width: 40, height: 40, borderRadius: 20, // half of width — perfect 40×40 circle
     backgroundColor: colors.neutral[100],
     alignItems: 'center', justifyContent: 'center',
   },
-  scrollContent: { paddingHorizontal: spacing[5], paddingTop: spacing[2] },
+  scrollContent: { paddingHorizontal: spacing[4], paddingTop: spacing[2] },
   logo: {
-    width: 64, height: 64, borderRadius: 16,
+    width: 64, height: 64, borderRadius: radius.xxl,
     backgroundColor: colors.primary[100],
     alignItems: 'center', justifyContent: 'center',
     alignSelf: 'center', marginBottom: spacing[4],
@@ -338,15 +359,6 @@ const styles = StyleSheet.create({
   badgeRow: {
     flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center',
     gap: spacing[2], marginBottom: spacing[6],
-  },
-  badge: {
-    backgroundColor: colors.neutral[100],
-    paddingVertical: spacing[1], paddingHorizontal: spacing[3],
-    borderRadius: 9999,
-  },
-  badgeText: {
-    fontSize: typography.fontSize.caption,
-    fontWeight: typography.fontWeight.medium as any, color: colors.neutral[700],
   },
   section: { marginBottom: spacing[6] },
   sectionTitle: {
@@ -367,19 +379,10 @@ const styles = StyleSheet.create({
     flex: 1, lineHeight: 24,
   },
   skillRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing[2] },
-  skillChip: {
-    backgroundColor: colors.primary[50], borderWidth: 1,
-    borderColor: colors.primary[200], paddingVertical: spacing[1],
-    paddingHorizontal: spacing[3], borderRadius: 9999,
-  },
-  skillChipText: {
-    fontSize: typography.fontSize.caption,
-    fontWeight: typography.fontWeight.medium as any, color: colors.primary[700],
-  },
   externalLinkBtn: {
     flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start',
     paddingVertical: spacing[2], paddingHorizontal: spacing[3],
-    marginBottom: spacing[4], borderRadius: 8,
+    marginBottom: spacing[4], borderRadius: radius.md,
     backgroundColor: colors.primary[50],
   },
   externalLinkText: {
@@ -389,13 +392,8 @@ const styles = StyleSheet.create({
     fontWeight: typography.fontWeight.semibold as any,
   },
   bottomSpacer: { height: spacing[8] },
-  stickyBar: {
-    borderTopWidth: 1, borderTopColor: colors.neutral[200],
-    backgroundColor: colors.white,
-    paddingHorizontal: spacing[5], paddingTop: spacing[3], paddingBottom: spacing[5],
-  },
   applyBtn: {
-    backgroundColor: colors.primary[500], borderRadius: 12,
+    backgroundColor: colors.primary[500], borderRadius: radius.lg,
     height: 56, alignItems: 'center', justifyContent: 'center',
   },
   applyBtnDisabled: {
@@ -410,7 +408,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing[6],
   },
   overlayCard: {
-    backgroundColor: colors.white, borderRadius: 16,
+    backgroundColor: colors.white, borderRadius: radius.xxl,
     paddingVertical: spacing[6], paddingHorizontal: spacing[6],
     alignItems: 'center', gap: spacing[3], minWidth: 220,
   },

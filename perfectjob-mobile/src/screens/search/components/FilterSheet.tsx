@@ -11,6 +11,7 @@ import {
 import { colors } from '@/design-system/tokens/colors';
 import { typography } from '@/design-system/tokens/typography';
 import { spacing } from '@/design-system/tokens/spacing';
+import { radius } from '@/design-system/tokens/radius';
 import Icon from '@/components/ui/Icon';
 
 export interface Filters {
@@ -211,7 +212,7 @@ const styles = StyleSheet.create({
   handleBar: {
     width: 40,
     height: 4,
-    borderRadius: 2,
+    borderRadius: radius.xs,
     backgroundColor: colors.neutral[300],
     alignSelf: 'center',
     marginBottom: spacing[3],
@@ -254,7 +255,7 @@ const styles = StyleSheet.create({
   checkbox: {
     width: 22,
     height: 22,
-    borderRadius: 6,
+    borderRadius: radius.sm,
     borderWidth: 2,
     borderColor: colors.neutral[300],
     alignItems: 'center',
@@ -279,7 +280,7 @@ const styles = StyleSheet.create({
     height: 44,
     borderWidth: 1,
     borderColor: colors.neutral[300],
-    borderRadius: 8,
+    borderRadius: radius.md,
     paddingHorizontal: spacing[3],
     fontSize: typography.fontSize.body,
     color: colors.neutral[900],
@@ -293,7 +294,7 @@ const styles = StyleSheet.create({
     height: 44,
     borderWidth: 1,
     borderColor: colors.neutral[300],
-    borderRadius: 8,
+    borderRadius: radius.md,
     paddingHorizontal: spacing[3],
     fontSize: typography.fontSize.body,
     color: colors.neutral[900],
@@ -301,7 +302,7 @@ const styles = StyleSheet.create({
   },
   applyBtn: {
     backgroundColor: colors.primary[500],
-    borderRadius: 8,
+    borderRadius: radius.md,
     height: 50,
     alignItems: 'center',
     justifyContent: 'center',

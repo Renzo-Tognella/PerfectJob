@@ -10,6 +10,7 @@ import { Category } from '../../../types';
 import { colors } from '../../../design-system/tokens/colors';
 import { typography } from '../../../design-system/tokens/typography';
 import { spacing } from '../../../design-system/tokens/spacing';
+import { radius } from '../../../design-system/tokens/radius';
 import Icon from '../../../components/ui/Icon';
 
 interface CategoryGridProps {
@@ -72,7 +73,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: colors.white,
-    borderRadius: 14,
+    borderRadius: radius.xl,
     padding: spacing[5],
     width: '48%',
     alignItems: 'center',
@@ -87,7 +88,7 @@ const styles = StyleSheet.create({
   iconContainer: {
     width: 56,
     height: 56,
-    borderRadius: 16,
+    borderRadius: radius.xxl,
     backgroundColor: colors.primary[50],
     alignItems: 'center',
     justifyContent: 'center',

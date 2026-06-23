@@ -60,3 +60,27 @@ The existing Application system (entity, endpoints, mobile screen, admin trackin
 - [x] job-external-url -- Add external URL to jobs (ingestion, schema, API response, admin form). Dependencies: none
 - [x] ai-resume-generator -- LangChain4j + LaTeX + tectonic + Resume entity + API + drop Application system. Dependencies: none (profile data already exists; job-url spec is independent)
 - [x] mobile-resume-experience -- Rename Candidaturas tab to Currículos, replace apply button with generate-resume, add PDF preview screen, display job external link (incl. mobile `externalUrl` types/mapper). Dependencies: ai-resume-generator (needs /v1/resumes endpoints), job-external-url (needs JobResponse.externalUrl in API)
+
+---
+
+## Phase 2 — Polish & Robustness
+
+Goal: address design-system debt and end-to-end robustness gaps discovered during live testing of Phase 1 on a real device. Both workstreams are polish work, not new product capabilities.
+
+### Approach Decision
+
+- **Chosen**: Two parallel polish tracks — (A) systematic design-system consistency via vertical-slice refactors, (B) end-to-end resume-via-app robustness fix.
+- **Why**: Design-system debt is orthogonal to any single feature (touches 13+ files across the whole mobile app, has no single owning spec). Resume-via-app robustness is contained within the mobile-resume-experience domain (4 files) and naturally extends the existing spec rather than spawning a new one.
+- **Execution order**: B first (unblocks the live demo — candidate can actually generate a resume via app), then A in parallel by screen.
+
+### Existing Spec Updates
+
+- [ ] mobile-resume-experience (extend) -- Make end-to-end resume generation via the app actually work on a real device. Current spec assumes a 10-30s synchronous POST, but actual latency is ~68s and the original spec left several robustness gaps (ENV.API_URL default is a LAN IP, no JWT reauth CTA on 401, no content-type validation on the PDF download, no status awareness between mutation success and preview navigation, PdfViewer's onError callback never wired up). Dependencies: ai-resume-generator (status semantics owned by backend). Update via `/kiro-spec-requirements mobile-resume-experience` then `/kiro-spec-tasks mobile-resume-experience -y`.
+
+### Direct Implementation Candidates
+
+_None._ Both workstreams are large enough to warrant spec treatment.
+
+### Specs (dependency order)
+
+- [ ] mobile-design-system -- Establish a real design-system layer (radius/shadow tokens, shared Card/Chip/EmptyState/IconButton/StickyBottomBar components), normalize the spacing/padding inconsistencies across all 13+ mobile screens that currently bypass tokens (54 hardcoded `borderRadius` values, 5 different chip-padding recipes, copy-pasted EmptyState blocks in 3 screens, orphaned `Button.tsx` component with zero importers). Vertical-slice approach: each task = 1 token family + 1 consuming component + 1 reference screen migration. Dependencies: none (pure refactor, no API or backend changes).

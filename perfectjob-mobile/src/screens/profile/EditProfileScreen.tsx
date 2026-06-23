@@ -7,6 +7,9 @@ import { useNavigation } from '@react-navigation/native'
 import { colors } from '@/design-system/tokens/colors'
 import { typography } from '@/design-system/tokens/typography'
 import { spacing } from '@/design-system/tokens/spacing'
+import { radius } from '@/design-system/tokens/radius'
+import { Card } from '@/design-system/components/Card'
+import { Chip } from '@/design-system/components/Chip'
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile'
 import { extractErrorMessage } from '@/services/api/client'
 import type { UpdateProfilePayload, ExperienceDto, EducationDto, LanguageDto } from '@/types/profile'
@@ -191,7 +194,7 @@ const EditProfileScreen = () => {
           {sectionHeader('Experiência profissional', addExp)}
           {experiences.length === 0 ? <Text style={styles.emptyHint}>Nenhuma experiência. Toque em "Adicionar".</Text> : null}
           {experiences.map((exp, i) => (
-            <View key={`exp-${i}`} style={styles.itemCard}>
+            <Card key={`exp-${i}`} variant="outlined" style={styles.itemCard}>
               {smallInput(exp.title ?? '', (t) => updateExp(i, { title: t }), 'Cargo (ex: Desenvolvedor Backend)')}
               {smallInput(exp.company ?? '', (t) => updateExp(i, { company: t }), 'Empresa')}
               <View style={styles.row}>
@@ -203,14 +206,14 @@ const EditProfileScreen = () => {
                 <Icon family="Ionicons" name="trash-outline" size={16} color={colors.error.DEFAULT} />
                 <Text style={styles.removeText}>Remover</Text>
               </TouchableOpacity>
-            </View>
+            </Card>
           ))}
 
           {/* Formação acadêmica */}
           {sectionHeader('Formação acadêmica', addEdu)}
           {education.length === 0 ? <Text style={styles.emptyHint}>Nenhuma formação. Toque em "Adicionar".</Text> : null}
           {education.map((edu, i) => (
-            <View key={`edu-${i}`} style={styles.itemCard}>
+            <Card key={`edu-${i}`} variant="outlined" style={styles.itemCard}>
               {smallInput(edu.institution ?? '', (t) => updateEdu(i, { institution: t }), 'Instituição (ex: USP)')}
               {smallInput(edu.degree ?? '', (t) => updateEdu(i, { degree: t }), 'Grau (ex: Bacharelado)')}
               {smallInput(edu.fieldOfStudy ?? '', (t) => updateEdu(i, { fieldOfStudy: t }), 'Curso (ex: Ciência da Computação)')}
@@ -222,14 +225,14 @@ const EditProfileScreen = () => {
                 <Icon family="Ionicons" name="trash-outline" size={16} color={colors.error.DEFAULT} />
                 <Text style={styles.removeText}>Remover</Text>
               </TouchableOpacity>
-            </View>
+            </Card>
           ))}
 
           {/* Idiomas */}
           {sectionHeader('Idiomas', addLang)}
           {languages.length === 0 ? <Text style={styles.emptyHint}>Nenhum idioma. Toque em "Adicionar".</Text> : null}
           {languages.map((lang, i) => (
-            <View key={`lang-${i}`} style={styles.itemCard}>
+            <Card key={`lang-${i}`} variant="outlined" style={styles.itemCard}>
               {smallInput(lang.name ?? '', (t) => updateLang(i, { name: t }), 'Idioma (ex: Inglês)')}
               <Text style={styles.levelLabel}>Nível</Text>
               <View style={styles.levelRow}>
@@ -238,11 +241,21 @@ const EditProfileScreen = () => {
                   return (
                     <TouchableOpacity
                       key={lvl}
-                      style={[styles.levelChip, active && styles.levelChipActive]}
                       onPress={() => updateLang(i, { level: active ? null : lvl })}
                       activeOpacity={0.8}
                     >
-                      <Text style={[styles.levelChipText, active && styles.levelChipTextActive]}>{lvl}</Text>
+                      <Chip
+                        size="sm"
+                        label={lvl}
+                        style={[
+                          { backgroundColor: colors.white, borderWidth: 1, borderColor: colors.neutral[300] },
+                          active && { backgroundColor: colors.primary[500], borderColor: colors.primary[500] },
+                        ]}
+                        textStyle={[
+                          { color: colors.neutral[700], fontWeight: typography.fontWeight.regular as '400' },
+                          active && { color: colors.white },
+                        ]}
+                      />
                     </TouchableOpacity>
                   )
                 })}
@@ -251,7 +264,7 @@ const EditProfileScreen = () => {
                 <Icon family="Ionicons" name="trash-outline" size={16} color={colors.error.DEFAULT} />
                 <Text style={styles.removeText}>Remover</Text>
               </TouchableOpacity>
-            </View>
+            </Card>
           ))}
 
           {field('Sobre você', bio, setBio, { placeholder: 'Um breve resumo', multiline: true })}
@@ -281,29 +294,25 @@ const EditProfileScreen = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.neutral[50] },
   center: { alignItems: 'center', justifyContent: 'center' },
-  scroll: { padding: spacing[5], paddingBottom: spacing[10] },
+  scroll: { padding: spacing[4], paddingBottom: spacing[10] },
   title: { fontSize: typography.fontSize.h3, fontWeight: typography.fontWeight.bold as any, color: colors.neutral[900], marginBottom: spacing[5] },
   field: { marginBottom: spacing[4] },
   label: { fontSize: typography.fontSize.bodySm, fontWeight: typography.fontWeight.medium as any, color: colors.neutral[700], marginBottom: spacing[2] },
-  input: { backgroundColor: colors.white, borderWidth: 1, borderColor: colors.neutral[300], borderRadius: 10, paddingHorizontal: spacing[4], paddingVertical: spacing[3], fontSize: typography.fontSize.body, color: colors.neutral[900] },
+  input: { backgroundColor: colors.white, borderWidth: 1, borderColor: colors.neutral[300], borderRadius: radius.sm2, paddingHorizontal: spacing[4], paddingVertical: spacing[3], fontSize: typography.fontSize.body, color: colors.neutral[900] },
   inputMultiline: { minHeight: 72, textAlignVertical: 'top' },
   sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing[4], marginBottom: spacing[3] },
   sectionTitle: { fontSize: typography.fontSize.h5, fontWeight: typography.fontWeight.semibold as any, color: colors.neutral[900] },
-  addInline: { flexDirection: 'row', alignItems: 'center', gap: spacing[1], paddingVertical: spacing[1], paddingHorizontal: spacing[2], borderRadius: 8, backgroundColor: colors.primary[50] },
+  addInline: { flexDirection: 'row', alignItems: 'center', gap: spacing[1], paddingVertical: spacing[1], paddingHorizontal: spacing[2], borderRadius: radius.md, backgroundColor: colors.primary[50] },
   addInlineText: { color: colors.primary[600], fontWeight: typography.fontWeight.semibold as any, fontSize: typography.fontSize.bodySm },
   emptyHint: { fontSize: typography.fontSize.bodySm, color: colors.neutral[500], marginBottom: spacing[2] },
-  itemCard: { backgroundColor: colors.white, borderRadius: 12, padding: spacing[3], marginBottom: spacing[3], borderWidth: 1, borderColor: colors.neutral[200], gap: spacing[2] },
-  itemInput: { backgroundColor: colors.neutral[50], borderWidth: 1, borderColor: colors.neutral[300], borderRadius: 8, paddingHorizontal: spacing[3], paddingVertical: spacing[2], fontSize: typography.fontSize.bodySm, color: colors.neutral[900] },
+  itemCard: { padding: spacing[3], marginBottom: spacing[3], gap: spacing[2] },
+  itemInput: { backgroundColor: colors.neutral[50], borderWidth: 1, borderColor: colors.neutral[300], borderRadius: radius.md, paddingHorizontal: spacing[3], paddingVertical: spacing[2], fontSize: typography.fontSize.bodySm, color: colors.neutral[900] },
   row: { flexDirection: 'row', gap: spacing[2] },
   removeBtn: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: spacing[1], paddingVertical: spacing[1] },
   removeText: { color: colors.error.DEFAULT, fontSize: typography.fontSize.bodySm, fontWeight: typography.fontWeight.medium as any },
   levelLabel: { fontSize: typography.fontSize.caption, color: colors.neutral[600], marginTop: spacing[1] },
   levelRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing[2] },
-  levelChip: { paddingVertical: spacing[1], paddingHorizontal: spacing[3], borderRadius: 9999, borderWidth: 1, borderColor: colors.neutral[300], backgroundColor: colors.white },
-  levelChipActive: { backgroundColor: colors.primary[500], borderColor: colors.primary[500] },
-  levelChipText: { fontSize: typography.fontSize.caption, color: colors.neutral[700] },
-  levelChipTextActive: { color: colors.white, fontWeight: typography.fontWeight.semibold as any },
-  saveBtn: { backgroundColor: colors.primary[500], borderRadius: 12, paddingVertical: spacing[4], alignItems: 'center', justifyContent: 'center', marginTop: spacing[5] },
+  saveBtn: { backgroundColor: colors.primary[500], borderRadius: radius.lg, paddingVertical: spacing[4], alignItems: 'center', justifyContent: 'center', marginTop: spacing[5] },
   saveBtnDisabled: { opacity: 0.6 },
   saveText: { color: colors.white, fontSize: typography.fontSize.body, fontWeight: typography.fontWeight.semibold as any },
   cancelBtn: { alignItems: 'center', paddingVertical: spacing[4] },

@@ -1,7 +1,6 @@
 import { forwardRef } from 'react';
 import { View, Text, TextInput, type TextInputProps, StyleSheet } from 'react-native';
-import { colors } from '@/design-system/tokens/colors';
-import { spacing } from '@/design-system/tokens/spacing';
+import { colors, spacing, typography, radius } from '@/design-system/tokens';
 
 export interface InputProps extends TextInputProps {
   label?: string;
@@ -35,19 +34,32 @@ Input.displayName = 'Input';
 
 const styles = StyleSheet.create({
   wrapper: { marginBottom: spacing[4] },
-  label: { fontSize: 14, fontWeight: '500', color: colors.neutral[700], marginBottom: spacing[2] },
+  label: {
+    fontSize: typography.fontSize.bodySm,
+    fontWeight: typography.fontWeight.medium as '500',
+    color: colors.neutral[700],
+    marginBottom: spacing[2],
+  },
   required: { color: colors.error.DEFAULT },
   input: {
     borderWidth: 1,
     borderColor: colors.neutral[300],
-    borderRadius: 8,
+    borderRadius: radius.md,
     paddingHorizontal: spacing[3],
     paddingVertical: spacing[3],
-    fontSize: 16,
+    fontSize: typography.fontSize.body,
     color: colors.neutral[900],
     backgroundColor: colors.white,
   },
   inputError: { borderColor: colors.error.DEFAULT },
-  error: { fontSize: 12, color: colors.error.DEFAULT, marginTop: spacing[1] },
-  hint: { fontSize: 12, color: colors.neutral[500], marginTop: spacing[1] },
+  error: {
+    fontSize: typography.fontSize.caption,
+    color: colors.error.DEFAULT,
+    marginTop: spacing[1],
+  },
+  hint: {
+    fontSize: typography.fontSize.caption,
+    color: colors.neutral[500],
+    marginTop: spacing[1],
+  },
 });

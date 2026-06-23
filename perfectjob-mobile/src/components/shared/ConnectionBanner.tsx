@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/design-system/tokens/colors';
 import { spacing } from '@/design-system/tokens/spacing';
 import { typography } from '@/design-system/tokens/typography';
+import { radius } from '@/design-system/tokens/radius';
 import { useHealthCheck } from '@/hooks/useHealthCheck';
 
 interface ConnectionBannerProps {
@@ -53,14 +54,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.error.DEFAULT,
   },
   icon: {
-    fontSize: 18,
+    fontSize: typography.fontSize.bodyLg,
     fontWeight: typography.fontWeight.bold as '700',
     color: colors.white,
     width: 24,
     height: 24,
     textAlign: 'center',
     lineHeight: 24,
-    borderRadius: 12,
+    borderRadius: radius.lg,
     backgroundColor: 'rgba(255,255,255,0.25)',
     overflow: 'hidden',
   },
@@ -79,7 +80,7 @@ const styles = StyleSheet.create({
   action: {
     paddingHorizontal: spacing[3],
     paddingVertical: spacing[2],
-    borderRadius: 8,
+    borderRadius: radius.md,
     backgroundColor: 'rgba(255,255,255,0.2)',
   },
   actionText: {

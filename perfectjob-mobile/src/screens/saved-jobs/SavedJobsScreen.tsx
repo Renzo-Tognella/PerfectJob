@@ -4,9 +4,8 @@ import {
   Alert, SafeAreaView, ActivityIndicator, RefreshControl,
 } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
-import { colors } from '@/design-system/tokens/colors'
-import { typography } from '@/design-system/tokens/typography'
-import { spacing } from '@/design-system/tokens/spacing'
+import { colors, typography, spacing } from '@/design-system/tokens'
+import { EmptyState } from '@/design-system/components/EmptyState'
 import { Job } from '@/types'
 import JobCard from '@/components/shared/JobCard'
 import Icon from '@/components/ui/Icon'
@@ -96,8 +95,11 @@ const SavedJobsScreen = () => {
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Vagas Salvas</Text>
         </View>
-        <View style={styles.emptyContainer}>
-          <ActivityIndicator size="large" color={colors.primary[500]} />
+        <View style={styles.loadingContainer}>
+          <EmptyState
+            icon={<ActivityIndicator size="large" color={colors.primary[500]} />}
+            title="Carregando vagas..."
+          />
         </View>
       </SafeAreaView>
     )
@@ -109,15 +111,12 @@ const SavedJobsScreen = () => {
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Vagas Salvas</Text>
         </View>
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyTitle}>Não foi possível carregar</Text>
-          <Text style={styles.emptySubtitle}>
-            Verifique sua conexão e tente novamente.
-          </Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={() => refetch()}>
-            <Text style={styles.retryBtnText}>Tentar novamente</Text>
-          </TouchableOpacity>
-        </View>
+        <EmptyState
+          icon={<Icon family="Ionicons" name="cloud-offline-outline" size={48} color={colors.neutral[400]} />}
+          title="Não foi possível carregar"
+          description="Verifique sua conexão e tente novamente."
+          action={{ label: 'Tentar novamente', onPress: () => refetch() }}
+        />
       </SafeAreaView>
     )
   }
@@ -128,15 +127,11 @@ const SavedJobsScreen = () => {
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Vagas Salvas</Text>
         </View>
-        <View style={styles.emptyContainer}>
-          <View style={styles.emptyIcon}>
-            <Icon family="MaterialIcons" name="bookmark-border" size={48} color={colors.neutral[300]} />
-          </View>
-          <Text style={styles.emptyTitle}>Nenhuma vaga salva</Text>
-          <Text style={styles.emptySubtitle}>
-            Toque no ícone de favorito nas vagas para salvá-las aqui.
-          </Text>
-        </View>
+        <EmptyState
+          icon={<Icon family="Ionicons" name="bookmark-outline" size={48} color={colors.neutral[400]} />}
+          title="Nenhuma vaga salva"
+          description="Toque no ícone de favorito nas vagas para salvá-las aqui."
+        />
       </SafeAreaView>
     )
   }
@@ -178,32 +173,7 @@ const styles = StyleSheet.create({
   },
   listContent: { paddingHorizontal: spacing[4], paddingBottom: spacing[6] },
   footer: { paddingVertical: spacing[4], alignItems: 'center' },
-  emptyContainer: {
-    flex: 1, alignItems: 'center', justifyContent: 'center',
-    paddingHorizontal: spacing[8],
-  },
-  emptyIcon: { marginBottom: spacing[4] },
-  emptyTitle: {
-    fontSize: typography.fontSize.h4,
-    fontWeight: typography.fontWeight.semibold as any,
-    color: colors.neutral[800], marginBottom: spacing[2],
-    textAlign: 'center',
-  },
-  emptySubtitle: {
-    fontSize: typography.fontSize.body, color: colors.neutral[500],
-    textAlign: 'center', marginBottom: spacing[4],
-  },
-  retryBtn: {
-    backgroundColor: colors.primary[500],
-    paddingHorizontal: spacing[6],
-    paddingVertical: spacing[3],
-    borderRadius: 8,
-  },
-  retryBtnText: {
-    color: colors.white,
-    fontSize: typography.fontSize.body,
-    fontWeight: typography.fontWeight.semibold as any,
-  },
+  loadingContainer: { flex: 1 },
 })
 
 export default SavedJobsScreen

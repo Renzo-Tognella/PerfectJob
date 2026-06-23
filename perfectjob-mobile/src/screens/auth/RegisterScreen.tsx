@@ -15,9 +15,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/hooks/useAuth';
 import { registerSchema, type RegisterInput } from '@/schemas/auth';
-import { colors } from '@/design-system/tokens/colors';
-import { typography } from '@/design-system/tokens/typography';
-import { spacing } from '@/design-system/tokens/spacing';
+import { colors, typography, spacing, radius } from '@/design-system/tokens';
 import Icon from '@/components/ui/Icon';
 import { FormField } from '@/components/ui/FormField';
 
@@ -185,7 +183,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing[10],
   },
   logo: {
-    fontSize: 40,
+    fontSize: typography.fontSize.h1,
     fontWeight: typography.fontWeight.bold as '700',
     color: colors.primary[500],
     marginBottom: spacing[3],
@@ -206,7 +204,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.error.light,
-    borderRadius: 8,
+    borderRadius: radius.md,
     paddingVertical: spacing[2],
     paddingHorizontal: spacing[3],
     marginBottom: spacing[4],
@@ -219,7 +217,7 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: colors.primary[500],
-    borderRadius: 12,
+    borderRadius: radius.lg,
     paddingVertical: spacing[4],
     alignItems: 'center',
     marginBottom: spacing[6],

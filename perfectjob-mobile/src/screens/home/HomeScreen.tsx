@@ -17,6 +17,9 @@ import { Job, Category } from '../../types'
 import { colors } from '../../design-system/tokens/colors'
 import { typography } from '../../design-system/tokens/typography'
 import { spacing } from '../../design-system/tokens/spacing'
+import { radius } from '../../design-system/tokens/radius'
+import { Chip } from '../../design-system/components/Chip'
+import { IconButton } from '../../design-system/components/IconButton'
 import { useFeaturedJobs, useSearchJobs, useTrendingSkills } from '../../hooks/useJobs'
 import { useCompanies } from '../../hooks/useCompanies'
 import { buildCategoriesFromSkills } from '../../services/home/categories'
@@ -63,9 +66,12 @@ const HomeScreen: React.FC = () => {
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={styles.logo}>PerfectJob</Text>
-          <TouchableOpacity activeOpacity={0.8} style={styles.bellBtn}>
-            <Icon name="bell" size={24} color={colors.neutral[700]} />
-          </TouchableOpacity>
+          <IconButton
+            icon={{ family: 'Ionicons', name: 'notifications-outline', size: 22 }}
+            onPress={() => {}}
+            accessibilityLabel="Notificações"
+            variant="transparent"
+          />
         </View>
 
         <HeroSection
@@ -84,10 +90,12 @@ const HomeScreen: React.FC = () => {
               <TouchableOpacity
                 key={item.skill}
                 activeOpacity={0.8}
-                style={styles.chip}
                 onPress={() => handleSkillPress(item.skill)}
               >
-                <Text style={styles.chipText}>{item.skill}</Text>
+                <Chip
+                  size="lg"
+                  label={item.skill}
+                />
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -166,23 +174,8 @@ const styles = StyleSheet.create({
     fontWeight: typography.fontWeight.bold as '700',
     color: colors.primary[500],
   },
-  bellBtn: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: colors.neutral[50],
-    alignItems: 'center', justifyContent: 'center',
-  },
   trendingContainer: {
     paddingHorizontal: spacing[4], paddingVertical: spacing[3], gap: spacing[2],
-  },
-  chip: {
-    backgroundColor: colors.primary[50], borderRadius: 9999,
-    paddingVertical: spacing[2], paddingHorizontal: spacing[4],
-    marginRight: spacing[2],
-  },
-  chipText: {
-    fontSize: typography.fontSize.bodySm,
-    color: colors.primary[700],
-    fontWeight: typography.fontWeight.medium as '500',
   },
   loadingContainer: {
     paddingVertical: spacing[6],
@@ -199,7 +192,7 @@ const styles = StyleSheet.create({
   companyList: { paddingHorizontal: spacing[4], gap: spacing[3] },
   companyCard: { alignItems: 'center', marginRight: spacing[4], width: 80 },
   companyLogo: {
-    width: 64, height: 64, borderRadius: 16,
+    width: 64, height: 64, borderRadius: radius.xxl,
     backgroundColor: colors.neutral[100],
     alignItems: 'center', justifyContent: 'center', marginBottom: spacing[2],
   },

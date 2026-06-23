@@ -4,9 +4,9 @@ import {
   SafeAreaView, ActivityIndicator, RefreshControl,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { colors } from '@/design-system/tokens/colors';
-import { typography } from '@/design-system/tokens/typography';
-import { spacing } from '@/design-system/tokens/spacing';
+import { colors, typography, spacing, radius } from '@/design-system/tokens';
+import { Card } from '@/design-system/components/Card';
+import { EmptyState } from '@/design-system/components/EmptyState';
 import { useResumes } from '@/hooks/useResumes';
 import { useIsBackendReachable } from '@/hooks/useHealthCheck';
 import { toResume, type ResumeView } from '@/services/api/mappers';
@@ -41,36 +41,38 @@ const ResumesScreen: React.FC = () => {
     ({ item }: { item: ResumeView }) => (
       <TouchableOpacity
         activeOpacity={0.9}
-        style={styles.card}
+        style={styles.cardTouchable}
         onPress={() => handleViewPdf(item)}
         disabled={!isBackendReachable}
         accessibilityRole="button"
         accessibilityLabel={`Ver currículo para ${item.jobTitle}`}
       >
-        <View style={styles.cardHeader}>
-          <Icon
-            family="Ionicons"
-            name="document-text"
-            size={36}
-            color={colors.primary[500]}
-          />
-          <View style={styles.cardInfo}>
-            <Text style={styles.jobTitle} numberOfLines={2}>
-              {item.jobTitle}
-            </Text>
-            <Text style={styles.date}>Gerado em {item.createdAtLabel}</Text>
+        <Card>
+          <View style={styles.cardHeader}>
+            <Icon
+              family="Ionicons"
+              name="document-text"
+              size={36}
+              color={colors.primary[500]}
+            />
+            <View style={styles.cardInfo}>
+              <Text style={styles.jobTitle} numberOfLines={2}>
+                {item.jobTitle}
+              </Text>
+              <Text style={styles.date}>Gerado em {item.createdAtLabel}</Text>
+            </View>
           </View>
-        </View>
-        <TouchableOpacity
-          style={[styles.viewPdfBtn, !isBackendReachable && styles.viewPdfBtnDisabled]}
-          onPress={() => handleViewPdf(item)}
-          activeOpacity={0.85}
-          disabled={!isBackendReachable}
-        >
-          <Text style={styles.viewPdfBtnText}>
-            {isBackendReachable ? 'Ver PDF' : 'Sem conexão'}
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.viewPdfBtn, !isBackendReachable && styles.viewPdfBtnDisabled]}
+            onPress={() => handleViewPdf(item)}
+            activeOpacity={0.85}
+            disabled={!isBackendReachable}
+          >
+            <Text style={styles.viewPdfBtnText}>
+              {isBackendReachable ? 'Ver PDF' : 'Sem conexão'}
+            </Text>
+          </TouchableOpacity>
+        </Card>
       </TouchableOpacity>
     ),
     [handleViewPdf, isBackendReachable]
@@ -97,8 +99,11 @@ const ResumesScreen: React.FC = () => {
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Meus Currículos</Text>
         </View>
-        <View style={styles.emptyContainer}>
-          <ActivityIndicator size="large" color={colors.primary[500]} />
+        <View style={styles.loadingContainer}>
+          <EmptyState
+            icon={<ActivityIndicator size="large" color={colors.primary[500]} />}
+            title="Carregando currículos..."
+          />
         </View>
       </SafeAreaView>
     );
@@ -110,15 +115,12 @@ const ResumesScreen: React.FC = () => {
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Meus Currículos</Text>
         </View>
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyTitle}>Não foi possível carregar</Text>
-          <Text style={styles.emptySubtitle}>
-            Verifique sua conexão e tente novamente.
-          </Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={() => refetch()}>
-            <Text style={styles.retryBtnText}>Tentar novamente</Text>
-          </TouchableOpacity>
-        </View>
+        <EmptyState
+          icon={<Icon family="Ionicons" name="cloud-offline-outline" size={48} color={colors.neutral[400]} />}
+          title="Não foi possível carregar"
+          description="Verifique sua conexão e tente novamente."
+          action={{ label: 'Tentar novamente', onPress: () => refetch() }}
+        />
       </SafeAreaView>
     );
   }
@@ -129,20 +131,11 @@ const ResumesScreen: React.FC = () => {
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Meus Currículos</Text>
         </View>
-        <View style={styles.emptyContainer}>
-          <View style={styles.emptyIcon}>
-            <Icon
-              family="Ionicons"
-              name="document-text"
-              size={64}
-              color={colors.neutral[300]}
-            />
-          </View>
-          <Text style={styles.emptyTitle}>Nenhum currículo gerado</Text>
-          <Text style={styles.emptySubtitle}>
-            Explore as vagas e gere seu primeiro currículo!
-          </Text>
-        </View>
+        <EmptyState
+          icon={<Icon family="Ionicons" name="document-text-outline" size={48} color={colors.neutral[400]} />}
+          title="Nenhum currículo gerado"
+          description="Explore as vagas e gere seu primeiro currículo!"
+        />
       </SafeAreaView>
     );
   }
@@ -186,12 +179,8 @@ const styles = StyleSheet.create({
   },
   listContent: { paddingHorizontal: spacing[4], paddingBottom: spacing[6] },
   footer: { paddingVertical: spacing[4], alignItems: 'center' },
-  card: {
-    backgroundColor: colors.white, borderRadius: 14,
-    padding: spacing[5], marginBottom: spacing[3],
-    borderWidth: 1, borderColor: colors.neutral[100],
-    shadowColor: colors.black, shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06, shadowRadius: 4, elevation: 2,
+  cardTouchable: {
+    marginBottom: spacing[3],
   },
   cardHeader: {
     flexDirection: 'row', alignItems: 'center', marginBottom: spacing[4],
@@ -206,7 +195,7 @@ const styles = StyleSheet.create({
   viewPdfBtn: {
     backgroundColor: colors.primary[500],
     paddingVertical: spacing[3],
-    borderRadius: 10,
+    borderRadius: radius.sm2,
     alignItems: 'center',
   },
   viewPdfBtnDisabled: {
@@ -217,32 +206,7 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.body,
     fontWeight: typography.fontWeight.semibold as any,
   },
-  emptyContainer: {
-    flex: 1, alignItems: 'center', justifyContent: 'center',
-    paddingHorizontal: spacing[8],
-  },
-  emptyIcon: { marginBottom: spacing[4] },
-  emptyTitle: {
-    fontSize: typography.fontSize.h4,
-    fontWeight: typography.fontWeight.semibold as any,
-    color: colors.neutral[800], marginBottom: spacing[2],
-    textAlign: 'center',
-  },
-  emptySubtitle: {
-    fontSize: typography.fontSize.body, color: colors.neutral[500],
-    textAlign: 'center', marginBottom: spacing[4],
-  },
-  retryBtn: {
-    backgroundColor: colors.primary[500],
-    paddingHorizontal: spacing[6],
-    paddingVertical: spacing[3],
-    borderRadius: 8,
-  },
-  retryBtnText: {
-    color: colors.white,
-    fontSize: typography.fontSize.body,
-    fontWeight: typography.fontWeight.semibold as any,
-  },
+  loadingContainer: { flex: 1 },
 });
 
 export default ResumesScreen;

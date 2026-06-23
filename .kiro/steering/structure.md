@@ -158,7 +158,7 @@ The mobile app's design tokens and shared components live under `perfectjob-mobi
 | `components/EmptyState.tsx` | Icon + title + description + optional action — replaces 3 copy-pasted blocks |
 | `components/IconButton.tsx` | 40×40 circular icon button for headers/toolbars; `neutral` or `transparent` variant |
 | `components/StickyBottomBar.tsx` | Bottom-anchored CTA bar with safe-area-aware padding |
-| `components/Button.tsx` | Either imported by ≥3 screens OR deleted (do not leave dormant) |
+| (no shared `Button`) | The codebase has 3 distinct button patterns: auth-screen primary CTAs (`borderRadius: 12`, no fixed height), job-detail sticky bar CTAs (`height: 56` + shadow), inline list actions (`borderRadius: 10`). No single API cleanly covers all three without heavy style overrides. Until a real need emerges, button implementations stay inline at each site. |
 
 ### Padding Matrix
 

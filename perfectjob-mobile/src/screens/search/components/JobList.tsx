@@ -11,6 +11,7 @@ import {
 import { colors } from '@/design-system/tokens/colors';
 import { typography } from '@/design-system/tokens/typography';
 import { spacing } from '@/design-system/tokens/spacing';
+import { EmptyState } from '@/design-system/components/EmptyState';
 import { Job } from '@/types';
 import JobCard from '@/components/shared/JobCard';
 import Icon from '@/components/ui/Icon';
@@ -46,13 +47,11 @@ const JobList: React.FC<JobListProps> = ({
   if (jobs.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <View style={styles.emptyIcon}>
-          <Icon family="Feather" name="search" size={40} color={colors.neutral[400]} />
-        </View>
-        <Text style={styles.emptyTitle}>Nenhuma vaga encontrada</Text>
-        <Text style={styles.emptySubtitle}>
-          Tente ajustar seus filtros ou buscar por outro termo.
-        </Text>
+        <EmptyState
+          icon={<Icon family="Feather" name="search" size={40} color={colors.neutral[400]} />}
+          title="Nenhuma vaga encontrada"
+          description="Tente ajustar seus filtros ou buscar por outro termo."
+        />
       </View>
     );
   }
@@ -94,25 +93,7 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing[8],
     marginTop: spacing[12],
-  },
-  emptyIcon: {
-    marginBottom: spacing[4],
-  },
-  emptyTitle: {
-    fontSize: typography.fontSize.h4,
-    fontWeight: typography.fontWeight.semibold as any,
-    color: colors.neutral[800],
-    marginBottom: spacing[2],
-    textAlign: 'center',
-  },
-  emptySubtitle: {
-    fontSize: typography.fontSize.body,
-    color: colors.neutral[500],
-    textAlign: 'center',
   },
 });
 

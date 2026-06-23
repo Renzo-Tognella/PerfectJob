@@ -5,9 +5,7 @@ import {
   TextInput,
   StyleSheet,
 } from 'react-native';
-import { colors } from '../../../design-system/tokens/colors';
-import { typography } from '../../../design-system/tokens/typography';
-import { spacing } from '../../../design-system/tokens/spacing';
+import { colors, typography, spacing, radius } from '../../../design-system/tokens';
 import Icon from '../../../components/ui/Icon';
 
 interface HeroSectionProps {
@@ -57,7 +55,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   headline: {
-    fontSize: 32,
+    fontSize: typography.fontSize.h2,
     fontWeight: typography.fontWeight.bold as '700',
     color: colors.neutral[900],
     lineHeight: 40,
@@ -72,7 +70,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.white,
-    borderRadius: 9999,
+    borderRadius: radius.pill,
     borderWidth: 1.5,
     borderColor: colors.neutral[200],
     paddingHorizontal: spacing[4],

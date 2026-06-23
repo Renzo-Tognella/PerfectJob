@@ -9,6 +9,9 @@ import * as DocumentPicker from 'expo-document-picker'
 import { colors } from '@/design-system/tokens/colors'
 import { typography } from '@/design-system/tokens/typography'
 import { spacing } from '@/design-system/tokens/spacing'
+import { radius } from '@/design-system/tokens/radius'
+import { Card } from '@/design-system/components/Card'
+import { Chip } from '@/design-system/components/Chip'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useProfile, useUploadResume } from '@/hooks/useProfile'
 import { extractErrorMessage } from '@/services/api/client'
@@ -93,12 +96,12 @@ const ProfileScreen = () => {
           </TouchableOpacity>
         ) : null}
 
-        <View style={styles.statsRow}>
+        <Card style={styles.statsRow}>
           <View style={styles.statBox}>
             <Text style={styles.statValue}>{profile?.savedJobsCount ?? '-'}</Text>
             <Text style={styles.statLabel}>Vagas salvas</Text>
           </View>
-        </View>
+        </Card>
 
         {/* Currículo */}
         <View style={styles.section}>
@@ -131,9 +134,11 @@ const ProfileScreen = () => {
           {profile?.skills?.length ? (
             <View style={styles.chipsWrap}>
               {profile.skills.map((skill) => (
-                <View key={skill} style={styles.chip}>
-                  <Text style={styles.chipText}>{skill}</Text>
-                </View>
+                <Chip
+                  key={skill}
+                  size="md"
+                  label={skill}
+                />
               ))}
             </View>
           ) : (
@@ -146,14 +151,14 @@ const ProfileScreen = () => {
           <Text style={styles.sectionTitle}>Experiência Profissional</Text>
           {profile?.experiences?.length ? (
             profile.experiences.map((exp, idx) => (
-              <View key={`${exp.title}-${idx}`} style={styles.itemCard}>
+              <Card key={`${exp.title}-${idx}`} style={styles.itemCard}>
                 <Text style={styles.itemTitle}>{exp.title}</Text>
                 {exp.company ? <Text style={styles.itemSubtitle}>{exp.company}</Text> : null}
                 {formatExperiencePeriod(exp) ? (
                   <Text style={styles.itemPeriod}>{formatExperiencePeriod(exp)}</Text>
                 ) : null}
                 {exp.description ? <Text style={styles.itemDesc} numberOfLines={3}>{exp.description}</Text> : null}
-              </View>
+              </Card>
             ))
           ) : (
             <Text style={styles.emptyText}>Nenhuma experiência cadastrada.</Text>
@@ -165,11 +170,11 @@ const ProfileScreen = () => {
           <Text style={styles.sectionTitle}>Formação Acadêmica</Text>
           {profile?.education?.length ? (
             profile.education.map((edu, idx) => (
-              <View key={`${edu.institution}-${idx}`} style={styles.itemCard}>
+              <Card key={`${edu.institution}-${idx}`} style={styles.itemCard}>
                 <Text style={styles.itemTitle}>{edu.institution}</Text>
                 {formatEducationTitle(edu) ? <Text style={styles.itemSubtitle}>{formatEducationTitle(edu)}</Text> : null}
                 {formatEducationYears(edu) ? <Text style={styles.itemPeriod}>{formatEducationYears(edu)}</Text> : null}
-              </View>
+              </Card>
             ))
           ) : (
             <Text style={styles.emptyText}>Nenhuma formação cadastrada.</Text>
@@ -182,9 +187,11 @@ const ProfileScreen = () => {
           {profile?.languages?.length ? (
             <View style={styles.chipsWrap}>
               {profile.languages.map((lang, idx) => (
-                <View key={`${lang.name}-${idx}`} style={styles.chip}>
-                  <Text style={styles.chipText}>{formatLanguage(lang)}</Text>
-                </View>
+                <Chip
+                  key={`${lang.name}-${idx}`}
+                  size="md"
+                  label={formatLanguage(lang)}
+                />
               ))}
             </View>
           ) : (
@@ -219,9 +226,9 @@ const ProfileScreen = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.neutral[50] },
   center: { alignItems: 'center', justifyContent: 'center' },
-  scrollContent: { paddingHorizontal: spacing[5], paddingTop: spacing[6], paddingBottom: spacing[10] },
+  scrollContent: { paddingHorizontal: spacing[4], paddingTop: spacing[6], paddingBottom: spacing[10] },
   avatar: {
-    width: 96, height: 96, borderRadius: 48, backgroundColor: colors.primary[100],
+    width: 96, height: 96, borderRadius: radius.avatar, backgroundColor: colors.primary[100],
     alignItems: 'center', justifyContent: 'center', alignSelf: 'center', marginBottom: spacing[4],
     shadowColor: colors.primary[500], shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15, shadowRadius: 8, elevation: 4,
@@ -240,15 +247,14 @@ const styles = StyleSheet.create({
   editBtn: {
     flexDirection: 'row', alignItems: 'center', alignSelf: 'center', gap: spacing[1],
     marginTop: spacing[3], marginBottom: spacing[5], paddingVertical: spacing[2], paddingHorizontal: spacing[4],
-    borderRadius: 9999, borderWidth: 1.5, borderColor: colors.primary[200], backgroundColor: colors.primary[50],
+    borderRadius: radius.pill, borderWidth: 1.5, borderColor: colors.primary[200], backgroundColor: colors.primary[50],
   },
   editText: { color: colors.primary[600], fontWeight: typography.fontWeight.semibold as any, fontSize: typography.fontSize.bodySm },
-  errorBox: { backgroundColor: colors.error.light, borderRadius: 10, padding: spacing[3], marginBottom: spacing[4] },
+  errorBox: { backgroundColor: colors.error.light, borderRadius: radius.sm2, padding: spacing[3], marginBottom: spacing[4] },
   errorText: { color: colors.error.dark, fontSize: typography.fontSize.bodySm, textAlign: 'center' },
   statsRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: spacing[6],
-    backgroundColor: colors.white, borderRadius: 14, padding: spacing[4],
-    shadowColor: colors.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 2, elevation: 1,
+    padding: spacing[4],
   },
   statBox: { alignItems: 'center', paddingHorizontal: spacing[6] },
   statDivider: { width: 1, height: 32, backgroundColor: colors.neutral[200] },
@@ -261,17 +267,14 @@ const styles = StyleSheet.create({
   },
   uploadBtn: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: colors.white, borderWidth: 1.5,
-    borderColor: colors.neutral[300], borderRadius: 12, paddingVertical: spacing[4], paddingHorizontal: spacing[4],
+    borderColor: colors.neutral[300], borderRadius: radius.lg, paddingVertical: spacing[4], paddingHorizontal: spacing[4],
     borderStyle: 'dashed', gap: spacing[3],
   },
   uploadText: { fontSize: typography.fontSize.body, color: colors.neutral[600], flexShrink: 1 },
   resumeHint: { fontSize: typography.fontSize.caption, color: colors.neutral[500], marginTop: spacing[2] },
   chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing[2] },
-  chip: { backgroundColor: colors.primary[50], borderRadius: 9999, paddingVertical: spacing[2], paddingHorizontal: spacing[3] },
-  chipText: { fontSize: typography.fontSize.bodySm, color: colors.primary[700], fontWeight: typography.fontWeight.medium as any },
   itemCard: {
-    backgroundColor: colors.white, borderRadius: 12, padding: spacing[4], marginBottom: spacing[2],
-    shadowColor: colors.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 2, elevation: 1,
+    padding: spacing[4], marginBottom: spacing[2],
   },
   itemTitle: { fontSize: typography.fontSize.body, fontWeight: typography.fontWeight.semibold as any, color: colors.neutral[900] },
   itemSubtitle: { fontSize: typography.fontSize.bodySm, color: colors.neutral[700], marginTop: spacing[1] },

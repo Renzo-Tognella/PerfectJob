@@ -3,9 +3,9 @@ import {
   View, Text, StyleSheet, TouchableOpacity, ViewStyle,
 } from 'react-native';
 import { Job } from '../../types';
-import { colors } from '../../design-system/tokens/colors';
-import { typography } from '../../design-system/tokens/typography';
-import { spacing } from '../../design-system/tokens/spacing';
+import { colors, typography, spacing, radius } from '../../design-system/tokens';
+import { Card } from '../../design-system/components/Card';
+import { Chip } from '../../design-system/components/Chip';
 import Icon from '../../components/ui/Icon';
 
 interface JobCardProps {
@@ -23,10 +23,14 @@ const JobCard: React.FC<JobCardProps> = ({
 
   if (isEnhanced) {
     return (
+      <Card
+        variant="outlined-elevated"
+        style={styles.cardOuter}
+      >
       <TouchableOpacity
         activeOpacity={0.95}
         onPress={() => onPress?.(job)}
-        style={[styles.container, style]}
+        style={style}
         accessibilityRole="button"
         accessibilityLabel={`Vaga: ${job.title} na empresa ${job.company}`}
       >
@@ -67,32 +71,43 @@ const JobCard: React.FC<JobCardProps> = ({
 
         <View style={styles.badgeRow}>
           {job.level && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{job.level}</Text>
-            </View>
+            <Chip
+              size="sm"
+              label={job.level}
+              textStyle={{ color: colors.neutral[700] }}
+              style={{ backgroundColor: colors.neutral[100] }}
+            />
           )}
           {job.contractType && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{job.contractType}</Text>
-            </View>
+            <Chip
+              size="sm"
+              label={job.contractType}
+              textStyle={{ color: colors.neutral[700] }}
+              style={{ backgroundColor: colors.neutral[100] }}
+            />
           )}
           {job.salary && (
-            <View style={[styles.badge, styles.salaryBadge]}>
-              <Text style={[styles.badgeText, styles.salaryBadgeText]}>{job.salary}</Text>
-            </View>
+            <Chip
+              size="sm"
+              label={job.salary}
+              textStyle={{ color: colors.success.dark }}
+              style={{ backgroundColor: colors.success.light }}
+            />
           )}
         </View>
       </TouchableOpacity>
+      </Card>
     );
   }
 
   // Legacy layout
   return (
-    <TouchableOpacity
-      activeOpacity={0.95}
-      onPress={() => onPress?.(job)}
-      style={[styles.legacyCard, style]}
-    >
+    <Card variant="outlined-elevated" style={styles.cardOuter}>
+      <TouchableOpacity
+        activeOpacity={0.95}
+        onPress={() => onPress?.(job)}
+        style={style}
+      >
       <View style={styles.legacyRow}>
         <View style={styles.legacyLogo}>
           <Text style={styles.legacyLogoText}>{job.company.charAt(0).toUpperCase()}</Text>
@@ -108,9 +123,12 @@ const JobCard: React.FC<JobCardProps> = ({
           {job.skills && job.skills.length > 0 && (
             <View style={styles.legacySkillsRow}>
               {job.skills.map((skill, index) => (
-                <View key={index} style={styles.legacySkillTag}>
-                  <Text style={styles.legacySkillText}>{skill}</Text>
-                </View>
+                <Chip
+                  key={index}
+                  size="sm"
+                  label={skill}
+                  style={{ paddingVertical: 2, paddingHorizontal: spacing[2] }}
+                />
               ))}
             </View>
           )}
@@ -126,20 +144,16 @@ const JobCard: React.FC<JobCardProps> = ({
           </View>
         </View>
       </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </Card>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: colors.white, borderRadius: 14, padding: spacing[5],
-    marginBottom: spacing[3], borderWidth: 1, borderColor: colors.neutral[100],
-    shadowColor: colors.black, shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06, shadowRadius: 4, elevation: 2,
-  },
+  cardOuter: { marginBottom: spacing[3] },
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing[3] },
   logo: {
-    width: 44, height: 44, borderRadius: 12,
+    width: 44, height: 44, borderRadius: radius.lg,
     backgroundColor: colors.primary[50],
     alignItems: 'center', justifyContent: 'center', marginRight: spacing[3],
   },
@@ -165,27 +179,9 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing[2],
   },
   badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing[2] },
-  badge: {
-    backgroundColor: colors.neutral[100],
-    paddingVertical: spacing[1], paddingHorizontal: spacing[3],
-    borderRadius: 9999,
-  },
-  badgeText: {
-    fontSize: typography.fontSize.caption,
-    fontWeight: typography.fontWeight.medium as any,
-    color: colors.neutral[700],
-  },
-  salaryBadge: { backgroundColor: colors.success.light },
-  salaryBadgeText: { color: colors.success.dark },
-  legacyCard: {
-    backgroundColor: colors.white, borderRadius: 14, padding: spacing[5],
-    shadowColor: colors.black, shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06, shadowRadius: 4, elevation: 2,
-    marginBottom: spacing[3], borderWidth: 1, borderColor: colors.neutral[100],
-  },
   legacyRow: { flexDirection: 'row' },
   legacyLogo: {
-    width: 44, height: 44, borderRadius: 10,
+    width: 44, height: 44, borderRadius: radius.sm2,
     backgroundColor: colors.primary[50],
     alignItems: 'center', justifyContent: 'center', marginRight: spacing[3],
   },
@@ -212,22 +208,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row', flexWrap: 'wrap', gap: spacing[1],
     marginBottom: spacing[2],
   },
-  legacySkillTag: {
-    backgroundColor: colors.primary[50], borderRadius: 9999,
-    paddingVertical: spacing[1] / 2, paddingHorizontal: spacing[2],
-  },
-  legacySkillText: {
-    fontSize: typography.fontSize.caption,
-    color: colors.primary[700],
-    fontWeight: typography.fontWeight.medium as any,
-  },
   legacyBottomRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
   },
   legacyTimeAgo: { fontSize: typography.fontSize.caption, color: colors.neutral[500] },
   legacyMatchBadge: {
-    backgroundColor: colors.success.light, borderRadius: 9999,
-    paddingVertical: spacing[1] / 2, paddingHorizontal: spacing[2],
+    backgroundColor: colors.success.light, borderRadius: radius.pill,
+    paddingVertical: 2, paddingHorizontal: spacing[2],
   },
   legacyMatchText: {
     fontSize: typography.fontSize.caption, color: colors.success.dark,

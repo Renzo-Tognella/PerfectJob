@@ -6,6 +6,7 @@ import { WebView } from 'react-native-webview';
 import { colors } from '@/design-system/tokens/colors';
 import { typography } from '@/design-system/tokens/typography';
 import { spacing } from '@/design-system/tokens/spacing';
+import { radius } from '@/design-system/tokens/radius';
 import { resumeApi } from '@/services/api/resumeApi';
 
 type Status = 'idle' | 'downloading' | 'ready' | 'error';
@@ -91,7 +92,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary[500],
     paddingHorizontal: spacing[6],
     paddingVertical: spacing[3],
-    borderRadius: 8,
+    borderRadius: radius.md,
   },
   retryBtnText: {
     color: colors.white,

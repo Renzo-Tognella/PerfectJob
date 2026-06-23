@@ -8,6 +8,7 @@ import { useNavigation, useRoute } from '@react-navigation/native'
 import { colors } from '@/design-system/tokens/colors'
 import { typography } from '@/design-system/tokens/typography'
 import { spacing } from '@/design-system/tokens/spacing'
+import { radius } from '@/design-system/tokens/radius'
 import { Job } from '@/types'
 import { useSearchJobs } from '@/hooks/useJobs'
 import { useFilterStore } from '@/store/useFilterStore'
@@ -215,7 +216,7 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     flex: 1, flexDirection: 'row', alignItems: 'center',
-    backgroundColor: colors.white, borderRadius: 12,
+    backgroundColor: colors.white, borderRadius: radius.lg,
     borderWidth: 1.5, borderColor: colors.neutral[200],
     paddingHorizontal: spacing[3], height: 48,
     gap: spacing[2],
@@ -225,7 +226,7 @@ const styles = StyleSheet.create({
     color: colors.neutral[900], height: '100%',
   },
   filterBtn: {
-    width: 48, height: 48, borderRadius: 12,
+    width: 48, height: 48, borderRadius: radius.lg,
     backgroundColor: colors.white, borderWidth: 1.5,
     borderColor: colors.neutral[200],
     alignItems: 'center', justifyContent: 'center',
@@ -238,7 +239,7 @@ const styles = StyleSheet.create({
   chip: {
     height: 36,
     paddingVertical: 0, paddingHorizontal: spacing[4],
-    borderRadius: 9999, backgroundColor: colors.white,
+    borderRadius: radius.pill, backgroundColor: colors.white,
     borderWidth: 1, borderColor: colors.neutral[300],
     marginRight: spacing[2],
     alignItems: 'center', justifyContent: 'center',
