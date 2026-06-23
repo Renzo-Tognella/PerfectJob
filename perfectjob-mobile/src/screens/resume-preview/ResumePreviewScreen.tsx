@@ -22,14 +22,14 @@ export default function ResumePreviewScreen() {
   const route = useRoute<RouteProp<MainStackParamList, 'ResumePreview'>>();
   const navigation = useNavigation<any>();
   const { resumeId } = route.params;
-  const clearAuth = useAuthStore((s) => s.clearAuth);
+  const logout = useAuthStore((s) => s.logout);
   const [pdfError, setPdfError] = useState<PdfErrorState | null>(null);
 
   const handlePdfError = (error: unknown) => {
     if (isResumePdfError(error)) {
       const status = error.status;
       if (status === 401) {
-        clearAuth();
+        logout();
         navigation.dispatch(
           CommonActions.reset({
             index: 0,

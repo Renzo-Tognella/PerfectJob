@@ -19,4 +19,11 @@ export const typography = {
     semibold: '600',
     bold: '700',
   },
+  lineHeight: {
+    tight: 20,
+    normal: 24,
+    relaxed: 28,
+    loose: 32,
+    display: 40,
+  },
 } as const;
