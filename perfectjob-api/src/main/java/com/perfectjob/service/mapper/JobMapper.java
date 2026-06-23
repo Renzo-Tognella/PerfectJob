@@ -4,6 +4,8 @@ import com.perfectjob.dto.response.JobResponse;
 import com.perfectjob.model.Company;
 import com.perfectjob.model.Job;
 
+import java.util.List;
+
 public final class JobMapper {
 
     private JobMapper() {
@@ -30,7 +32,7 @@ public final class JobMapper {
                 job.getLocationCity(),
                 job.getLocationState(),
                 job.getLocationCountry(),
-                job.getSkills(),
+                materializeSkills(job.getSkills()),
                 job.getStatus(),
                 job.getViews(),
                 job.getApplicationsCount(),
@@ -39,6 +41,13 @@ public final class JobMapper {
                 job.getExpiresAt(),
                 job.getExternalUrl()
         );
+    }
+
+    private static List<String> materializeSkills(List<String> skills) {
+        if (skills == null) {
+            return List.of();
+        }
+        return List.copyOf(skills);
     }
 
     private static String resolveCompanyName(Job job) {
