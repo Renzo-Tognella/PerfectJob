@@ -143,7 +143,8 @@ class LatexTemplateBuilderTest {
         TailoredResumeContent content = new TailoredResumeContent(
                 "Resumo curto",
                 List.of(new TailoredResumeContent.CategorizedSkill("Linguagens", List.of("Java"))),
-                List.of(new TailoredResumeContent.TailoredExperience("Dev", "X", "Jan/2022", "Atual", List.of("feito")))
+                List.of(new TailoredResumeContent.TailoredExperience("Dev", "X", "Jan/2022", "Atual", List.of("feito"))),
+                List.of()
         );
 
         String tex = builder.build(content, minimal);
@@ -196,7 +197,8 @@ class LatexTemplateBuilderTest {
         TailoredResumeContent content = new TailoredResumeContent(
                 null,
                 List.of(),
-                List.of(new TailoredResumeContent.TailoredExperience(null, null, null, null, List.of("feito")))
+                List.of(new TailoredResumeContent.TailoredExperience(null, null, null, null, List.of("feito"))),
+                List.of()
         );
 
         String tex = builder.build(content, full);
@@ -217,7 +219,7 @@ class LatexTemplateBuilderTest {
                 List.of(),
                 0L
         );
-        TailoredResumeContent content = new TailoredResumeContent(null, List.of(), List.of());
+        TailoredResumeContent content = new TailoredResumeContent(null, List.of(), List.of(), List.of());
 
         String tex = builder.build(content, noEducation);
 
@@ -242,6 +244,7 @@ class LatexTemplateBuilderTest {
                         new TailoredResumeContent.CategorizedSkill("Frameworks", List.of("Spring")),
                         new TailoredResumeContent.CategorizedSkill("Linguagens", List.of("Java", "Kotlin"))
                 ),
+                List.of(),
                 List.of()
         );
 
@@ -271,6 +274,7 @@ class LatexTemplateBuilderTest {
                         new TailoredResumeContent.CategorizedSkill("Linguagens", List.of("Java")),
                         new TailoredResumeContent.CategorizedSkill("Frameworks", List.of("Spring"))
                 ),
+                List.of(),
                 List.of()
         );
 
@@ -287,53 +291,56 @@ class LatexTemplateBuilderTest {
 
     // -----------------------------------------------------------------
     // Phase 2 (R12.1, R12.2, R12.3, R12.4, R12.5): languages section
+    // The Idiomas section is rendered from the LLM-validated languages, not the
+    // raw profile.languages(). The LLM is responsible for filtering invalid entries
+    // semantically; the template just renders whatever the LLM produced.
     // -----------------------------------------------------------------
 
     @Test
-    void build_includesIdiomasSectionWhenLanguagesNonEmpty() {
-        // sampleProfile() already contains one language (Inglês / Avançado).
+    void build_includesIdiomasSectionWhenValidatedLanguagesNonEmpty() {
+        // sampleTailoredContent() (via the helper) includes validatedLanguages
+        // (Português, Inglês). The IDIOMAS section must appear.
         String tex = builder.build(sampleTailoredContent(), sampleProfile());
 
         assertThat(tex).contains("IDIOMAS");
     }
 
     @Test
-    void build_omitsIdiomasSectionWhenLanguagesEmpty() {
-        ProfileResponse noLanguages = new ProfileResponse(
-                1L, "cand@test.com", "Maria", "CANDIDATE",
-                null, null, null, null, null, null, null, null, null, null, null,
+    void build_omitsIdiomasSectionWhenValidatedLanguagesEmpty() {
+        TailoredResumeContent noLanguages = new TailoredResumeContent(
+                "Resumo.",
+                List.of(new TailoredResumeContent.CategorizedSkill("Linguagens", List.of("Java"))),
                 List.of(),
-                List.of(),
-                List.of(),
-                List.of(),
-                0L
+                List.of()
         );
+        ProfileResponse noLanguagesProfile = sampleProfile();
+        // The helper's profile has languages, but the LLM returned an empty list.
+        // The template must trust the LLM-validated list, not the profile.
 
-        String tex = builder.build(sampleTailoredContent(), noLanguages);
+        String tex = builder.build(noLanguages, noLanguagesProfile);
 
         assertThat(tex).doesNotContain("IDIOMAS");
     }
 
     @Test
-    void build_omitsIdiomasSectionWhenLanguagesNull() {
-        ProfileResponse nullLanguages = new ProfileResponse(
-                1L, "cand@test.com", "Maria", "CANDIDATE",
-                null, null, null, null, null, null, null, null, null, null, null,
+    void build_omitsIdiomasSectionWhenValidatedLanguagesNull() {
+        TailoredResumeContent nullLanguages = new TailoredResumeContent(
+                "Resumo.",
+                List.of(new TailoredResumeContent.CategorizedSkill("Linguagens", List.of("Java"))),
                 List.of(),
-                List.of(),
-                List.of(),
-                null,
-                0L
+                null
         );
+        ProfileResponse profile = sampleProfile();
 
-        String tex = builder.build(sampleTailoredContent(), nullLanguages);
+        String tex = builder.build(nullLanguages, profile);
 
         assertThat(tex).doesNotContain("IDIOMAS");
     }
 
     @Test
     void build_idiomasSectionUsesSameHrulePatternAsOtherSections() {
-        // Build a profile with at least one language, so IDIOMAS is rendered.
+        // Build with a content that has at least one validated language, so IDIOMAS
+        // is rendered.
         String tex = builder.build(sampleTailoredContent(), sampleProfile());
 
         // The section() helper emits the same pattern around every heading: a hrule
@@ -355,20 +362,17 @@ class LatexTemplateBuilderTest {
 
     @Test
     void build_rendersEachLanguageAsLanguageParensLevel() {
-        ProfileResponse twoLanguages = new ProfileResponse(
-                1L, "cand@test.com", "Maria", "CANDIDATE",
-                null, null, null, null, null, null, null, null, null, null, null,
-                List.of(),
-                List.of(),
+        TailoredResumeContent twoLanguages = new TailoredResumeContent(
+                "Resumo.",
+                List.of(new TailoredResumeContent.CategorizedSkill("Linguagens", List.of("Java"))),
                 List.of(),
                 List.of(
-                        new LanguageDto("Inglês", "Avançado"),
-                        new LanguageDto("Português", "Nativo")
-                ),
-                0L
+                        new TailoredResumeContent.ValidatedLanguage("Inglês", "Avançado"),
+                        new TailoredResumeContent.ValidatedLanguage("Português", "Nativo")
+                )
         );
 
-        String tex = builder.build(sampleTailoredContent(), twoLanguages);
+        String tex = builder.build(twoLanguages, sampleProfile());
 
         assertThat(tex).contains("Inglês (Avançado)");
         assertThat(tex).contains("Português (Nativo)");
@@ -376,21 +380,18 @@ class LatexTemplateBuilderTest {
 
     @Test
     void build_rendersLanguagesInOrderProvided() {
-        ProfileResponse orderedLanguages = new ProfileResponse(
-                1L, "cand@test.com", "Maria", "CANDIDATE",
-                null, null, null, null, null, null, null, null, null, null, null,
-                List.of(),
-                List.of(),
+        TailoredResumeContent orderedLanguages = new TailoredResumeContent(
+                "Resumo.",
+                List.of(new TailoredResumeContent.CategorizedSkill("Linguagens", List.of("Java"))),
                 List.of(),
                 List.of(
-                        new LanguageDto("Espanhol", "Básico"),
-                        new LanguageDto("Inglês", "Avançado"),
-                        new LanguageDto("Português", "Nativo")
-                ),
-                0L
+                        new TailoredResumeContent.ValidatedLanguage("Espanhol", "Básico"),
+                        new TailoredResumeContent.ValidatedLanguage("Inglês", "Avançado"),
+                        new TailoredResumeContent.ValidatedLanguage("Português", "Nativo")
+                )
         );
 
-        String tex = builder.build(sampleTailoredContent(), orderedLanguages);
+        String tex = builder.build(orderedLanguages, sampleProfile());
 
         int espanhol = tex.indexOf("Espanhol (Básico)");
         int ingles = tex.indexOf("Inglês (Avançado)");
@@ -458,7 +459,9 @@ class LatexTemplateBuilderTest {
                 List.of(new TailoredResumeContent.TailoredExperience(
                         "Backend Dev", "Acme", "Jan/2022", "Atual",
                         List.of("Reduzi 40% o tempo de deploy", "Implementei 10 APIs REST")
-                ))
+                )),
+                List.of(new TailoredResumeContent.ValidatedLanguage("Português", "Nativo"),
+                        new TailoredResumeContent.ValidatedLanguage("Inglês", "Avançado"))
         );
     }
 }

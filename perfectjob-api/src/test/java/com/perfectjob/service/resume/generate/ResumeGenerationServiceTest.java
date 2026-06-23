@@ -57,7 +57,7 @@ class ResumeGenerationServiceTest {
         when(profileService.getProfile(1L)).thenReturn(sampleProfile());
         TailoredResumeContent content = new TailoredResumeContent(
                 "summary", List.of(new TailoredResumeContent.CategorizedSkill("Linguagens", List.of("Java"))),
-                List.of(new TailoredResumeContent.TailoredExperience("Dev", "X", "Jan/2022", "Atual", List.of("feito")))
+                List.of(new TailoredResumeContent.TailoredExperience("Dev", "X", "Jan/2022", "Atual", List.of("feito"))), List.of()
         );
         when(aiService.generateTailoredContent(anyString(), anyString())).thenReturn(content);
         when(latexBuilder.build(any(), any())).thenReturn("\\documentclass{article}...");
@@ -75,7 +75,7 @@ class ResumeGenerationServiceTest {
         when(profileService.getProfile(1L)).thenReturn(sampleProfile());
         TailoredResumeContent content = new TailoredResumeContent(
                 "summary", List.of(new TailoredResumeContent.CategorizedSkill("Linguagens", List.of("Java"))),
-                List.of(new TailoredResumeContent.TailoredExperience("Dev", "X", "Jan/2022", "Atual", List.of("feito")))
+                List.of(new TailoredResumeContent.TailoredExperience("Dev", "X", "Jan/2022", "Atual", List.of("feito"))), List.of()
         );
         when(aiService.generateTailoredContent(anyString(), anyString()))
                 .thenThrow(new RuntimeException("malformed response"))
@@ -108,7 +108,7 @@ class ResumeGenerationServiceTest {
         when(profileService.getProfile(1L)).thenReturn(sampleProfile());
         TailoredResumeContent content = new TailoredResumeContent(
                 "summary", List.of(new TailoredResumeContent.CategorizedSkill("Linguagens", List.of("Java"))),
-                List.of(new TailoredResumeContent.TailoredExperience("Dev", "X", "Jan/2022", "Atual", List.of("feito")))
+                List.of(new TailoredResumeContent.TailoredExperience("Dev", "X", "Jan/2022", "Atual", List.of("feito"))), List.of()
         );
         when(aiService.generateTailoredContent(anyString(), anyString())).thenReturn(content);
         when(latexBuilder.build(any(), any())).thenReturn("\\documentclass{article}...");
@@ -135,7 +135,7 @@ class ResumeGenerationServiceTest {
         when(jobContextMapper.toContext(job)).thenReturn(jobContext);
         TailoredResumeContent content = new TailoredResumeContent(
                 "summary", List.of(new TailoredResumeContent.CategorizedSkill("Linguagens", List.of("Java"))),
-                List.of(new TailoredResumeContent.TailoredExperience("Dev", "X", "Jan/2022", "Atual", List.of("feito")))
+                List.of(new TailoredResumeContent.TailoredExperience("Dev", "X", "Jan/2022", "Atual", List.of("feito"))), List.of()
         );
         when(aiService.generateTailoredContent(anyString(), anyString())).thenReturn(content);
         when(latexBuilder.build(any(), any())).thenReturn("\\documentclass{article}...");

@@ -9,7 +9,8 @@ import java.util.List;
 public record TailoredResumeContent(
         String professionalSummary,
         List<CategorizedSkill> categorizedSkills,
-        List<TailoredExperience> tailoredExperiences
+        List<TailoredExperience> tailoredExperiences,
+        List<ValidatedLanguage> validatedLanguages
 ) {
     public record CategorizedSkill(
             String category,
@@ -22,5 +23,10 @@ public record TailoredResumeContent(
             String startDate,
             String endDate,
             List<String> bulletPoints
+    ) {}
+
+    public record ValidatedLanguage(
+            String name,
+            String level
     ) {}
 }

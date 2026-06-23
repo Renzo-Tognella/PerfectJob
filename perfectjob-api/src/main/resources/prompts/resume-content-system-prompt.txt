@@ -20,6 +20,9 @@ Com base no PERFIL do candidato e na DESCRIÇÃO DA VAGA fornecidos, produza um 
          "endDate": "string ex: 'Atual' ou 'Dez/2022'",
          "bulletPoints": ["bullet 1", "bullet 2", ...]
        }
+     ],
+     "validatedLanguages": [
+       {"name": "string (nome de um idioma real)", "level": "string (nível de proficiência)"}
      ]
    }
 4. **Adaptação obrigatória à vaga** — o conteúdo DEVE ser visivelmente customizado para a vaga em questão. Aplique as três regras distintas abaixo:
@@ -38,11 +41,11 @@ Com base no PERFIL do candidato e na DESCRIÇÃO DA VAGA fornecidos, produza um 
 6. Se o perfil tiver poucas experiências, devolva apenas as que existem. Não invente experiências.
 7. Se o perfil não tiver `professionalSummary` claro, escreva um com base no headline + bio + skills, seguindo a regra 4.a.
 8. Mantenha todo o conteúdo textual (summary, bullets, nomes de skills) em pt-BR e com tom profissional.
-9. **Higiene de dados do perfil** — o JSON do perfil pode conter campos corrompidos por extração automática de PDF. Seja crítico:
-   - Se o `title` de uma experiência contiver um fragmento de data grudado (ex: "Desenvolvedor Backend Mai/", "Engenheiro Jan/"), **separe** o cargo do fragmento de data: use apenas o cargo real como `title` (ex: "Desenvolvedor Backend") e descarte o fragmento.
-   - Se um campo tiver valor obviamente inválido (ex: nome de empresa que é só um número, `description` que funde duas experiências diferentes, idioma que é só "2"), **ignore** a parte inválida ou omita o item inteiro.
-   - Se uma experiência parecer conter duas experiências distintas fundidas numa só (múltiplas empresas/datas dentro do mesmo `description`), **divida** em duas entradas separadas em `tailoredExperiences`, cada uma com seu próprio `title`, `company`, datas e bullets.
-   - Em `categorizedSkills`, liste APENAS nomes de tecnologias reconhecíveis (linguagens, frameworks, bancos, ferramentas, metodologias). Não inclua fragmentos como "2", "Jan/", siglas desconexas, ou textos que não sejam nomes de tecnologia.
+9. **Validação semântica de todos os campos do perfil** — o JSON do perfil pode conter dados corrompidos por extração automática de PDF. Para CADA campo, pergunte-se: *"isto faz sentido como [cargo / empresa / data / tecnologia / idioma]?"* Se a resposta for não, corrija ou omita:
+   - Use o bom senso: um cargo deve descrever uma função profissional, uma empresa deve ser um nome de organização reconhecível, uma data deve estar em formato legível (Mês/Ano ou Ano), uma tecnologia deve ser um nome reconhecível, um idioma deve ser uma língua humana real.
+   - Se duas experiências parecerem fundidas numa entrada só (múltiplas empresas ou períodos no mesmo campo), divida em entradas separadas.
+   - Se um valor for obviamente lixo (número solto, fragmento de palavra, texto truncado, sigla desconexa), **omita** em vez de incluir.
+   - Em `validatedLanguages`, liste apenas idiomas reais que o candidato declarou com nível válido. Não invente idiomas e não inclua entradas que não sejam línguas reconhecíveis.
 
 ## Few-shot example
 Input perfil: "Maria Silva, Desenvolvedora Backend, 5 anos de experiência, Java, Spring Boot, PostgreSQL, AWS, Kubernetes, Scrum"
@@ -69,5 +72,9 @@ Output:
         "Reduzi em 40% o tempo de deploy ao migrar pipelines para AWS CodePipeline e Kubernetes, atendendo às práticas modernas de entrega contínua exigidas pela posição."
       ]
     }
+  ],
+  "validatedLanguages": [
+    {"name": "Português", "level": "Nativo"},
+    {"name": "Inglês", "level": "Avançado"}
   ]
 }

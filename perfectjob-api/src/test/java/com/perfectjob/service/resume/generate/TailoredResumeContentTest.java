@@ -17,6 +17,7 @@ class TailoredResumeContentTest {
         TailoredResumeContent content = new TailoredResumeContent(
                 "Engenheiro de software",
                 categories,
+                List.of(),
                 List.of()
         );
 

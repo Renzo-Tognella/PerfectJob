@@ -1,7 +1,6 @@
 package com.perfectjob.service.resume.generate;
 
 import com.perfectjob.dto.response.EducationDto;
-import com.perfectjob.dto.response.LanguageDto;
 import com.perfectjob.dto.response.ProfileResponse;
 import org.springframework.stereotype.Component;
 
@@ -39,7 +38,7 @@ public class LatexTemplateBuilder {
         writeSkills(sb, content.categorizedSkills());
         writeExperiences(sb, content.tailoredExperiences());
         writeEducation(sb, profile);
-        writeLanguages(sb, profile.languages());
+        writeLanguages(sb, content.validatedLanguages());
         writeFooter(sb);
         return sb.toString();
     }
@@ -227,15 +226,11 @@ public class LatexTemplateBuilder {
         sb.append(SECTION_BODY_VSPACE);
     }
 
-    private void writeLanguages(StringBuilder sb, List<LanguageDto> languages) {
+    private void writeLanguages(StringBuilder sb, List<TailoredResumeContent.ValidatedLanguage> languages) {
         if (languages == null || languages.isEmpty()) return;
-        List<LanguageDto> valid = languages.stream()
-                .filter(l -> l != null && !isBlank(l.name()))
-                .filter(l -> isValidLanguageName(l.name()))
-                .toList();
-        if (valid.isEmpty()) return;
         section(sb, "Idiomas");
-        String joined = valid.stream()
+        String joined = languages.stream()
+                .filter(l -> l != null && !isBlank(l.name()))
                 .map(l -> isBlank(l.level())
                         ? escapeLatex(l.name())
                         : escapeLatex(l.name()) + " (" + escapeLatex(l.level()) + ")")
@@ -244,14 +239,6 @@ public class LatexTemplateBuilder {
             sb.append(joined).append("\n\n");
         }
         sb.append(SECTION_BODY_VSPACE);
-    }
-
-    private static boolean isValidLanguageName(String name) {
-        if (name == null) return false;
-        String trimmed = name.strip();
-        if (trimmed.length() < 2) return false;
-        if (trimmed.matches("\\d+")) return false;
-        return true;
     }
 
     private void writeFooter(StringBuilder sb) {
