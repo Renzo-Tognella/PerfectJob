@@ -149,6 +149,76 @@ class LatexTemplateBuilderTest {
         assertThat(tex).contains("feito");
     }
 
+    @Test
+    void build_omitsHeadlineLineWhenHeadlineIsBlank() {
+        ProfileResponse noHeadline = new ProfileResponse(
+                1L, "cand@test.com", "Maria", "CANDIDATE",
+                null, null, null, null, null, null, null, null, null, null, null,
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                0L
+        );
+
+        String tex = builder.build(sampleTailoredContent(), noHeadline);
+
+        assertThat(tex).doesNotContain("\\normalsize \n");
+        assertThat(tex).doesNotContain("} \\\\[0.08cm]");
+    }
+
+    @Test
+    void build_omitsFullNameLineWhenFullNameIsBlank() {
+        ProfileResponse noName = new ProfileResponse(
+                1L, "cand@test.com", null, "CANDIDATE",
+                "Dev", null, null, null, null, null, null, null, null, null, null,
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                0L
+        );
+
+        String tex = builder.build(sampleTailoredContent(), noName);
+
+        assertThat(tex).doesNotContain("\\fontsize{17}{18}");
+        assertThat(tex).doesNotContain("} \\\\[0.05cm]");
+    }
+
+    @Test
+    void build_omitsExperienceLineWhenTitleAndDateRangeAreBlank() {
+        ProfileResponse full = sampleProfile();
+        TailoredResumeContent content = new TailoredResumeContent(
+                null,
+                List.of(),
+                List.of(new TailoredResumeContent.TailoredExperience(null, null, null, null, List.of("feito")))
+        );
+
+        String tex = builder.build(content, full);
+
+        assertThat(tex).contains("feito");
+        assertThat(tex).doesNotContain("\\textbf{}");
+        assertThat(tex).doesNotContain("\\hfill {\\itshape\\color{textgray}  } \\\\");
+    }
+
+    @Test
+    void build_omitsEducationLineWhenAllFieldsAreBlank() {
+        ProfileResponse noEducation = new ProfileResponse(
+                1L, "cand@test.com", "Maria", "CANDIDATE",
+                "Dev", null, null, null, null, null, null, null, null, null, null,
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                0L
+        );
+        TailoredResumeContent content = new TailoredResumeContent(null, List.of(), List.of());
+
+        String tex = builder.build(content, noEducation);
+
+        assertThat(tex).doesNotContain("FORMAÇÃO ACADÊMICA");
+    }
+
     private TailoredResumeContent sampleTailoredContent() {
         return new TailoredResumeContent(
                 "Engenheiro de software com 5 anos de experiência em backend Java.",

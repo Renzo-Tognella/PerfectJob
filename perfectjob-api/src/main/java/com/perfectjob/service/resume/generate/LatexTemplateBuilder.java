@@ -55,12 +55,16 @@ public class LatexTemplateBuilder {
 
     private void writeHeader(StringBuilder sb, ProfileResponse p) {
         sb.append("\\begin{center}\n");
-        sb.append("{\\fontsize{17}{18}\\selectfont\\bfseries ")
-          .append(escapeLatex(nullToEmpty(p.fullName())))
-          .append("} \\\\[0.05cm]\n");
-        sb.append("{\\normalsize ")
-          .append(escapeLatex(nullToEmpty(p.headline())))
-          .append("} \\\\[0.08cm]\n");
+        if (!isBlank(p.fullName())) {
+            sb.append("{\\fontsize{17}{18}\\selectfont\\bfseries ")
+              .append(escapeLatex(p.fullName()))
+              .append("} \\\\[0.05cm]\n");
+        }
+        if (!isBlank(p.headline())) {
+            sb.append("{\\normalsize ")
+              .append(escapeLatex(p.headline()))
+              .append("} \\\\[0.08cm]\n");
+        }
         sb.append("{\\small ")
           .append(escapeLatex(formatLocation(p.locationCity(), p.locationState())))
           .append(contactBlock(p))
@@ -121,11 +125,24 @@ public class LatexTemplateBuilder {
             String start = nullToEmpty(e.startDate());
             String end = nullToEmpty(e.endDate());
             String dateRange = (start + (isBlank(end) ? "" : " -- " + end)).trim();
-            sb.append("\\textbf{")
-              .append(escapeLatex(nullToEmpty(e.title())))
-              .append("} \\hfill {\\itshape\\color{textgray} ")
-              .append(escapeLatex(dateRange))
-              .append("} \\\\\n");
+            boolean hasTitle = !isBlank(e.title());
+            boolean hasDateRange = !isBlank(dateRange);
+            if (hasTitle || hasDateRange) {
+                if (hasTitle) {
+                    sb.append("\\textbf{")
+                      .append(escapeLatex(e.title()))
+                      .append("}");
+                }
+                if (hasTitle && hasDateRange) {
+                    sb.append(" \\hfill ");
+                }
+                if (hasDateRange) {
+                    sb.append("{\\itshape\\color{textgray} ")
+                      .append(escapeLatex(dateRange))
+                      .append("}");
+                }
+                sb.append(" \\\\\n");
+            }
             if (!isBlank(e.company())) {
                 sb.append("{\\itshape\\color{textgray}")
                   .append(escapeLatex(e.company()))
@@ -149,14 +166,22 @@ public class LatexTemplateBuilder {
         section(sb, "Formação Acadêmica");
         for (EducationDto e : p.education()) {
             if (e == null) continue;
-            String line = escapeLatex(nullToEmpty(e.institution()));
-            if (!isBlank(e.degree())) line += " — " + escapeLatex(e.degree());
-            if (!isBlank(e.fieldOfStudy())) line += " em " + escapeLatex(e.fieldOfStudy());
-            if (e.startYear() != null) {
-                line += " (" + e.startYear();
-                if (e.endYear() != null) line += "–" + e.endYear();
-                line += ")";
+            StringBuilder line = new StringBuilder();
+            if (!isBlank(e.institution())) line.append(escapeLatex(e.institution()));
+            if (!isBlank(e.degree())) {
+                if (line.length() > 0) line.append(" — ");
+                line.append(escapeLatex(e.degree()));
             }
+            if (!isBlank(e.fieldOfStudy())) {
+                if (line.length() > 0) line.append(" ");
+                line.append("em ").append(escapeLatex(e.fieldOfStudy()));
+            }
+            if (e.startYear() != null) {
+                line.append(" (").append(e.startYear());
+                if (e.endYear() != null) line.append("–").append(e.endYear());
+                line.append(")");
+            }
+            if (line.length() == 0) continue;
             sb.append(line).append(" \\\\\n");
         }
         sb.append("\n");
