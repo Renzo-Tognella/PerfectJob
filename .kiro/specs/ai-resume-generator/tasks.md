@@ -154,7 +154,7 @@
   - _Depends: 3.1_
 
 - [ ] 6. Phase 2 — Core pipeline changes (R10, R11, R12, R13)
-- [ ] 6.1 (P) Strengthen the LLM system prompt with tailoring rules and canonical skill categories
+- [x] 6.1 (P) Strengthen the LLM system prompt with tailoring rules and canonical skill categories
   - Read the current `prompts/resume-content-system-prompt.txt` to understand the existing structure and JSON schema
   - Add at least three distinct rules requiring adaptation to the target job: (1) the `professionalSummary` must reference at least one concrete element from the job's title, required skills, or description; (2) experience bullet points must be rephrased (not copied verbatim) to highlight achievements relevant to the job's requirements; (3) the categorized skills list must contain only skills the candidate has AND that are relevant to the job, ordered by relevance
   - Add the five canonical category names ("Linguagens", "Frameworks", "Bancos de Dados", "Ferramentas e Plataformas", "Metodologias") with an explicit instruction that the LLM use only these names and omit any category that would have zero items

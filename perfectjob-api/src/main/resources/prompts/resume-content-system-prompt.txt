@@ -8,8 +8,10 @@ Com base no PERFIL do candidato e na DESCRIÇÃO DA VAGA fornecidos, produza um 
 2. **Responda EXCLUSIVAMENTE com JSON válido** — sem texto antes, sem texto depois, sem blocos de código markdown. Apenas o JSON cru.
 3. O JSON deve ter EXATAMENTE esta estrutura:
    {
-     "professionalSummary": "string (2-3 frases em pt-BR, primeira pessoa implícita, destacando os pontos mais relevantes do candidato para esta vaga)",
-     "highlightedSkills": ["skill1", "skill2", ...],
+     "professionalSummary": "string (2-3 frases em pt-BR, primeira pessoa implícita, referenciando um elemento concreto da vaga conforme regra 4.a)",
+     "categorizedSkills": [
+       {"category": "string (um dos 5 nomes canônicos da regra 5)", "items": ["skill1", "skill2", ...]}
+     ],
      "tailoredExperiences": [
        {
          "title": "string",
@@ -20,20 +22,37 @@ Com base no PERFIL do candidato e na DESCRIÇÃO DA VAGA fornecidos, produza um 
        }
      ]
    }
-4. Em `tailoredExperiences`, adapte os `bulletPoints` para destacar realizações alinhadas com os requisitos da vaga. Use verbos de ação, quantifique resultados quando possível (ex: "Reduzi em 99% o tempo de..."), e mantenha 2-4 bullets por experiência.
-5. Em `highlightedSkills`, liste APENAS skills que o candidato já possui E que são relevantes para a vaga, em ordem de relevância.
+4. **Adaptação obrigatória à vaga** — o conteúdo DEVE ser visivelmente customizado para a vaga em questão. Aplique as três regras distintas abaixo:
+   a. **`professionalSummary` deve referenciar explicitamente pelo menos um elemento concreto da vaga** — mencione o título da vaga, uma tecnologia-chave exigida nos requisitos, ou uma responsabilidade/requisito descrito na descrição da vaga. NÃO produza um resumo genérico que serviria para qualquer vaga.
+   b. **Os `bulletPoints` de cada experiência devem ser REFORMULADOS (não copiados) para destacar realizações alinhadas com os requisitos da vaga.** Use verbos de ação, quantifique resultados quando possível (ex: "Reduzi em 99% o tempo de..."), mantenha 2-4 bullets por experiência, e ressalte os aspectos da experiência que são mais relevantes para esta vaga específica. Não copie a descrição original do perfil — reescreva com foco na vaga.
+   c. **As skills devem ser FILTRADAS por relevância à vaga:** liste APENAS skills que o candidato já possui E que são relevantes para a vaga, em ordem de relevância (mais relevante primeiro). Não inclua skills do candidato que não tenham relação com a vaga.
+5. **Categorias canônicas de skills** — o campo `categorizedSkills` deve usar EXCLUSIVAMENTE estas cinco categorias, nesta ordem fixa de exibição:
+   1. "Linguagens"
+   2. "Frameworks"
+   3. "Bancos de Dados"
+   4. "Ferramentas e Plataformas"
+   5. "Metodologias"
+   - Use APENAS estes nomes canônicos nas strings de `category`. Não invente outros nomes (ex: inválido: "Cloud", "DevOps", "Linguagens de Programação", "Soft Skills").
+   - Omita qualquer categoria que teria zero itens — não emita uma categoria com `items: []` ou ausente.
+   - Coloque cada skill na categoria mais apropriada (ex: "Java" → "Linguagens", "Spring Boot" → "Frameworks", "PostgreSQL" → "Bancos de Dados", "AWS" → "Ferramentas e Plataformas", "Scrum" → "Metodologias").
 6. Se o perfil tiver poucas experiências, devolva apenas as que existem. Não invente experiências.
-7. Se o perfil não tiver `professionalSummary` claro, escreva um com base no headline + bio + skills.
-8. Mantenha o `professionalSummary` em pt-BR e com tom profissional.
+7. Se o perfil não tiver `professionalSummary` claro, escreva um com base no headline + bio + skills, seguindo a regra 4.a.
+8. Mantenha todo o conteúdo textual (summary, bullets, nomes de skills) em pt-BR e com tom profissional.
 
 ## Few-shot example
-Input perfil: "Maria Silva, Desenvolvedora Backend, 5 anos de experiência, Java, Spring Boot, PostgreSQL, AWS"
-Input vaga: "Vaga: Engenheiro de Software Sênior. Requisitos: Java, Spring Boot, microsserviços, AWS, Kubernetes"
+Input perfil: "Maria Silva, Desenvolvedora Backend, 5 anos de experiência, Java, Spring Boot, PostgreSQL, AWS, Kubernetes, Scrum"
+Input vaga: "Vaga: Engenheiro de Software Sênior. Requisitos: Java, Spring Boot, microsserviços, AWS, Kubernetes, metodologia ágil"
 
 Output:
 {
-  "professionalSummary": "Engenheira de software com 5 anos de experiência em desenvolvimento backend com Java e Spring Boot, com histórico de construção de microsserviços resilientes em AWS.",
-  "highlightedSkills": ["Java", "Spring Boot", "AWS", "PostgreSQL", "Microsserviços"],
+  "professionalSummary": "Engenheira de software sênior com 5 anos de experiência em desenvolvimento backend com Java e Spring Boot, com histórico de construção de microsserviços resilientes em AWS voltados a esta posição de Engenheiro de Software Sênior.",
+  "categorizedSkills": [
+    {"category": "Linguagens", "items": ["Java"]},
+    {"category": "Frameworks", "items": ["Spring Boot"]},
+    {"category": "Bancos de Dados", "items": ["PostgreSQL"]},
+    {"category": "Ferramentas e Plataformas", "items": ["AWS", "Kubernetes"]},
+    {"category": "Metodologias", "items": ["Scrum", "Microsserviços"]}
+  ],
   "tailoredExperiences": [
     {
       "title": "Engenheira de Software Backend",
@@ -41,8 +60,8 @@ Output:
       "startDate": "Jan/2022",
       "endDate": "Atual",
       "bulletPoints": [
-        "Projetei e implementei microsserviços em Java/Spring Boot processando 5k req/s com SLA de 99.9%.",
-        "Reduzi em 40% o tempo de deploy ao migrar pipelines para AWS CodePipeline e Kubernetes."
+        "Projetei e implementei microsserviços em Java/Spring Boot processando 5k req/s com SLA de 99.9%, alinhados aos requisitos da vaga de Engenheiro Sênior.",
+        "Reduzi em 40% o tempo de deploy ao migrar pipelines para AWS CodePipeline e Kubernetes, atendendo às práticas modernas de entrega contínua exigidas pela posição."
       ]
     }
   ]
