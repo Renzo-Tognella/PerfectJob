@@ -1,13 +1,12 @@
-import type { JobResponse } from '@/types/job'
-import type { ApplicationResponse, ApplicationStatus } from '@/types/application'
-import type { Job } from '@/types'
-import { colors } from '@/design-system/tokens/colors'
+import type { JobResponse } from '@/types/job';
+import type { Job } from '@/types';
+import type { ResumeResponse } from '@/types/resume';
 
 const workModelLabels: Record<string, string> = {
   REMOTE: 'Remoto',
   HYBRID: 'Híbrido',
   ON_SITE: 'Presencial',
-}
+};
 
 const experienceLevelLabels: Record<string, string> = {
   INTERN: 'Estágio',
@@ -16,25 +15,7 @@ const experienceLevelLabels: Record<string, string> = {
   SENIOR: 'Sênior',
   LEAD: 'Lead',
   SPECIALIST: 'Especialista',
-}
-
-const contractTypeLabels: Record<string, string> = {
-  CLT: 'CLT',
-  PJ: 'PJ',
-  COOPERATIVE: 'Cooperado',
-  FREELANCE: 'Freelance',
-}
-
-const applicationStatusConfig: Record<
-  ApplicationStatus,
-  { label: string; bg: string; text: string }
-> = {
-  PENDING: { label: 'Pendente', bg: colors.warning.light, text: colors.warning.dark },
-  REVIEWING: { label: 'Em análise', bg: colors.info.light, text: colors.info.dark },
-  ACCEPTED: { label: 'Aceito', bg: colors.success.light, text: colors.success.dark },
-  REJECTED: { label: 'Recusado', bg: colors.error.light, text: colors.error.dark },
-  HIRED: { label: 'Contratado', bg: colors.success.light, text: colors.success.dark },
-}
+};
 
 export function toJob(response: JobResponse): Job & { slug: string; originalId: number } {
   const location = [response.locationCity, response.locationState]
@@ -68,43 +49,33 @@ export function toJob(response: JobResponse): Job & { slug: string; originalId: 
     description: response.description,
     requirements: response.requirements ? response.requirements.split('\n').filter(Boolean) : [],
     benefits: response.benefits ? response.benefits.split('\n').filter(Boolean) : [],
+    externalUrl: response.externalUrl ?? null,
   }
 }
 
-export interface ApplicationView {
+export interface ResumeView {
   id: number;
   jobId: number;
   jobTitle: string;
-  jobSlug: string;
-  companyName: string;
-  status: ApplicationStatus;
-  statusLabel: string;
-  statusBg: string;
-  statusText: string;
   createdAt: string;
   createdAtLabel: string;
 }
 
-export function toApplication(response: ApplicationResponse): ApplicationView {
-  const config = applicationStatusConfig[response.status] || {
-    label: response.status,
-    bg: colors.neutral[100],
-    text: colors.neutral[600],
-  }
-
+export function toResume(response: ResumeResponse): ResumeView {
   return {
     id: response.id,
     jobId: response.jobId,
     jobTitle: response.jobTitle,
-    jobSlug: response.jobSlug,
-    companyName: response.companyName,
-    status: response.status,
-    statusLabel: config.label,
-    statusBg: config.bg,
-    statusText: config.text,
     createdAt: response.createdAt,
-    createdAtLabel: new Date(response.createdAt).toLocaleDateString('pt-BR'),
+    createdAtLabel: formatPtBrDate(response.createdAt),
   }
+}
+
+function formatPtBrDate(iso: string): string {
+  if (!iso) return '';
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleDateString('pt-BR');
 }
 
 function formatRelativeTime(dateStr: string): string {

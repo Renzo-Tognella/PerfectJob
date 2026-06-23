@@ -41,7 +41,6 @@ export interface ProfileResponse {
   experiences: ExperienceDto[];
   education: EducationDto[];
   languages: LanguageDto[];
-  applicationsCount: number;
   savedJobsCount: number;
 }
 

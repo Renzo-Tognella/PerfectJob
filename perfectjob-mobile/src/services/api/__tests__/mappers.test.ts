@@ -1,5 +1,6 @@
-import { toJob } from '@/services/api/mappers';
+import { toJob, toResume } from '@/services/api/mappers';
 import type { JobResponse } from '@/types/job';
+import type { ResumeResponse } from '@/types/resume';
 
 const baseResponse: JobResponse = {
   id: 42,
@@ -27,6 +28,16 @@ const baseResponse: JobResponse = {
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
   expiresAt: '',
+  externalUrl: 'https://example.com/job/42',
+};
+
+const baseResumeResponse: ResumeResponse = {
+  id: 100,
+  jobId: 42,
+  jobTitle: 'Desenvolvedor Backend',
+  pdfStoragePath: '/data/resumes/1/100.pdf',
+  createdAt: '2026-06-22T15:30:00.000Z',
+  updatedAt: '2026-06-22T15:35:00.000Z',
 };
 
 describe('toJob mapper (real backend payload -> view model)', () => {
@@ -47,5 +58,34 @@ describe('toJob mapper (real backend payload -> view model)', () => {
   it('falls back to "Remoto" location when city/state are missing', () => {
     const job = toJob({ ...baseResponse, locationCity: '', locationState: '' });
     expect(job.location).toBe('Remoto');
+  });
+
+  it('includes externalUrl when present', () => {
+    const job = toJob(baseResponse);
+    expect(job.externalUrl).toBe('https://example.com/job/42');
+  });
+
+  it('sets externalUrl to null when absent', () => {
+    const { externalUrl, ...rest } = baseResponse;
+    const job = toJob(rest as JobResponse);
+    expect(job.externalUrl).toBeNull();
+  });
+});
+
+describe('toResume mapper (ResumeResponse -> ResumeView)', () => {
+  it('maps fields and formats createdAt to pt-BR date', () => {
+    const view = toResume(baseResumeResponse);
+
+    expect(view.id).toBe(100);
+    expect(view.jobId).toBe(42);
+    expect(view.jobTitle).toBe('Desenvolvedor Backend');
+    expect(view.createdAt).toBe('2026-06-22T15:30:00.000Z');
+    // Brazilian format is DD/MM/YYYY
+    expect(view.createdAtLabel).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
+  });
+
+  it('returns empty createdAtLabel for invalid date string', () => {
+    const view = toResume({ ...baseResumeResponse, createdAt: '' });
+    expect(view.createdAtLabel).toBe('');
   });
 });

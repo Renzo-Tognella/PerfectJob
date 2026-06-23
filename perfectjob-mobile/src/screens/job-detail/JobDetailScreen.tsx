@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  SafeAreaView, StatusBar, Alert, ActivityIndicator,
+  SafeAreaView, StatusBar, Alert, ActivityIndicator, Linking,
 } from 'react-native'
 import { useRoute, useNavigation, RouteProp, CommonActions } from '@react-navigation/native'
 import { colors } from '@/design-system/tokens/colors'
@@ -9,7 +9,7 @@ import { typography } from '@/design-system/tokens/typography'
 import { spacing } from '@/design-system/tokens/spacing'
 import { useJobDetail } from '@/hooks/useJobs'
 import { useIsJobSaved, useToggleSavedJob } from '@/hooks/useSavedJobs'
-import { useSubmitApplication } from '@/hooks/useApplications'
+import { useGenerateResume } from '@/hooks/useResumes'
 import { extractErrorMessage } from '@/services/api/client'
 import type { MainStackParamList } from '@/navigation/types'
 import { useAuthStore } from '@/store/useAuthStore'
@@ -32,11 +32,11 @@ const JobDetailScreen = () => {
 
   const { data: isSaved, isLoading: isSavedLoading } = useIsJobSaved(jobId ?? 0)
   const toggleSaved = useToggleSavedJob()
-  const submitApplication = useSubmitApplication()
+  const generateResume = useGenerateResume()
 
-  const handleApply = () => {
+  const handleGenerate = () => {
     if (!isAuthenticated) {
-      Alert.alert('Login necessário', 'Faça login para se candidatar.', [
+      Alert.alert('Login necessário', 'Faça login para gerar um currículo.', [
         { text: 'Cancelar', style: 'cancel' },
         {
           text: 'Login',
@@ -55,26 +55,16 @@ const JobDetailScreen = () => {
 
     if (!job || jobId === null) return
 
-    Alert.alert(
-      'Candidatura',
-      `Deseja se candidatar para ${job.title}?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Sim',
-          onPress: () => {
-            submitApplication.mutate(
-              { jobId },
-              {
-                onSuccess: () =>
-                  Alert.alert('Sucesso!', 'Candidatura enviada com sucesso!'),
-                onError: (error) =>
-                  Alert.alert('Erro', extractErrorMessage(error)),
-              }
-            )
-          },
+    generateResume.mutate(
+      { jobId },
+      {
+        onSuccess: (resume) => {
+          navigation.navigate('ResumePreview', { resumeId: resume.id })
         },
-      ]
+        onError: (error) => {
+          Alert.alert('Erro', extractErrorMessage(error))
+        },
+      }
     )
   }
 
@@ -95,6 +85,14 @@ const JobDetailScreen = () => {
           Alert.alert('Erro', extractErrorMessage(error)),
       }
     )
+  }
+
+  const handleOpenExternalUrl = () => {
+    if (job?.externalUrl) {
+      Linking.openURL(job.externalUrl).catch(() => {
+        Alert.alert('Erro', 'Não foi possível abrir o link da vaga.')
+      })
+    }
   }
 
   if (isLoading) {
@@ -231,6 +229,24 @@ const JobDetailScreen = () => {
           </View>
         </View>
 
+        {job.externalUrl ? (
+          <TouchableOpacity
+            style={styles.externalLinkBtn}
+            onPress={handleOpenExternalUrl}
+            activeOpacity={0.7}
+            accessibilityRole="link"
+            accessibilityLabel="Ver vaga original"
+          >
+            <Icon
+              family="MaterialIcons"
+              name="open-in-new"
+              size={18}
+              color={colors.primary[500]}
+            />
+            <Text style={styles.externalLinkText}>Ver vaga original</Text>
+          </TouchableOpacity>
+        ) : null}
+
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
@@ -238,18 +254,21 @@ const JobDetailScreen = () => {
         <TouchableOpacity
           style={[
             styles.applyBtn,
-            submitApplication.isPending && styles.applyBtnDisabled,
+            generateResume.isPending && styles.applyBtnDisabled,
           ]}
-          onPress={handleApply}
+          onPress={handleGenerate}
           activeOpacity={0.9}
-          disabled={submitApplication.isPending}
+          disabled={generateResume.isPending}
           accessibilityRole="button"
-          accessibilityLabel="Candidatar-se a esta vaga"
+          accessibilityLabel="Gerar currículo para esta vaga"
         >
-          {submitApplication.isPending ? (
-            <ActivityIndicator color={colors.white} />
+          {generateResume.isPending ? (
+            <View style={styles.btnContent}>
+              <ActivityIndicator color={colors.white} />
+              <Text style={styles.applyBtnText}>Gerando currículo...</Text>
+            </View>
           ) : (
-            <Text style={styles.applyBtnText}>Candidatar-se</Text>
+            <Text style={styles.applyBtnText}>Gerar Currículo</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -331,6 +350,18 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.caption,
     fontWeight: typography.fontWeight.medium as any, color: colors.primary[700],
   },
+  externalLinkBtn: {
+    flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start',
+    paddingVertical: spacing[2], paddingHorizontal: spacing[3],
+    marginBottom: spacing[4], borderRadius: 8,
+    backgroundColor: colors.primary[50],
+  },
+  externalLinkText: {
+    marginLeft: spacing[2],
+    fontSize: typography.fontSize.body,
+    color: colors.primary[500],
+    fontWeight: typography.fontWeight.semibold as any,
+  },
   bottomSpacer: { height: spacing[8] },
   stickyBar: {
     borderTopWidth: 1, borderTopColor: colors.neutral[200],
@@ -338,7 +369,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[5], paddingTop: spacing[3], paddingBottom: spacing[5],
   },
   applyBtn: {
-    backgroundColor: '#2B5FC2', borderRadius: 12,
+    backgroundColor: colors.primary[500], borderRadius: 12,
     height: 56, alignItems: 'center', justifyContent: 'center',
   },
   applyBtnDisabled: {
@@ -347,6 +378,9 @@ const styles = StyleSheet.create({
   applyBtnText: {
     color: colors.white, fontSize: typography.fontSize.body,
     fontWeight: typography.fontWeight.semibold as any,
+  },
+  btnContent: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing[2],
   },
   loadingContainer: {
     flex: 1, alignItems: 'center', justifyContent: 'center',

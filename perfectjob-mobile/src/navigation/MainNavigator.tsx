@@ -4,7 +4,8 @@ import JobDetailScreen from '@/screens/job-detail/JobDetailScreen';
 import HomeScreen from '@/screens/home/HomeScreen';
 import SearchScreen from '@/screens/search/SearchScreen';
 import SavedJobsScreen from '@/screens/saved-jobs/SavedJobsScreen';
-import ApplicationsScreen from '@/screens/applications/ApplicationsScreen';
+import ResumesScreen from '@/screens/resumes/ResumesScreen';
+import ResumePreviewScreen from '@/screens/resume-preview/ResumePreviewScreen';
 import ProfileScreen from '@/screens/profile/ProfileScreen';
 import EditProfileScreen from '@/screens/profile/EditProfileScreen';
 import Icon from '@/components/ui/Icon';
@@ -14,13 +15,14 @@ export type MainStackParamList = {
   Tabs: undefined;
   JobDetail: { slug: string };
   EditProfile: undefined;
+  ResumePreview: { resumeId: number };
 };
 
 export type TabParamList = {
   Home: undefined;
   Search: { query?: string; category?: string } | undefined;
   Saved: undefined;
-  Applications: undefined;
+  Resumes: undefined;
   Profile: undefined;
 };
 
@@ -31,7 +33,7 @@ const TAB_ICONS: Record<keyof TabParamList, [string, string]> = {
   Home: ['home', 'home-outline'],
   Search: ['search', 'search-outline'],
   Saved: ['bookmark', 'bookmark-outline'],
-  Applications: ['document-text', 'document-text-outline'],
+  Resumes: ['document-text', 'document-text-outline'],
   Profile: ['person', 'person-outline'],
 };
 
@@ -56,7 +58,7 @@ function TabNavigator() {
       <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: 'Início' }} />
       <Tab.Screen name="Search" component={SearchScreen} options={{ tabBarLabel: 'Buscar' }} />
       <Tab.Screen name="Saved" component={SavedJobsScreen} options={{ tabBarLabel: 'Salvas' }} />
-      <Tab.Screen name="Applications" component={ApplicationsScreen} options={{ tabBarLabel: 'Candidaturas' }} />
+      <Tab.Screen name="Resumes" component={ResumesScreen} options={{ tabBarLabel: 'Currículos' }} />
       <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarLabel: 'Perfil' }} />
     </Tab.Navigator>
   );
@@ -72,6 +74,7 @@ export function MainNavigator() {
         component={EditProfileScreen}
         options={{ headerShown: true, title: 'Editar perfil' }}
       />
+      <Stack.Screen name="ResumePreview" component={ResumePreviewScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }

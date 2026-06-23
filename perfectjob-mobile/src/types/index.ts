@@ -17,6 +17,7 @@ export interface Job {
   description?: string;
   requirements?: string[];
   benefits?: string[];
+  externalUrl?: string | null;
 }
 
 export interface Category {

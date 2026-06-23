@@ -24,4 +24,5 @@ export interface JobResponse {
   createdAt: string;
   updatedAt: string;
   expiresAt: string;
+  externalUrl?: string | null;
 }

@@ -95,11 +95,6 @@ const ProfileScreen = () => {
 
         <View style={styles.statsRow}>
           <View style={styles.statBox}>
-            <Text style={styles.statValue}>{profile?.applicationsCount ?? '-'}</Text>
-            <Text style={styles.statLabel}>Candidaturas</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statBox}>
             <Text style={styles.statValue}>{profile?.savedJobsCount ?? '-'}</Text>
             <Text style={styles.statLabel}>Vagas salvas</Text>
           </View>
