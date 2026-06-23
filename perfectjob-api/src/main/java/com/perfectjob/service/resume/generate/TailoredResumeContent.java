@@ -8,9 +8,14 @@ import java.util.List;
  */
 public record TailoredResumeContent(
         String professionalSummary,
-        List<String> highlightedSkills,
+        List<CategorizedSkill> categorizedSkills,
         List<TailoredExperience> tailoredExperiences
 ) {
+    public record CategorizedSkill(
+            String category,
+            List<String> items
+    ) {}
+
     public record TailoredExperience(
             String title,
             String company,

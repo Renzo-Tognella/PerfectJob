@@ -55,7 +55,7 @@ class ResumeGenerationServiceTest {
     void generate_happyPath_returnsLatexAndPdf() {
         when(profileService.getProfile(1L)).thenReturn(sampleProfile());
         TailoredResumeContent content = new TailoredResumeContent(
-                "summary", List.of("Java"),
+                "summary", List.of(new TailoredResumeContent.CategorizedSkill("Linguagens", List.of("Java"))),
                 List.of(new TailoredResumeContent.TailoredExperience("Dev", "X", "Jan/2022", "Atual", List.of("feito")))
         );
         when(aiService.generateTailoredContent(anyString(), anyString())).thenReturn(content);
@@ -73,7 +73,7 @@ class ResumeGenerationServiceTest {
     void generate_retriesOnFirstFailure_succeedsOnSecondAttempt() {
         when(profileService.getProfile(1L)).thenReturn(sampleProfile());
         TailoredResumeContent content = new TailoredResumeContent(
-                "summary", List.of("Java"),
+                "summary", List.of(new TailoredResumeContent.CategorizedSkill("Linguagens", List.of("Java"))),
                 List.of(new TailoredResumeContent.TailoredExperience("Dev", "X", "Jan/2022", "Atual", List.of("feito")))
         );
         when(aiService.generateTailoredContent(anyString(), anyString()))
@@ -106,7 +106,7 @@ class ResumeGenerationServiceTest {
     void generate_propagatesPdfCompilationExceptionWithoutRetry() {
         when(profileService.getProfile(1L)).thenReturn(sampleProfile());
         TailoredResumeContent content = new TailoredResumeContent(
-                "summary", List.of("Java"),
+                "summary", List.of(new TailoredResumeContent.CategorizedSkill("Linguagens", List.of("Java"))),
                 List.of(new TailoredResumeContent.TailoredExperience("Dev", "X", "Jan/2022", "Atual", List.of("feito")))
         );
         when(aiService.generateTailoredContent(anyString(), anyString())).thenReturn(content);

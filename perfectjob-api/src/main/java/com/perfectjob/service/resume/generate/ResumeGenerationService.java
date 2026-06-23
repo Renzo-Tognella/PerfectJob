@@ -40,7 +40,7 @@ public class ResumeGenerationService {
         TailoredResumeContent content = generateContentWithRetry(profileJson, jobContext);
         log.info("AUDIT: resume content generated userId={} jobId={} skills={} experiences={}",
                 userId, job.getId(),
-                content.highlightedSkills() == null ? 0 : content.highlightedSkills().size(),
+                content.categorizedSkills() == null ? 0 : content.categorizedSkills().size(),
                 content.tailoredExperiences() == null ? 0 : content.tailoredExperiences().size());
 
         String latex = latexTemplateBuilder.build(content, profile);

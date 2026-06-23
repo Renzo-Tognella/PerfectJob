@@ -22,7 +22,7 @@ public class LatexTemplateBuilder {
         sb.append("\\begin{document}\n\n");
         writeHeader(sb, profile);
         writeSummary(sb, content.professionalSummary());
-        writeSkills(sb, content.highlightedSkills());
+        writeSkills(sb, content.categorizedSkills());
         writeExperiences(sb, content.tailoredExperiences());
         writeEducation(sb, profile);
         writeFooter(sb);
@@ -106,13 +106,16 @@ public class LatexTemplateBuilder {
         sb.append(escapeLatex(summary)).append("\n\n");
     }
 
-    private void writeSkills(StringBuilder sb, List<String> skills) {
-        if (skills == null || skills.isEmpty()) return;
+    private void writeSkills(StringBuilder sb, List<TailoredResumeContent.CategorizedSkill> categories) {
+        if (categories == null || categories.isEmpty()) return;
         section(sb, "Competências Técnicas");
         sb.append("\\begin{itemize}\n");
-        for (String s : skills) {
-            if (s == null || s.isBlank()) continue;
-            sb.append("    \\item ").append(escapeLatex(s.strip())).append("\n");
+        for (TailoredResumeContent.CategorizedSkill c : categories) {
+            if (c == null || c.items() == null) continue;
+            for (String s : c.items()) {
+                if (s == null || s.isBlank()) continue;
+                sb.append("    \\item ").append(escapeLatex(s.strip())).append("\n");
+            }
         }
         sb.append("\\end{itemize}\n\n");
     }

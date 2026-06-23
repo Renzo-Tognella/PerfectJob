@@ -162,7 +162,7 @@
   - _Requirements: 10.1, 10.2, 10.3, 11.2, 11.3, 11.4_
   - _Boundary: system prompt resource, ResumeContentAiService_
 
-- [ ] 6.2 (P) Replace `highlightedSkills` with `categorizedSkills` in `TailoredResumeContent`
+- [x] 6.2 (P) Replace `highlightedSkills` with `categorizedSkills` in `TailoredResumeContent`
   - Add a new `CategorizedSkill(String category, List<String> items)` record in the same file (`service/resume/generate/TailoredResumeContent.java`)
   - Remove the `List<String> highlightedSkills` field from the `TailoredResumeContent` record
   - Add a new `List<CategorizedSkill> categorizedSkills` field in its place

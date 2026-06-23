@@ -137,7 +137,7 @@ class LatexTemplateBuilderTest {
         );
         TailoredResumeContent content = new TailoredResumeContent(
                 "Resumo curto",
-                List.of("Java"),
+                List.of(new TailoredResumeContent.CategorizedSkill("Linguagens", List.of("Java"))),
                 List.of(new TailoredResumeContent.TailoredExperience("Dev", "X", "Jan/2022", "Atual", List.of("feito")))
         );
 
@@ -222,7 +222,8 @@ class LatexTemplateBuilderTest {
     private TailoredResumeContent sampleTailoredContent() {
         return new TailoredResumeContent(
                 "Engenheiro de software com 5 anos de experiência em backend Java.",
-                List.of("Java", "Spring"),
+                List.of(new TailoredResumeContent.CategorizedSkill(
+                        "Linguagens", List.of("Java", "Spring"))),
                 List.of(new TailoredResumeContent.TailoredExperience(
                         "Backend Dev", "Acme", "Jan/2022", "Atual",
                         List.of("Reduzi 40% o tempo de deploy", "Implementei 10 APIs REST")
