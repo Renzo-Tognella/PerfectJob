@@ -47,7 +47,8 @@ class CreateJobRequestValidationTest {
                 "São Paulo",
                 "SP",
                 List.of("Java", "Spring"),
-                LocalDateTime.now().plusDays(30)
+                LocalDateTime.now().plusDays(30),
+                "https://example.com/job"
         );
     }
 
@@ -68,7 +69,8 @@ class CreateJobRequestValidationTest {
                 null,
                 null,
                 null,
-                LocalDateTime.now().plusDays(30)
+                LocalDateTime.now().plusDays(30),
+                null
         );
 
         Set<ConstraintViolation<CreateJobRequest>> violations = validator.validate(request);
@@ -94,7 +96,8 @@ class CreateJobRequestValidationTest {
                 null,
                 null,
                 null,
-                LocalDateTime.now().minusDays(1)
+                LocalDateTime.now().minusDays(1),
+                null
         );
 
         Set<ConstraintViolation<CreateJobRequest>> violations = validator.validate(request);
@@ -120,7 +123,8 @@ class CreateJobRequestValidationTest {
                 null,
                 null,
                 null,
-                LocalDateTime.now().plusDays(30)
+                LocalDateTime.now().plusDays(30),
+                null
         );
 
         Set<ConstraintViolation<CreateJobRequest>> violations = validator.validate(request);
@@ -132,6 +136,60 @@ class CreateJobRequestValidationTest {
     @Test
     void validRequest_passesValidation() {
         Set<ConstraintViolation<CreateJobRequest>> violations = validator.validate(validRequest());
+
+        assertThat(violations).isEmpty();
+    }
+
+    @Test
+    void externalUrlOver2048Chars_failsValidation() {
+        String longUrl = "https://example.com/" + "a".repeat(2050);
+        CreateJobRequest request = new CreateJobRequest(
+                "Dev",
+                1L,
+                "Desc",
+                null,
+                null,
+                null,
+                null,
+                com.perfectjob.model.enums.WorkModel.REMOTE,
+                com.perfectjob.model.enums.ExperienceLevel.JUNIOR,
+                com.perfectjob.model.enums.JobType.FULL_TIME,
+                com.perfectjob.model.enums.ContractType.CLT,
+                null,
+                null,
+                null,
+                LocalDateTime.now().plusDays(30),
+                longUrl
+        );
+
+        Set<ConstraintViolation<CreateJobRequest>> violations = validator.validate(request);
+
+        assertThat(violations)
+                .anyMatch(v -> "externalUrl".equals(v.getPropertyPath().toString()));
+    }
+
+    @Test
+    void externalUrlNull_passesValidation() {
+        CreateJobRequest request = new CreateJobRequest(
+                "Dev",
+                1L,
+                "Desc",
+                null,
+                null,
+                null,
+                null,
+                com.perfectjob.model.enums.WorkModel.REMOTE,
+                com.perfectjob.model.enums.ExperienceLevel.JUNIOR,
+                com.perfectjob.model.enums.JobType.FULL_TIME,
+                com.perfectjob.model.enums.ContractType.CLT,
+                null,
+                null,
+                null,
+                LocalDateTime.now().plusDays(30),
+                null
+        );
+
+        Set<ConstraintViolation<CreateJobRequest>> violations = validator.validate(request);
 
         assertThat(violations).isEmpty();
     }

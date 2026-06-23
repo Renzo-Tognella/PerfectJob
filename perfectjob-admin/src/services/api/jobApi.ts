@@ -27,6 +27,7 @@ export interface Job {
   createdAt: string;
   updatedAt: string;
   expiresAt?: string;
+  externalUrl?: string;
 }
 
 export interface JobInput {
@@ -45,6 +46,7 @@ export interface JobInput {
   locationState?: string;
   skills: string[];
   expiresAt: string;
+  externalUrl?: string;
 }
 
 export interface JobStats {

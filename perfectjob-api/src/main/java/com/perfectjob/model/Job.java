@@ -121,4 +121,7 @@ public class Job {
 
     @Column(name = "external_id")
     private String externalId;
+
+    @Column(name = "external_url", length = 2048)
+    private String externalUrl;
 }

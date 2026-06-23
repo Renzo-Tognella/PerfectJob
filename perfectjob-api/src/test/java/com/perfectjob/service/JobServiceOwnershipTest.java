@@ -72,7 +72,8 @@ class JobServiceOwnershipTest {
                 ContractType.CLT,
                 "São Paulo", "SP",
                 java.util.List.of("Java"),
-                LocalDateTime.now().plusDays(30)
+                LocalDateTime.now().plusDays(30),
+                null
         );
     }
 

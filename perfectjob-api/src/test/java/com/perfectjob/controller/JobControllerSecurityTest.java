@@ -76,7 +76,8 @@ class JobControllerSecurityTest {
         return new CreateJobRequest(
                 "Dev", 10L, "desc", null, null, null, null,
                 WorkModel.REMOTE, ExperienceLevel.JUNIOR, JobType.FULL_TIME, ContractType.CLT,
-                null, null, List.of("Java"), LocalDateTime.now().plusDays(30)
+                null, null, List.of("Java"), LocalDateTime.now().plusDays(30),
+                null
         );
     }
 

@@ -69,6 +69,7 @@ public class JobService {
                 .locationState(request.locationState())
                 .skills(request.skills() != null ? request.skills() : new java.util.ArrayList<>())
                 .expiresAt(request.expiresAt())
+                .externalUrl(request.externalUrl())
                 .slug(generateSlug(request.title()))
                 .status(JobStatus.ACTIVE)
                 .build();
@@ -138,6 +139,7 @@ public class JobService {
         job.setLocationState(request.locationState());
         job.setSkills(request.skills() != null ? request.skills() : new java.util.ArrayList<>());
         job.setExpiresAt(request.expiresAt());
+        job.setExternalUrl(request.externalUrl());
 
         Job updated = jobRepository.save(job);
         return JobMapper.toResponse(updated);

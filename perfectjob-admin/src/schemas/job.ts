@@ -45,6 +45,11 @@ export const jobSchema = z
     locationState: z.string().optional(),
     skills: z.array(z.string()).max(20, 'Máximo 20 skills'),
     expiresAt: z.string().refine((v) => new Date(v) > new Date(), 'Data deve ser no futuro'),
+    externalUrl: z
+      .string()
+      .url('URL inválida')
+      .or(z.literal(''))
+      .optional(),
   })
   .refine(
     (data) =>

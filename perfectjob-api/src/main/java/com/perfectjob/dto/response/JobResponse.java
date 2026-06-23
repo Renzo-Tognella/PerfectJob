@@ -35,5 +35,6 @@ public record JobResponse(
     Integer applicationsCount,
     LocalDateTime createdAt,
     LocalDateTime updatedAt,
-    LocalDateTime expiresAt
+    LocalDateTime expiresAt,
+    String externalUrl
 ) {}

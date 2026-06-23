@@ -30,7 +30,8 @@ public record CreateJobRequest(
     @Size(max = 1000) String locationCity,
     @Size(max = 1000) String locationState,
     @Size(max = 20) List<@Size(max = 100) String> skills,
-    @NotNull @Future LocalDateTime expiresAt
+    @NotNull @Future LocalDateTime expiresAt,
+    @Size(max = 2048) String externalUrl
 ) {
     @AssertTrue(message = "salaryMax must be >= salaryMin")
     public boolean isValidSalaryRange() {

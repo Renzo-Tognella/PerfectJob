@@ -65,7 +65,8 @@ class JobControllerTest {
                 "São Paulo", "SP", "BR",
                 List.of("Java", "Spring"),
                 JobStatus.ACTIVE, 10, 3,
-                LocalDateTime.now(), LocalDateTime.now(), null
+                LocalDateTime.now(), LocalDateTime.now(), null,
+                "https://remotive.com/job/123"
         );
         Page<JobResponse> page = new PageImpl<>(List.of(job));
 

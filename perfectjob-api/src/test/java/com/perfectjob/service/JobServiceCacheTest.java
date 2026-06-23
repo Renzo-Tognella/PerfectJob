@@ -109,7 +109,8 @@ class JobServiceCacheTest {
                 com.perfectjob.model.enums.JobType.FULL_TIME,
                 com.perfectjob.model.enums.ContractType.CLT,
                 "City", "State", java.util.List.of("Java"),
-                java.time.LocalDateTime.now().plusDays(30)
+                java.time.LocalDateTime.now().plusDays(30),
+                null
         );
 
         when(companyRepository.findById(1L)).thenReturn(Optional.of(sampleCompany));

@@ -126,7 +126,8 @@ class SavedJobControllerTest {
                 "São Paulo", "SP", "BR",
                 List.of("Java"),
                 JobStatus.ACTIVE, 10, 0,
-                LocalDateTime.now(), LocalDateTime.now(), null
+                LocalDateTime.now(), LocalDateTime.now(), null,
+                null
         );
         Page<JobResponse> page = new PageImpl<>(List.of(job));
         when(savedJobService.getMySavedJobs(any(CurrentUser.class), any(Pageable.class))).thenReturn(page);

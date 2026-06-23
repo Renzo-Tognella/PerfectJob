@@ -45,6 +45,7 @@ public final class JobIngestionMapper {
                 .status(JobStatus.ACTIVE)
                 .source(ext.source())
                 .externalId(ext.externalId())
+                .externalUrl(ext.url())
                 .build();
     }
 

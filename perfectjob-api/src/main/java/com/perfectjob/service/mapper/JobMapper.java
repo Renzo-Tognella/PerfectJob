@@ -36,7 +36,8 @@ public final class JobMapper {
                 job.getApplicationsCount(),
                 job.getCreatedAt(),
                 job.getUpdatedAt(),
-                job.getExpiresAt()
+                job.getExpiresAt(),
+                job.getExternalUrl()
         );
     }
 

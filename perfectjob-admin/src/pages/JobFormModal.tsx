@@ -47,6 +47,7 @@ const toFormInput = (job: Job | null): JobFormInput => {
       locationState: '',
       skills: [],
       expiresAt: defaultExpires,
+      externalUrl: '',
     };
   }
 
@@ -66,6 +67,7 @@ const toFormInput = (job: Job | null): JobFormInput => {
     locationState: job.locationState || '',
     skills: job.skills || [],
     expiresAt: job.expiresAt ? job.expiresAt.split('T')[0] : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    externalUrl: job.externalUrl || '',
   };
 };
 
@@ -79,6 +81,7 @@ const toApiPayload = (data: JobFormInput): JobInput => ({
   locationState: data.locationState,
   skills: data.skills,
   expiresAt: new Date(data.expiresAt).toISOString(),
+  externalUrl: data.externalUrl || undefined,
 });
 
 export function JobFormModal({ job, onClose, onSave }: JobFormModalProps) {
@@ -301,6 +304,14 @@ export function JobFormModal({ job, onClose, onSave }: JobFormModalProps) {
               placeholder="SP"
             />
           </div>
+
+          <Input
+            label="URL da vaga (opcional)"
+            type="url"
+            {...register('externalUrl')}
+            error={errors.externalUrl?.message}
+            placeholder="https://exemplo.com/vaga"
+          />
 
           <div className="w-full">
             <label className="block text-sm font-medium text-neutral-700 mb-1">Skills</label>

@@ -35,9 +35,20 @@ class JobIngestionMapperTest {
         assertThat(job.getStatus()).isEqualTo(JobStatus.ACTIVE);
         assertThat(job.getSource()).isEqualTo("remotive");
         assertThat(job.getExternalId()).isEqualTo("123");
+        assertThat(job.getExternalUrl()).isEqualTo("http://x");
         assertThat(job.getDescription()).isEqualTo("Great role");
         assertThat(job.getSkills()).containsExactly("Java", "Spring"); // case-insensitive dedupe
         assertThat(job.getSlug()).startsWith("senior-java-developer-remotive-123");
+    }
+
+    @Test
+    void toJob_nullUrlProducesNullExternalUrl() {
+        ExternalJob ext = new ExternalJob("remotive", "456", "Dev", "Corp",
+                "desc", "Remote", true, "full_time", List.of(), null);
+
+        Job job = JobIngestionMapper.toJob(ext, 1L);
+
+        assertThat(job.getExternalUrl()).isNull();
     }
 
     @Test
