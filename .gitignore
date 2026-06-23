@@ -103,6 +103,9 @@ Thumbs.db
 *.db
 *.sqlite
 
+# Generated user content (resumes, exports)
+data/
+
 # Build artifacts
 output/
 tmp/

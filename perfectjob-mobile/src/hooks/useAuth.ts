@@ -2,7 +2,6 @@ import { useMutation } from '@tanstack/react-query';
 import { authApi, type LoginData, type RegisterData } from '@/services/api/authApi';
 import { useAuthStore } from '@/store/useAuthStore';
 import { extractErrorMessage } from '@/services/api/client';
-import { ENV } from '@/config/env';
 
 export const useLogin = () => {
   const setAuth = useAuthStore((state) => state.setAuth);
@@ -15,10 +14,6 @@ export const useLogin = () => {
         fullName: data.fullName,
         role: data.role,
       });
-    },
-    onError: (error) => {
-      console.log('[DEBUG] Login error:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
-      console.log('[DEBUG] API URL:', ENV.API_URL);
     },
   });
 };
@@ -35,10 +30,6 @@ export const useRegister = () => {
         role: data.role,
       });
     },
-    onError: (error) => {
-      console.log('[DEBUG] Register error:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
-      console.log('[DEBUG] API URL:', ENV.API_URL);
-    },
   });
 };
 
@@ -46,10 +37,16 @@ export const useAuth = () => {
   const loginMutation = useLogin();
   const registerMutation = useRegister();
 
+  // Only surface a real error. `extractErrorMessage(null)` returns a generic
+  // fallback string, so guarding here prevents the error banner from showing
+  // on initial render when no mutation has actually errored.
+  const loginError = loginMutation.error ? extractErrorMessage(loginMutation.error) : null;
+  const registerError = registerMutation.error ? extractErrorMessage(registerMutation.error) : null;
+
   return {
     login: (data: LoginData) => loginMutation.mutateAsync(data),
     register: (data: Omit<RegisterData, 'confirmPassword'>) => registerMutation.mutateAsync(data),
     isLoading: loginMutation.isPending || registerMutation.isPending,
-    error: extractErrorMessage(loginMutation.error) || extractErrorMessage(registerMutation.error) || null,
+    error: loginError || registerError,
   };
 };
