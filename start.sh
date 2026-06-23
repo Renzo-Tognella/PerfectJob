@@ -99,14 +99,23 @@ else
       # Install tectonic (LaTeX engine) into the container
       if ! command -v tectonic >/dev/null 2>&1; then
         echo "Installing tectonic..."
-        curl -fsSL https://github.com/tectonic-typesetting/tectonic/releases/download/tectonic@0.15.0/tectonic-x86_64-unknown-linux-gnu.tar.gz | tar -xz -C /tmp
-        mv /tmp/tectonic-x86_64-unknown-linux-gnu/tectonic /usr/local/bin/tectonic
+        # Detect container arch (the maven:3.9-eclipse-temurin-21 image on Apple Silicon
+        # is aarch64 even though the image name is x86_64). The musl-static binary works
+        # on both glibc and musl-based hosts because it's statically linked.
+        ARCH=$(uname -m)
+        if [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
+          TECTONIC_ASSET="tectonic-0.16.9-aarch64-unknown-linux-musl.tar.gz"
+        else
+          TECTONIC_ASSET="tectonic-0.16.9-x86_64-unknown-linux-gnu.tar.gz"
+        fi
+        curl -fsSL "https://github.com/tectonic-typesetting/tectonic/releases/download/tectonic@0.16.9/${TECTONIC_ASSET}" | tar -xz -C /tmp
+        mv /tmp/tectonic /usr/local/bin/tectonic
         chmod +x /usr/local/bin/tectonic
         # Warm font/asset cache by compiling a trivial doc
         echo "Warming tectonic cache..."
-        mkdir -p /tmp/tectonic-warm && cd /tmp/tectonic-warm
-        printf "\\documentclass{article}\\begin{document}warm\\end{document}" > warm.tex
-        tectonic --keep-logs --outdir . warm.tex >/dev/null 2>&1 || true
+        (cd /tmp && mkdir -p tectonic-warm && cd tectonic-warm && \
+          printf "\\documentclass{article}\\begin{document}warm\\end{document}" > warm.tex && \
+          tectonic --keep-logs --outdir . warm.tex >/dev/null 2>&1) || echo "(tectonic warm-up skipped)"
       fi
       mkdir -p /app/data/resumes
       mvn -q -Dmaven.test.skip=true spring-boot:run

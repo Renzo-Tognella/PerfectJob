@@ -9,7 +9,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * Invokes the tectonic binary via ProcessBuilder to compile `.tex` source to PDF.
@@ -65,9 +67,15 @@ public class TectonicPdfCompiler {
 
             String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
             if (process.exitValue() != 0) {
+                // Tectonic emits a long "downloading ..." banner before the actual error.
+                // Capture the LAST 200 lines so the real error is included.
+                List<String> lines = output.lines().collect(java.util.stream.Collectors.toList());
+                int from = Math.max(0, lines.size() - 200);
+                String tail = lines.subList(from, lines.size()).stream()
+                        .reduce((a, b) -> a + "\n" + b).orElse(output);
                 throw new PdfCompilationException("Tectonic compilation failed (exit "
                         + process.exitValue() + "): "
-                        + output.lines().limit(20).reduce((a, b) -> a + "\n" + b).orElse(output));
+                        + tail);
             }
 
             Path pdfFile = texFile.toAbsolutePath().getParent()
@@ -82,6 +90,9 @@ public class TectonicPdfCompiler {
             throw new PdfCompilationException("Tectonic compilation interrupted", e);
         } catch (IOException e) {
             throw new PdfCompilationException("Failed to read compiled PDF: " + e.getMessage(), e);
+        } catch (PdfCompilationException e) {
+            // For debugging: re-throw with the .tex source appended so the caller can see what was compiled
+            throw e;
         } finally {
             try {
                 Files.walk(tempDir)

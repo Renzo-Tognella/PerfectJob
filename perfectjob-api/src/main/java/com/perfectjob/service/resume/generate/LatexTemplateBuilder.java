@@ -19,6 +19,7 @@ public class LatexTemplateBuilder {
     public String build(TailoredResumeContent content, ProfileResponse profile) {
         StringBuilder sb = new StringBuilder(8192);
         writePreamble(sb);
+        sb.append("\\begin{document}\n\n");
         writeHeader(sb, profile);
         writeSummary(sb, content.professionalSummary());
         writeSkills(sb, content.highlightedSkills());

@@ -30,11 +30,12 @@ public class ResumeGenerationService {
     private final TectonicPdfCompiler tectonicPdfCompiler;
     private final ProfileService profileService;
     private final ObjectMapper objectMapper;
+    private final JobContextMapper jobContextMapper;
 
     public GenerationResult generate(Long userId, Job job) {
         ProfileResponse profile = profileService.getProfile(userId);
         String profileJson = toJson(profile);
-        String jobContext = toJson(job);
+        String jobContext = toJson(jobContextMapper.toContext(job));
 
         TailoredResumeContent content = generateContentWithRetry(profileJson, jobContext);
         log.info("AUDIT: resume content generated userId={} jobId={} skills={} experiences={}",

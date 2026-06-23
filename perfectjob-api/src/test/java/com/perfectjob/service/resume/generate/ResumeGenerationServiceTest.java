@@ -36,6 +36,7 @@ class ResumeGenerationServiceTest {
     @Mock private LatexTemplateBuilder latexBuilder;
     @Mock private TectonicPdfCompiler tectonicCompiler;
     @Mock private ProfileService profileService;
+    @Mock private JobContextMapper jobContextMapper;
 
     private ResumeGenerationService service;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -44,8 +45,10 @@ class ResumeGenerationServiceTest {
     @BeforeEach
     void setUp() {
         objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+        // jobContextMapper mock returns null by default; toJson(null) returns "null"
+        // which the LLM mock receives as anyString().
         service = new ResumeGenerationService(
-                aiService, latexBuilder, tectonicCompiler, profileService, objectMapper);
+                aiService, latexBuilder, tectonicCompiler, profileService, objectMapper, jobContextMapper);
     }
 
     @Test
