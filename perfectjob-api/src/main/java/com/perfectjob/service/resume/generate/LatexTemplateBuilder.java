@@ -134,16 +134,25 @@ public class LatexTemplateBuilder {
                                 .toList(),
                         (a, b) -> a
                 ));
-        boolean any = false;
-        for (String category : CATEGORY_ORDER) {
+        List<String> populated = CATEGORY_ORDER.stream()
+                .filter(cat -> byCategory.containsKey(cat) && !byCategory.get(cat).isEmpty())
+                .toList();
+        if (populated.isEmpty()) return;
+        section(sb, "Competências");
+        sb.append("\\begin{itemize}\n");
+        for (String category : populated) {
             List<String> items = byCategory.get(category);
-            if (items == null || items.isEmpty()) continue;
-            section(sb, category);
-            sb.append(String.join(", ", items.stream().map(LatexTemplateBuilder::escapeLatex).toList()))
-              .append("\n\n");
-            sb.append(SECTION_BODY_VSPACE);
-            any = true;
+            String itemsJoined = items.stream()
+                    .map(LatexTemplateBuilder::escapeLatex)
+                    .collect(Collectors.joining(", "));
+            sb.append("    \\item \\textbf{")
+              .append(escapeLatex(category))
+              .append(":} ")
+              .append(itemsJoined)
+              .append("\n");
         }
+        sb.append("\\end{itemize}\n\n");
+        sb.append(SECTION_BODY_VSPACE);
     }
 
     private void writeExperiences(StringBuilder sb, List<TailoredResumeContent.TailoredExperience> experiences) {
@@ -220,9 +229,13 @@ public class LatexTemplateBuilder {
 
     private void writeLanguages(StringBuilder sb, List<LanguageDto> languages) {
         if (languages == null || languages.isEmpty()) return;
-        section(sb, "Idiomas");
-        String joined = languages.stream()
+        List<LanguageDto> valid = languages.stream()
                 .filter(l -> l != null && !isBlank(l.name()))
+                .filter(l -> isValidLanguageName(l.name()))
+                .toList();
+        if (valid.isEmpty()) return;
+        section(sb, "Idiomas");
+        String joined = valid.stream()
                 .map(l -> isBlank(l.level())
                         ? escapeLatex(l.name())
                         : escapeLatex(l.name()) + " (" + escapeLatex(l.level()) + ")")
@@ -231,6 +244,14 @@ public class LatexTemplateBuilder {
             sb.append(joined).append("\n\n");
         }
         sb.append(SECTION_BODY_VSPACE);
+    }
+
+    private static boolean isValidLanguageName(String name) {
+        if (name == null) return false;
+        String trimmed = name.strip();
+        if (trimmed.length() < 2) return false;
+        if (trimmed.matches("\\d+")) return false;
+        return true;
     }
 
     private void writeFooter(StringBuilder sb) {

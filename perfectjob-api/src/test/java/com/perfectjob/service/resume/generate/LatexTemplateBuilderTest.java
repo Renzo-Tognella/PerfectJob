@@ -64,13 +64,12 @@ class LatexTemplateBuilderTest {
     void build_includesCategorizedSkillsAsCompactLines() {
         String tex = builder.build(sampleTailoredContent(), sampleProfile());
 
-        // Each canonical category becomes its own section heading (R11.5)
-        assertThat(tex).contains("LINGUAGENS");
-        // Skills within a category render as a compact line, not an itemize list (R11.6)
+        // Single "Competências" section heading (R11.5)
+        assertThat(tex).contains("COMPETÊNCIAS");
+        // Each category appears as a bullet with bold label
+        assertThat(tex).contains("\\textbf{Linguagens:}");
         assertThat(tex).contains("Java");
         assertThat(tex).contains("Spring");
-        assertThat(tex).doesNotContain("\\item Java");
-        assertThat(tex).doesNotContain("\\item Spring");
         // The old single "Competências Técnicas" parent section is no longer used
         assertThat(tex).doesNotContain("COMPETÊNCIAS TÉCNICAS");
         // hrule is still present (rule between heading and body)
@@ -248,11 +247,13 @@ class LatexTemplateBuilderTest {
 
         String tex = builder.build(reversed, sampleProfile());
 
-        int linguagens = tex.indexOf("LINGUAGENS");
-        int frameworks = tex.indexOf("FRAMEWORKS");
-        int bancos = tex.indexOf("BANCOS DE DADOS");
-        int ferramentas = tex.indexOf("FERRAMENTAS E PLATAFORMAS");
-        int metodologias = tex.indexOf("METODOLOGIAS");
+        // Categories render as bullets inside a single "Competências" section,
+        // in canonical order. Assert the bullet labels appear in the right order.
+        int linguagens = tex.indexOf("\\textbf{Linguagens:}");
+        int frameworks = tex.indexOf("\\textbf{Frameworks:}");
+        int bancos = tex.indexOf("\\textbf{Bancos de Dados:}");
+        int ferramentas = tex.indexOf("\\textbf{Ferramentas e Plataformas:}");
+        int metodologias = tex.indexOf("\\textbf{Metodologias:}");
 
         assertThat(linguagens).isPositive();
         assertThat(frameworks).isGreaterThan(linguagens);
@@ -275,13 +276,13 @@ class LatexTemplateBuilderTest {
 
         String tex = builder.build(sparse, sampleProfile());
 
-        // Present categories are rendered.
-        assertThat(tex).contains("LINGUAGENS");
-        assertThat(tex).contains("FRAMEWORKS");
-        // Absent categories have no heading.
-        assertThat(tex).doesNotContain("BANCOS DE DADOS");
-        assertThat(tex).doesNotContain("FERRAMENTAS E PLATAFORMAS");
-        assertThat(tex).doesNotContain("METODOLOGIAS");
+        // Present categories are rendered as bullets.
+        assertThat(tex).contains("\\textbf{Linguagens:}");
+        assertThat(tex).contains("\\textbf{Frameworks:}");
+        // Absent categories have no bullet.
+        assertThat(tex).doesNotContain("\\textbf{Bancos de Dados:}");
+        assertThat(tex).doesNotContain("\\textbf{Ferramentas e Plataformas:}");
+        assertThat(tex).doesNotContain("\\textbf{Metodologias:}");
     }
 
     // -----------------------------------------------------------------

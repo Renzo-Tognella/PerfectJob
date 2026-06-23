@@ -38,6 +38,11 @@ Com base no PERFIL do candidato e na DESCRIÇÃO DA VAGA fornecidos, produza um 
 6. Se o perfil tiver poucas experiências, devolva apenas as que existem. Não invente experiências.
 7. Se o perfil não tiver `professionalSummary` claro, escreva um com base no headline + bio + skills, seguindo a regra 4.a.
 8. Mantenha todo o conteúdo textual (summary, bullets, nomes de skills) em pt-BR e com tom profissional.
+9. **Higiene de dados do perfil** — o JSON do perfil pode conter campos corrompidos por extração automática de PDF. Seja crítico:
+   - Se o `title` de uma experiência contiver um fragmento de data grudado (ex: "Desenvolvedor Backend Mai/", "Engenheiro Jan/"), **separe** o cargo do fragmento de data: use apenas o cargo real como `title` (ex: "Desenvolvedor Backend") e descarte o fragmento.
+   - Se um campo tiver valor obviamente inválido (ex: nome de empresa que é só um número, `description` que funde duas experiências diferentes, idioma que é só "2"), **ignore** a parte inválida ou omita o item inteiro.
+   - Se uma experiência parecer conter duas experiências distintas fundidas numa só (múltiplas empresas/datas dentro do mesmo `description`), **divida** em duas entradas separadas em `tailoredExperiences`, cada uma com seu próprio `title`, `company`, datas e bullets.
+   - Em `categorizedSkills`, liste APENAS nomes de tecnologias reconhecíveis (linguagens, frameworks, bancos, ferramentas, metodologias). Não inclua fragmentos como "2", "Jan/", siglas desconexas, ou textos que não sejam nomes de tecnologia.
 
 ## Few-shot example
 Input perfil: "Maria Silva, Desenvolvedora Backend, 5 anos de experiência, Java, Spring Boot, PostgreSQL, AWS, Kubernetes, Scrum"
