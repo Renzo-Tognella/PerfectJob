@@ -14,6 +14,7 @@ import com.perfectjob.service.ProfileService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -118,6 +119,40 @@ class ResumeGenerationServiceTest {
                 .isInstanceOf(PdfCompilationException.class);
 
         verify(tectonicCompiler, times(1)).compile(anyString());
+    }
+
+    @Test
+    void generate_passesBothProfileAndJobToLlm() {
+        when(profileService.getProfile(1L)).thenReturn(sampleProfile());
+        JobContextMapper.JobContext jobContext = new JobContextMapper.JobContext(
+                job.getId(), job.getTitle(), "Acme",
+                job.getDescription(), job.getRequirements(), null,
+                List.of("Java"), job.getWorkModel().name(),
+                job.getExperienceLevel().name(), job.getJobType().name(), job.getContractType().name(),
+                job.getLocationCity(), job.getLocationState(), job.getLocationCountry(),
+                job.getSalaryMin(), job.getSalaryMax(), null, null
+        );
+        when(jobContextMapper.toContext(job)).thenReturn(jobContext);
+        TailoredResumeContent content = new TailoredResumeContent(
+                "summary", List.of(new TailoredResumeContent.CategorizedSkill("Linguagens", List.of("Java"))),
+                List.of(new TailoredResumeContent.TailoredExperience("Dev", "X", "Jan/2022", "Atual", List.of("feito")))
+        );
+        when(aiService.generateTailoredContent(anyString(), anyString())).thenReturn(content);
+        when(latexBuilder.build(any(), any())).thenReturn("\\documentclass{article}...");
+        when(tectonicCompiler.compile(anyString())).thenReturn(new byte[]{0x25, 0x50, 0x44, 0x46});
+
+        service.generate(1L, job);
+
+        ArgumentCaptor<String> profileCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> jobCaptor = ArgumentCaptor.forClass(String.class);
+        verify(aiService).generateTailoredContent(profileCaptor.capture(), jobCaptor.capture());
+
+        String profileArg = profileCaptor.getValue();
+        String jobArg = jobCaptor.getValue();
+
+        assertThat(profileArg).isNotNull().isNotBlank();
+        assertThat(jobArg).isNotNull().isNotBlank();
+        assertThat(jobArg).contains("Senior Developer");
     }
 
     private Job sampleJob() {

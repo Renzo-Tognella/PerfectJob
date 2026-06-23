@@ -196,7 +196,7 @@
   - _Boundary: LatexTemplateBuilder, LatexTemplateBuilderTest_
   - _Depends: 6.3_
 
-- [ ] 7.2 (P) Extend `ResumeGenerationServiceTest` to assert R10.5 (LLM call receives both profile and job)
+- [x] 7.2 (P) Extend `ResumeGenerationServiceTest` to assert R10.5 (LLM call receives both profile and job)
   - Add a test that mocks `ResumeContentAiService`, calls `generate(profile, job)`, and captures the argument values passed to the AI service
   - Assert that both the profile JSON and the job context are non-empty in the captured call (the system must not generate resume content from the profile alone)
   - All new tests pass via `./mvnw test -Dtest=ResumeGenerationServiceTest`
