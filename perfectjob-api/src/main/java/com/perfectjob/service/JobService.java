@@ -13,7 +13,6 @@ import com.perfectjob.model.enums.ExperienceLevel;
 import com.perfectjob.model.enums.JobStatus;
 import com.perfectjob.model.enums.WorkModel;
 import jakarta.persistence.criteria.Predicate;
-import com.perfectjob.repository.ApplicationRepository;
 import com.perfectjob.repository.CompanyRepository;
 import com.perfectjob.repository.JobRepository;
 import com.perfectjob.security.CurrentUser;
@@ -28,7 +27,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +38,6 @@ public class JobService {
 
     private final JobRepository jobRepository;
     private final CompanyRepository companyRepository;
-    private final ApplicationRepository applicationRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     @CacheEvict(value = "jobs", allEntries = true)
@@ -194,11 +191,8 @@ public class JobService {
     @Cacheable(value = "stats", key = "'global'")
     public JobStatsResponse getStats() {
         long activeJobs = jobRepository.countByStatus(JobStatus.ACTIVE);
-        long totalApplications = applicationRepository.count();
-        long applicationsToday = applicationRepository.countByCreatedAtAfter(
-                LocalDate.now().atStartOfDay());
         long totalCompanies = companyRepository.count();
-        return new JobStatsResponse(activeJobs, totalApplications, applicationsToday, totalCompanies);
+        return new JobStatsResponse(activeJobs, totalCompanies);
     }
 
     private void assertCanModifyJob(Job job, CurrentUser currentUser) {

@@ -1,7 +1,6 @@
 package com.perfectjob.service;
 
 import com.perfectjob.dto.response.SkillCountResponse;
-import com.perfectjob.repository.ApplicationRepository;
 import com.perfectjob.repository.CompanyRepository;
 import com.perfectjob.repository.JobRepository;
 import org.junit.jupiter.api.Test;
@@ -20,7 +19,6 @@ class JobServiceTrendingSkillsTest {
 
     @Mock private JobRepository jobRepository;
     @Mock private CompanyRepository companyRepository;
-    @Mock private ApplicationRepository applicationRepository;
 
     @InjectMocks private JobService jobService;
 

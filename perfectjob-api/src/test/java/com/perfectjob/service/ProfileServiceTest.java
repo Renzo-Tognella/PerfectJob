@@ -11,7 +11,6 @@ import com.perfectjob.model.UserEducation;
 import com.perfectjob.model.UserExperience;
 import com.perfectjob.model.UserLanguage;
 import com.perfectjob.model.enums.Role;
-import com.perfectjob.repository.ApplicationRepository;
 import com.perfectjob.repository.SavedJobRepository;
 import com.perfectjob.repository.UserEducationRepository;
 import com.perfectjob.repository.UserExperienceRepository;
@@ -45,7 +44,6 @@ class ProfileServiceTest {
     @Mock private UserExperienceRepository experienceRepository;
     @Mock private UserEducationRepository educationRepository;
     @Mock private UserLanguageRepository languageRepository;
-    @Mock private ApplicationRepository applicationRepository;
     @Mock private SavedJobRepository savedJobRepository;
     @Mock private ResumeAnalyzer resumeAnalyzer;
     @Mock private PdfTextExtractor pdfTextExtractor;
@@ -74,7 +72,6 @@ class ProfileServiceTest {
                         .fieldOfStudy("CS").startYear(2015).endYear(2019).displayOrder(0).build()));
         when(languageRepository.findByUserIdOrderByDisplayOrderAsc(1L)).thenReturn(List.of(
                 UserLanguage.builder().userId(1L).language("Inglês").level("Avançado").displayOrder(0).build()));
-        when(applicationRepository.countByCandidateId(1L)).thenReturn(3L);
         when(savedJobRepository.countByUserId(1L)).thenReturn(2L);
 
         ProfileResponse response = profileService.getProfile(1L);
@@ -87,7 +84,6 @@ class ProfileServiceTest {
         assertThat(response.languages()).hasSize(1);
         assertThat(response.languages().get(0).name()).isEqualTo("Inglês");
         assertThat(response.languages().get(0).level()).isEqualTo("Avançado");
-        assertThat(response.applicationsCount()).isEqualTo(3L);
         assertThat(response.savedJobsCount()).isEqualTo(2L);
     }
 

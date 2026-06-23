@@ -35,9 +35,6 @@ class JobServiceOwnershipTest {
     private CompanyRepository companyRepository;
 
     @Mock
-    private com.perfectjob.repository.ApplicationRepository applicationRepository;
-
-    @Mock
     private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks

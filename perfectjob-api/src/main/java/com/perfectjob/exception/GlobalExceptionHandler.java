@@ -92,6 +92,18 @@ public class GlobalExceptionHandler {
                 ex.getMessage() != null ? ex.getMessage() : "Requisição inválida");
     }
 
+    @ExceptionHandler(LlmServiceUnavailableException.class)
+    public ResponseEntity<ErrorResponse> handleLlmUnavailable(LlmServiceUnavailableException ex) {
+        log.error("LLM service unavailable: {}", ex.getMessage(), ex);
+        return buildResponse(HttpStatus.BAD_GATEWAY, "Serviço de IA temporariamente indisponível");
+    }
+
+    @ExceptionHandler(ResumeGenerationException.class)
+    public ResponseEntity<ErrorResponse> handleResumeGeneration(ResumeGenerationException ex) {
+        log.error("Resume generation failed: {}", ex.getMessage(), ex);
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntime(RuntimeException ex) {
         log.error("Unexpected error: {}", ex.getMessage(), ex);

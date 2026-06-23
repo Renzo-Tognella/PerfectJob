@@ -87,8 +87,30 @@ else
     -e DB_URL=jdbc:postgresql://host.docker.internal:5432/perfectjob \
     -e DB_USER=perfectjob -e DB_PASSWORD=perfectjob \
     -e REDIS_HOST=host.docker.internal \
+    -e TECTONIC_PATH=/usr/local/bin/tectonic \
+    -e PERFECTJOB_RESUME_STORAGE_DIR=/app/data/resumes \
+    -e OPENROUTER_API_KEY="${OPENROUTER_API_KEY:-}" \
+    -e OPENROUTER_MODEL="${OPENROUTER_MODEL:-deepseek/deepseek-chat}" \
+    -e OPENROUTER_BASE_URL="${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}" \
     -v "$ROOT/perfectjob-api":/app -w /app -v perfectjob-m2:/root/.m2 \
-    maven:3.9-eclipse-temurin-21 mvn -q -Dmaven.test.skip=true spring-boot:run >/dev/null
+    -v "$ROOT/data/resumes":/app/data/resumes \
+    maven:3.9-eclipse-temurin-21 bash -c '
+      set -e
+      # Install tectonic (LaTeX engine) into the container
+      if ! command -v tectonic >/dev/null 2>&1; then
+        echo "Installing tectonic..."
+        curl -fsSL https://github.com/tectonic-typesetting/tectonic/releases/download/tectonic@0.15.0/tectonic-x86_64-unknown-linux-gnu.tar.gz | tar -xz -C /tmp
+        mv /tmp/tectonic-x86_64-unknown-linux-gnu/tectonic /usr/local/bin/tectonic
+        chmod +x /usr/local/bin/tectonic
+        # Warm font/asset cache by compiling a trivial doc
+        echo "Warming tectonic cache..."
+        mkdir -p /tmp/tectonic-warm && cd /tmp/tectonic-warm
+        printf "\\documentclass{article}\\begin{document}warm\\end{document}" > warm.tex
+        tectonic --keep-logs --outdir . warm.tex >/dev/null 2>&1 || true
+      fi
+      mkdir -p /app/data/resumes
+      mvn -q -Dmaven.test.skip=true spring-boot:run
+    ' >/dev/null
 fi
 
 echo -n "      aguardando a API responder (compila+migra; pode demorar)"

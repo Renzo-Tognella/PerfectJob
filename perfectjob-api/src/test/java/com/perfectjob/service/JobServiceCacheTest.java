@@ -62,9 +62,6 @@ class JobServiceCacheTest {
     @MockBean
     private com.perfectjob.repository.CompanyRepository companyRepository;
 
-    @MockBean
-    private com.perfectjob.repository.ApplicationRepository applicationRepository;
-
     private Job sampleJob;
     private Company sampleCompany;
 
@@ -134,8 +131,6 @@ class JobServiceCacheTest {
     @Test
     void getStats_isCached() {
         when(jobRepository.countByStatus(JobStatus.ACTIVE)).thenReturn(5L);
-        when(applicationRepository.count()).thenReturn(100L);
-        when(applicationRepository.countByCreatedAtAfter(any())).thenReturn(10L);
         when(companyRepository.count()).thenReturn(7L);
 
         var s1 = jobService.getStats();
@@ -143,6 +138,5 @@ class JobServiceCacheTest {
 
         assertThat(s1).isEqualTo(s2);
         verify(jobRepository, times(1)).countByStatus(JobStatus.ACTIVE);
-        verify(applicationRepository, times(1)).count();
     }
 }

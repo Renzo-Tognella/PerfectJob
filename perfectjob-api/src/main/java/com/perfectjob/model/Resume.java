@@ -11,40 +11,28 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "applications")
+@Table(name = "resumes")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Application {
+public class Resume {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+
     @Column(name = "job_id", nullable = false)
     private Long jobId;
 
-    @Column(name = "candidate_id", nullable = false)
-    private Long candidateId;
+    @Column(name = "pdf_storage_path", nullable = false, length = 1024)
+    private String pdfStoragePath;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "job_id", insertable = false, updatable = false)
-    private Job job;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "candidate_id", insertable = false, updatable = false)
-    private User candidate;
-
-    @Column(nullable = false)
-    @Builder.Default
-    private String status = "PENDING";
-
-    @Column(name = "cover_letter", columnDefinition = "TEXT")
-    private String coverLetter;
-
-    @Column(name = "resume_url")
-    private String resumeUrl;
+    @Column(name = "latex_source", columnDefinition = "TEXT")
+    private String latexSource;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

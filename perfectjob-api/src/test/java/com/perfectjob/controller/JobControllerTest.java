@@ -5,7 +5,6 @@ import com.perfectjob.controller.v1.JobController;
 import com.perfectjob.dto.response.JobResponse;
 import com.perfectjob.dto.response.JobStatsResponse;
 import com.perfectjob.model.enums.*;
-import com.perfectjob.repository.ApplicationRepository;
 import com.perfectjob.repository.JobRepository;
 import com.perfectjob.security.CurrentUserResolver;
 import com.perfectjob.security.JwtFilter;
@@ -45,9 +44,6 @@ class JobControllerTest {
 
     @MockBean
     private JobRepository jobRepository;
-
-    @MockBean
-    private ApplicationRepository applicationRepository;
 
     @MockBean
     private JwtFilter jwtFilter;
@@ -107,13 +103,12 @@ class JobControllerTest {
 
     @Test
     void stats_shouldReturnStats() throws Exception {
-        when(jobService.getStats()).thenReturn(new JobStatsResponse(0L, 42L, 0L, 0L));
+        when(jobService.getStats()).thenReturn(new JobStatsResponse(0L, 0L));
 
         mockMvc.perform(get("/v1/jobs/stats")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.activeJobs").value(0))
-                .andExpect(jsonPath("$.totalApplications").value(42))
-                .andExpect(jsonPath("$.applicationsToday").value(0));
+                .andExpect(jsonPath("$.totalCompanies").value(0));
     }
 }

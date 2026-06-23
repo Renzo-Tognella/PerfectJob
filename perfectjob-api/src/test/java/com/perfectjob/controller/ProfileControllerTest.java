@@ -64,7 +64,7 @@ class ProfileControllerTest {
                 List.of(new ExperienceDto("Dev", "Acme", "2020", null, "desc")),
                 List.of(new EducationDto("USP", "BSc", "CS", 2015, 2019)),
                 List.of(new LanguageDto("Inglês", "Avançado")),
-                4L, 2L);
+                2L);
     }
 
     @BeforeEach
@@ -83,7 +83,6 @@ class ProfileControllerTest {
                 .andExpect(jsonPath("$.experiences[0].company").value("Acme"))
                 .andExpect(jsonPath("$.languages[0].name").value("Inglês"))
                 .andExpect(jsonPath("$.languages[0].level").value("Avançado"))
-                .andExpect(jsonPath("$.applicationsCount").value(4))
                 .andExpect(jsonPath("$.savedJobsCount").value(2));
     }
 

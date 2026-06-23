@@ -11,7 +11,6 @@ import com.perfectjob.model.User;
 import com.perfectjob.model.UserEducation;
 import com.perfectjob.model.UserExperience;
 import com.perfectjob.model.UserLanguage;
-import com.perfectjob.repository.ApplicationRepository;
 import com.perfectjob.repository.SavedJobRepository;
 import com.perfectjob.repository.UserEducationRepository;
 import com.perfectjob.repository.UserExperienceRepository;
@@ -47,7 +46,6 @@ public class ProfileService {
     private final UserExperienceRepository experienceRepository;
     private final UserEducationRepository educationRepository;
     private final UserLanguageRepository languageRepository;
-    private final ApplicationRepository applicationRepository;
     private final SavedJobRepository savedJobRepository;
     private final ResumeAnalyzer resumeAnalyzer;
     private final PdfTextExtractor pdfTextExtractor;
@@ -248,7 +246,6 @@ public class ProfileService {
                 .map(l -> new LanguageDto(l.getLanguage(), l.getLevel()))
                 .toList();
 
-        long applicationsCount = applicationRepository.countByCandidateId(user.getId());
         long savedJobsCount = savedJobRepository.countByUserId(user.getId());
 
         return new ProfileResponse(
@@ -271,7 +268,6 @@ public class ProfileService {
                 experiences,
                 education,
                 languages,
-                applicationsCount,
                 savedJobsCount
         );
     }

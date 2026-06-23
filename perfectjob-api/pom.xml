@@ -27,6 +27,7 @@
         <springdoc.version>2.5.0</springdoc.version>
         <lombok.version>1.18.46</lombok.version>
         <bytebuddy.version>1.15.4</bytebuddy.version>
+        <langchain4j.version>1.0.1</langchain4j.version>
     </properties>
 
     <dependencies>
@@ -126,6 +127,18 @@
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <!-- LangChain4j core deps (NOT the Spring Boot starter, which requires SB 3.5+) -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j</artifactId>
+            <version>${langchain4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-open-ai</artifactId>
+            <version>${langchain4j.version}</version>
         </dependency>
     </dependencies>
 

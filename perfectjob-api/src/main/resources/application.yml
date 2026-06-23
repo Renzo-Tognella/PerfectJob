@@ -58,3 +58,12 @@ perfectjob:
         url: ${REMOTIVE_URL:https://remotive.com/api/remote-jobs}
       arbeitnow:
         url: ${ARBEITNOW_URL:https://www.arbeitnow.com/api/job-board-api}
+  resume:
+    storage-dir: ${PERFECTJOB_RESUME_STORAGE_DIR:data/resumes}
+    tectonic:
+      path: ${TECTONIC_PATH:/usr/local/bin/tectonic}
+      compile-timeout-seconds: 120
+    openrouter:
+      base-url: ${OPENROUTER_BASE_URL:https://openrouter.ai/api/v1}
+      model: ${OPENROUTER_MODEL:deepseek/deepseek-chat}
+      api-key: ${OPENROUTER_API_KEY:}

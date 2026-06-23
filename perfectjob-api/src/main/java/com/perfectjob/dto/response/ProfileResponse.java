@@ -26,7 +26,6 @@ public record ProfileResponse(
         List<ExperienceDto> experiences,
         List<EducationDto> education,
         List<LanguageDto> languages,
-        long applicationsCount,
         long savedJobsCount
 ) {
 }
