@@ -203,7 +203,7 @@
   - _Requirements: 10.5_
   - _Boundary: ResumeGenerationService, ResumeGenerationServiceTest_
 
-- [ ] 7.3 Add a prompt content test for R10.3 (≥3 tailoring rules in the prompt file)
+- [x] 7.3 Add a prompt content test for R10.3 (≥3 tailoring rules in the prompt file)
   - Create a new test class (e.g., `ResumeContentPromptTest` in `service/resume/generate/`) that loads the `prompts/resume-content-system-prompt.txt` resource as a `String` via `getClass().getResourceAsStream(...)`
   - Assert that the prompt content contains at least three distinct tailoring-related instructions (regex for keywords like "mencione", "adapte", "reformule", "referencie", OR a structural count of rule bullets in a designated "Regras" section)
   - The test passes via `./mvnw test -Dtest=ResumeContentPromptTest`
