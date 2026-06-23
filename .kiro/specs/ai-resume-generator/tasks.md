@@ -211,7 +211,7 @@
   - _Boundary: system prompt resource, ResumeContentPromptTest (new)_
   - _Depends: 6.1_
 
-- [ ] 7.4* Add a manual E2E test for R10.4 (two different jobs → different summaries)
+- [x] 7.4* Add a manual E2E test for R10.4 (two different jobs → different summaries)
   - Create a test gated by the `OPENROUTER_API_KEY` environment variable; skip cleanly via `Assumptions.assumeTrue(...)` when the key is missing
   - Use the real LLM (no mocks) to generate two resumes for the same candidate profile but two different jobs
   - Assert that the two generated `professionalSummary` texts differ in at least one of: wording, mentioned technologies, or mentioned achievements
