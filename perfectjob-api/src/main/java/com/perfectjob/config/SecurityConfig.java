@@ -14,6 +14,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -38,10 +39,20 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(AntPathRequestMatcher.antMatcher("/v1/auth/**")).permitAll()
-                .requestMatchers(AntPathRequestMatcher.antMatcher("/v1/companies/**")).permitAll()
+                .requestMatchers(AntPathRequestMatcher.antMatcher("/v1/auth/register")).permitAll()
+                .requestMatchers(AntPathRequestMatcher.antMatcher("/v1/auth/login")).permitAll()
+                .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.GET, "/v1/jobs")).permitAll()
+                .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.GET, "/v1/jobs/**")).permitAll()
+                .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.GET, "/v1/companies")).permitAll()
+                .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.GET, "/v1/companies/**")).permitAll()
                 .requestMatchers(AntPathRequestMatcher.antMatcher("/v1/search/**")).permitAll()
-                .requestMatchers(AntPathRequestMatcher.antMatcher("/v1/jobs/**")).permitAll()
+                .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/v1/jobs")).hasAnyRole("RECRUITER", "ADMIN")
+                .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/v1/jobs/**")).hasAnyRole("RECRUITER", "ADMIN")
+                .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.PATCH, "/v1/jobs/**")).hasAnyRole("RECRUITER", "ADMIN")
+                .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/v1/companies")).hasAnyRole("RECRUITER", "ADMIN")
+                .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/v1/companies/**")).hasAnyRole("RECRUITER", "ADMIN")
+                .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.PATCH, "/v1/companies/**")).hasAnyRole("RECRUITER", "ADMIN")
+                .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.DELETE, "/v1/companies/**")).hasRole("ADMIN")
                 .requestMatchers(AntPathRequestMatcher.antMatcher("/error")).permitAll()
                 .requestMatchers(AntPathRequestMatcher.antMatcher("/swagger-ui.html")).permitAll()
                 .requestMatchers(AntPathRequestMatcher.antMatcher("/swagger-ui/**")).permitAll()

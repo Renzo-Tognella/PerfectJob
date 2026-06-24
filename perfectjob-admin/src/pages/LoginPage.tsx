@@ -22,7 +22,17 @@ export function LoginPage() {
       setAuth(response.token, response.user)
       navigate('/')
     } catch (err) {
-      setError('Email ou senha inválidos')
+      const isNetworkError =
+        typeof err === 'object' &&
+        err !== null &&
+        'code' in err &&
+        (err as { code?: string }).code === 'ERR_NETWORK'
+      const message = isNetworkError
+        ? 'Sem conexão com o servidor. Verifique se a API está rodando (porta 8081).'
+        : err instanceof Error
+          ? err.message
+          : 'Email ou senha inválidos'
+      setError(message)
     } finally {
       setLoading(false)
     }

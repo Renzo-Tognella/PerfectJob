@@ -2,7 +2,7 @@ import axios, { AxiosError } from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
 const apiClient = axios.create({
-  baseURL: 'http://localhost:8080/api',
+  baseURL: process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8081/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

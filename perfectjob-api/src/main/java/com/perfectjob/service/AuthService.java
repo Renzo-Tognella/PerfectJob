@@ -3,7 +3,9 @@ package com.perfectjob.service;
 import com.perfectjob.dto.request.LoginRequest;
 import com.perfectjob.dto.request.RegisterRequest;
 import com.perfectjob.dto.response.AuthResponse;
+import com.perfectjob.dto.response.UserResponse;
 import com.perfectjob.exception.DuplicateResourceException;
+import com.perfectjob.exception.ResourceNotFoundException;
 import com.perfectjob.model.User;
 import com.perfectjob.repository.UserRepository;
 import com.perfectjob.security.JwtProvider;
@@ -11,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -60,6 +63,19 @@ public class AuthService {
         return new AuthResponse(
                 token,
                 "Bearer",
+                user.getEmail(),
+                user.getFullName(),
+                user.getRole().name()
+        );
+    }
+
+    public UserResponse getCurrentUser() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
+
+        return new UserResponse(
+                user.getId(),
                 user.getEmail(),
                 user.getFullName(),
                 user.getRole().name()
