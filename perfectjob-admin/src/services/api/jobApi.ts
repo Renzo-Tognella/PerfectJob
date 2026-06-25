@@ -51,8 +51,6 @@ export interface JobInput {
 
 export interface JobStats {
   activeJobs: number;
-  totalApplications: number;
-  applicationsToday: number;
   totalCompanies: number;
 }
 

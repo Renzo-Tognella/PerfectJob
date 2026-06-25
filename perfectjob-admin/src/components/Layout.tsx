@@ -14,7 +14,7 @@ const navItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/jobs', label: 'Vagas', icon: Briefcase },
   { path: '/companies', label: 'Empresas', icon: Building2 },
-  { path: '/applications', label: 'Candidaturas', icon: FileText },
+  { path: '/resumes', label: 'Currículos', icon: FileText },
   { path: '/settings', label: 'Configurações', icon: Settings },
 ]
 

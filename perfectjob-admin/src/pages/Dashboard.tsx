@@ -1,39 +1,29 @@
-import { Briefcase, Users, TrendingUp, Building2 } from 'lucide-react';
+import { Briefcase, Building2, FileText, TrendingUp } from 'lucide-react';
 import { useJobStats } from '@/hooks/useJobs';
-import { useRecentApplications } from '@/hooks/useApplications';
+import { useResumeStats, useResumes, useResumesByJob } from '@/hooks/useResumes';
+import { useAuthStore } from '@/store/useAuthStore';
 import { Spinner } from '@/components/ui/Spinner';
-import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
 import { useQueryClient } from '@tanstack/react-query';
-import type { ApplicationStatus } from '@/types/application';
-
-const statusVariant: Record<ApplicationStatus, 'warning' | 'info' | 'success' | 'error'> = {
-  PENDING: 'warning',
-  REVIEWING: 'info',
-  ACCEPTED: 'success',
-  REJECTED: 'error',
-  HIRED: 'success',
-};
-
-const statusLabels: Record<ApplicationStatus, string> = {
-  PENDING: 'Pendente',
-  REVIEWING: 'Em análise',
-  ACCEPTED: 'Aceita',
-  REJECTED: 'Recusada',
-  HIRED: 'Contratado',
-};
 
 export function Dashboard() {
   const queryClient = useQueryClient();
   const statsQuery = useJobStats();
-  const applicationsQuery = useRecentApplications();
+  const resumeStatsQuery = useResumeStats();
+  const recentResumesQuery = useResumes(0, 5);
+  const byJobQuery = useResumesByJob();
 
-  const isLoading = statsQuery.isLoading || applicationsQuery.isLoading;
-  const error = statsQuery.error || applicationsQuery.error;
+  const isAdmin = useAuthStore((s) => s.user?.role) === 'ADMIN';
+
+  const isLoading = statsQuery.isLoading || resumeStatsQuery.isLoading;
+  const error = statsQuery.error || resumeStatsQuery.error;
 
   const stats = statsQuery.data;
-  const applications = applicationsQuery.data ?? [];
+  const resumeStats = resumeStatsQuery.data;
+  const recentResumes = recentResumesQuery.data?.content ?? [];
+  const byJob = byJobQuery.data ?? [];
+  const maxResumeCount = Math.max(...byJob.map((d) => d.resumeCount), 1);
 
   const statCards = [
     {
@@ -49,14 +39,14 @@ export function Dashboard() {
       color: 'bg-purple-50 text-purple-600',
     },
     {
-      label: 'Total Candidaturas',
-      value: stats?.totalApplications ?? 0,
-      icon: Users,
+      label: 'Currículos Gerados',
+      value: resumeStats?.totalResumes ?? 0,
+      icon: FileText,
       color: 'bg-green-50 text-green-600',
     },
     {
-      label: 'Candidaturas Hoje',
-      value: stats?.applicationsToday ?? 0,
+      label: 'Currículos Hoje',
+      value: resumeStats?.resumesToday ?? 0,
       icon: TrendingUp,
       color: 'bg-orange-50 text-orange-600',
     },
@@ -64,7 +54,9 @@ export function Dashboard() {
 
   const handleRetry = () => {
     queryClient.invalidateQueries({ queryKey: ['job-stats'] });
-    queryClient.invalidateQueries({ queryKey: ['applications'] });
+    queryClient.invalidateQueries({ queryKey: ['resume-stats'] });
+    queryClient.invalidateQueries({ queryKey: ['resumes'] });
+    queryClient.invalidateQueries({ queryKey: ['resumes-by-job'] });
   };
 
   return (
@@ -101,37 +93,34 @@ export function Dashboard() {
 
       <div className="bg-white rounded-lg shadow-sm">
         <div className="px-6 py-4 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">Últimas Candidaturas</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Últimos Currículos</h2>
         </div>
         <div className="overflow-x-auto">
-          {isLoading ? (
+          {recentResumesQuery.isLoading ? (
             <div className="flex items-center justify-center py-12">
               <Spinner size="lg" />
             </div>
-          ) : applications.length === 0 ? (
-            <EmptyState title="Nenhuma candidatura encontrada" description="Quando candidatos se inscreverem em vagas, eles aparecerão aqui." />
+          ) : recentResumes.length === 0 ? (
+            <EmptyState
+              title="Nenhum currículo gerado"
+              description="Quando candidatos gerarem currículos para vagas, eles aparecerão aqui."
+            />
           ) : (
             <table className="w-full">
               <thead>
                 <tr className="border-b">
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Candidato</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Vaga</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Data</th>
                 </tr>
               </thead>
               <tbody>
-                {applications.slice(0, 5).map((app) => (
-                  <tr key={app.id} className="border-b last:border-0 hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{app.candidateName}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{app.jobTitle}</td>
-                    <td className="px-6 py-4">
-                      <Badge variant={statusVariant[app.status] || 'neutral'}>
-                        {statusLabels[app.status] || app.status}
-                      </Badge>
-                    </td>
+                {recentResumes.map((resume) => (
+                  <tr key={resume.id} className="border-b last:border-0 hover:bg-gray-50">
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{resume.candidateName}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{resume.jobTitle}</td>
                     <td className="px-6 py-4 text-sm text-gray-500">
-                      {new Date(app.createdAt).toLocaleDateString('pt-BR')}
+                      {new Date(resume.createdAt).toLocaleDateString('pt-BR')}
                     </td>
                   </tr>
                 ))}
@@ -140,6 +129,46 @@ export function Dashboard() {
           )}
         </div>
       </div>
+
+      {isAdmin && (
+        <div className="bg-white rounded-lg shadow-sm mt-8">
+          <div className="px-6 py-4 border-b">
+            <h2 className="text-lg font-semibold text-gray-900">Currículos por Vaga</h2>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Quantos currículos foram gerados para cada vaga — visível apenas para administradores
+            </p>
+          </div>
+          <div className="p-6">
+            {byJobQuery.isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Spinner size="lg" />
+              </div>
+            ) : byJob.length === 0 ? (
+              <EmptyState
+                title="Nenhum currículo gerado"
+                description="Quando candidatos gerarem currículos, a distribuição por vaga aparecerá aqui."
+              />
+            ) : (
+              <div className="space-y-3">
+                {byJob.slice(0, 10).map((row) => (
+                  <div key={row.jobId} className="flex items-center gap-3">
+                    <div className="w-1/3 truncate text-sm text-gray-700" title={row.jobTitle}>
+                      {row.jobTitle}
+                    </div>
+                    <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
+                      <div
+                        className="bg-[#2B5FC2] h-3 rounded-full"
+                        style={{ width: `${Math.round((row.resumeCount / maxResumeCount) * 100)}%` }}
+                      />
+                    </div>
+                    <div className="w-10 text-right text-sm font-semibold text-gray-900">{row.resumeCount}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

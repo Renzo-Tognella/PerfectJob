@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Pencil, X, Users } from 'lucide-react';
+import { Plus, Pencil, X } from 'lucide-react';
 import { useJobs, useCloseJob } from '@/hooks/useJobs';
 import type { Job } from '@/services/api/jobApi';
 import { JobFormModal } from './JobFormModal';
@@ -85,7 +85,6 @@ export function JobsPage() {
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Título</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Empresa</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Candidaturas</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Ações</th>
                 </tr>
               </thead>
@@ -99,7 +98,6 @@ export function JobsPage() {
                         {job.status === 'ACTIVE' ? 'Ativa' : job.status === 'CLOSED' ? 'Encerrada' : job.status}
                       </Badge>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{job.applicationsCount ?? 0}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <button
@@ -120,13 +118,6 @@ export function JobsPage() {
                             <X className="w-4 h-4" />
                           </button>
                         )}
-                        <button
-                          className="p-1.5 text-gray-500 hover:text-[#2B5FC2] hover:bg-blue-50 rounded transition-colors"
-                          title="Ver Candidatos"
-                          aria-label="Ver candidatos"
-                        >
-                          <Users className="w-4 h-4" />
-                        </button>
                       </div>
                     </td>
                   </tr>

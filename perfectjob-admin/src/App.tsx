@@ -9,6 +9,7 @@ import { LoginPage } from './pages/LoginPage';
 import { Dashboard } from './pages/Dashboard';
 import { JobsPage } from './pages/JobsPage';
 import { CompaniesPage } from './pages/CompaniesPage';
+import { ResumesPage } from './pages/ResumesPage';
 import { Toaster } from './components/ui/Toast';
 import './styles/design-system.css';
 
@@ -79,6 +80,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <CompaniesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/resumes"
+            element={
+              <ProtectedRoute>
+                <ResumesPage />
               </ProtectedRoute>
             }
           />
