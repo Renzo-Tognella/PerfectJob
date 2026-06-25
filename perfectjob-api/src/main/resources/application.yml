@@ -52,7 +52,7 @@ perfectjob:
   ingestion:
     enabled: ${INGESTION_ENABLED:false}
     limit-per-source: ${INGESTION_LIMIT:50}
-    cron: ${INGESTION_CRON:0 0 */6 * * *}
+    cron: ${INGESTION_CRON:0 0 9 * * *}
     sources:
       remotive:
         url: ${REMOTIVE_URL:https://remotive.com/api/remote-jobs}

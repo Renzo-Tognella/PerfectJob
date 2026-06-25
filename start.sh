@@ -128,6 +128,7 @@ else
     -e DB_URL -e DB_USER -e DB_PASSWORD -e REDIS_HOST \
     -e TECTONIC_PATH -e PERFECTJOB_RESUME_STORAGE_DIR \
     -e OPENROUTER_API_KEY -e OPENROUTER_MODEL -e OPENROUTER_BASE_URL \
+    -e INGESTION_ENABLED -e INGESTION_CRON -e INGESTION_LIMIT \
     -v "$ROOT/perfectjob-api":/app -w /app -v perfectjob-m2:/root/.m2 \
     -v "$ROOT/data/resumes":/app/data/resumes \
     maven:3.9-eclipse-temurin-21 bash /app/scripts/docker-api-entrypoint.sh
