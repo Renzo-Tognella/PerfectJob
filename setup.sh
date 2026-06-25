@@ -8,19 +8,19 @@ echo ""
 
 # Check if Docker is running
 if ! docker info > /dev/null 2>&1; then
-    echo "❌ Docker is not running. Please start Docker first."
+    echo "Docker is not running. Please start Docker first."
     exit 1
 fi
 
-echo "✅ Docker is running"
+echo " Docker is running"
 echo ""
 
 # Start docker compose
-echo "🚀 Starting PostgreSQL and Redis..."
+echo "Starting PostgreSQL and Redis..."
 docker compose up -d
 
 # Wait for PostgreSQL to be ready
-echo "⏳ Waiting for PostgreSQL to be ready..."
+echo "Waiting for PostgreSQL to be ready..."
 RETRIES=30
 until docker exec perfectjob-postgres pg_isready -U perfectjob -d perfectjob > /dev/null 2>&1 || [ $RETRIES -eq 0 ]; do
     sleep 1
@@ -29,18 +29,11 @@ until docker exec perfectjob-postgres pg_isready -U perfectjob -d perfectjob > /
 done
 
 if [ $RETRIES -eq 0 ]; then
-    echo "❌ PostgreSQL failed to start. Check logs with: docker compose logs postgres"
+    echo "PostgreSQL failed to start. Check logs with: docker compose logs postgres"
     exit 1
 fi
 
-echo "✅ PostgreSQL is ready"
-echo "✅ Redis is ready"
-echo ""
 
-# Print next steps
-echo "========================================"
-echo "  Infrastructure is up and running!"
-echo "========================================"
 echo ""
 echo "DICA: para subir TUDO de uma vez (API + mobile + admin), use:  ./start.sh"
 echo ""
