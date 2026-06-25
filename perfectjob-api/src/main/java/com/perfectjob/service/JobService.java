@@ -87,7 +87,10 @@ public class JobService {
         Page<Job> jobs;
 
         if (request.keyword().isPresent()) {
-            jobs = jobRepository.fullTextSearch(request.keyword().get(), pageable);
+            // searchFullText uses the indexed search_vector column and declares an explicit
+            // countQuery, so totalElements is correct. The legacy fullTextSearch has no countQuery,
+            // which made Spring derive a broken count (0) — the "0 vagas encontradas" bug.
+            jobs = jobRepository.searchFullText(request.keyword().get(), pageable);
         } else {
             Specification<Job> spec = Specification.<Job>where(null)
                     .and(JobSpecification.byWorkModel(request.workModel().orElse(null)))

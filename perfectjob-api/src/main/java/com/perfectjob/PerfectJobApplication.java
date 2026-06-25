@@ -12,7 +12,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableCaching
 @EnableAsync
 @EnableScheduling
-@EnableSpringDataWebSupport(pageSerializationMode = PageSerializationMode.VIA_DTO)
+// DIRECT (flat Page JSON: top-level totalElements/totalPages/number) is the contract the
+// mobile app and admin panel consume. VIA_DTO nests these under a "page" object and silently
+// breaks every paginated list in the clients (counts read 0, infinite scroll stalls).
+// Pinned by PageSerializationTest. See .kiro/steering if migrating clients to the nested format.
+@EnableSpringDataWebSupport(pageSerializationMode = PageSerializationMode.DIRECT)
 public class PerfectJobApplication {
 
     public static void main(String[] args) {

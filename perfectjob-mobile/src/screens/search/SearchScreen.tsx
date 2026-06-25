@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
-  FlatList, KeyboardAvoidingView, Platform, SafeAreaView,
+  ScrollView, KeyboardAvoidingView, Platform, SafeAreaView,
   ActivityIndicator,
 } from 'react-native'
 import { useNavigation, useRoute } from '@react-navigation/native'
@@ -155,16 +155,17 @@ const SearchScreen = () => {
         </TouchableOpacity>
       </View>
 
-      <FlatList
+      <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        data={FILTERS}
-        keyExtractor={(item) => item}
+        style={styles.chipScroll}
         contentContainerStyle={styles.chipList}
-        renderItem={({ item }) => {
+      >
+        {FILTERS.map((item) => {
           const isActive = activeFilter === item
           return (
             <TouchableOpacity
+              key={item}
               onPress={() => handleChipPress(item)}
               style={[styles.chip, isActive && styles.chipActive]}
             >
@@ -173,8 +174,8 @@ const SearchScreen = () => {
               </Text>
             </TouchableOpacity>
           )
-        }}
-      />
+        })}
+      </ScrollView>
 
       <Text style={styles.resultsText}>
         {isLoading ? 'Buscando...' : `${totalElements} vaga${totalElements !== 1 ? 's' : ''} encontrada${totalElements !== 1 ? 's' : ''}`}
@@ -235,6 +236,9 @@ const styles = StyleSheet.create({
     borderColor: colors.primary[500],
     backgroundColor: colors.primary[50],
   },
+  // flexGrow: 0 keeps the horizontal chip row at its content height so it can't
+  // expand or collapse inside the column (the empty-gap / counter-overlap bug).
+  chipScroll: { flexGrow: 0 },
   chipList: { paddingHorizontal: spacing[4], paddingVertical: spacing[2] },
   chip: {
     height: 36,
