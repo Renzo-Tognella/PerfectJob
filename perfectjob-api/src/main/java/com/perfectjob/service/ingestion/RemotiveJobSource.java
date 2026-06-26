@@ -11,10 +11,7 @@ import org.springframework.web.client.RestClient;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Imports remote jobs from the free Remotive API (no API key required).
- * Docs: https://remotive.com/api/remote-jobs
- */
+
 @Slf4j
 @Component
 public class RemotiveJobSource implements JobSource {
@@ -61,7 +58,7 @@ public class RemotiveJobSource implements JobSource {
                     j.companyName(),
                     j.description(),
                     j.location(),
-                    true, // Remotive only lists remote positions
+                    true,
                     j.jobType(),
                     j.tags(),
                     j.url()

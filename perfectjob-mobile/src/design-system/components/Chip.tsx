@@ -30,18 +30,7 @@ const SIZE_RECIPES: Record<ChipSize, { container: ViewStyle; text: TextStyle }> 
   },
 };
 
-/**
- * Pill-shaped chip for badges, tags, skill labels.
- *
- * Defaults match the dominant pattern in the codebase: caption font, medium
- * weight, primary[700] text on primary[50] background.
- *
- * @example
- *   <Chip size="sm" label="Remoto" />
- *
- * @example
- *   <Chip size="md" label="Senior" icon={<Icon name="star" size={14} />} />
- */
+
 export const Chip: React.FC<ChipProps> = ({
   size = 'md',
   label,

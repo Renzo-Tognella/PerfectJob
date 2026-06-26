@@ -5,8 +5,8 @@ const HEALTH_PROBE_TIMEOUT_MS = 5_000;
 const HEALTH_STALE_TIME_MS = 30_000;
 
 async function probeHealth(): Promise<boolean> {
-  // Use a known-public, lightweight endpoint. /v1/jobs returns a paginated
-  // job list; reachable without auth and confirms the API is up.
+
+
   const url = `${ENV.API_URL}/v1/jobs?page=0&size=1`;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), HEALTH_PROBE_TIMEOUT_MS);

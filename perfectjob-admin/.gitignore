@@ -7,10 +7,10 @@ dist-ssr
 .env.development
 .env.production
 .env.*.local
-# Manter:
-# .env.example
 
-# Editor
+
+
+
 .vscode/*
 !.vscode/extensions.json
 .idea

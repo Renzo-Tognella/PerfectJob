@@ -7,11 +7,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-/**
- * Periodically imports jobs from external sources. Disabled by default; enable
- * with {@code perfectjob.ingestion.enabled=true} (e.g. in production). Keeping it
- * off by default means tests and local runs never make network calls implicitly.
- */
+
 @Slf4j
 @Component
 @RequiredArgsConstructor

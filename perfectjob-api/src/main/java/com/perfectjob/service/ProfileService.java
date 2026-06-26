@@ -30,10 +30,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Manages the candidate profile: reading it (with activity counters), partial
- * updates and ingestion of CV-derived data produced by {@link ResumeAnalyzer}.
- */
+
 @Slf4j
 @Service
 @Transactional
@@ -107,11 +104,7 @@ public class ProfileService {
         return toResponse(findUser(userId));
     }
 
-    /**
-     * Extracts structured data from an uploaded resume, persists it into the
-     * profile (replacing experiences/education, merging skills, filling empty
-     * scalar fields) and returns the analysis for the client to review.
-     */
+    
     public ResumeAnalysisResponse analyzeResume(Long userId, byte[] content, String filename, String contentType) {
         if (content == null || content.length == 0) {
             throw new IllegalArgumentException("Arquivo de currículo vazio");
@@ -151,7 +144,7 @@ public class ProfileService {
         return analysis;
     }
 
-    // ------------------------------------------------------------------
+
 
     private String extractText(byte[] content, String filename, String contentType) {
         boolean isPdf = (contentType != null && contentType.toLowerCase().contains("pdf"))

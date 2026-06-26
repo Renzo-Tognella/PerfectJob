@@ -8,11 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
-/**
- * Converts the bytes of an uploaded PDF resume into plain text so the
- * {@link ResumeAnalyzer} can process it. Kept separate from the analyzer so the
- * (pure) parsing logic can be unit-tested without PDF fixtures.
- */
+
 @Slf4j
 @Component
 public class PdfTextExtractor {

@@ -2,10 +2,7 @@ package com.perfectjob.service.resume.generate;
 
 import java.util.List;
 
-/**
- * Structured content produced by the LLM for a tailored resume.
- * The LLM must NEVER produce LaTeX syntax — only these content fields.
- */
+
 public record TailoredResumeContent(
         String professionalSummary,
         List<CategorizedSkill> categorizedSkills,

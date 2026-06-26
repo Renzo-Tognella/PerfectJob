@@ -21,11 +21,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * Admin-only read views over all resumes (currículos) generated on the platform:
- * a paginated list (candidate + job + date) and aggregate counts for the dashboard.
- * Separate from {@link ResumeService}, which is strictly user-scoped.
- */
+
 @Service
 @RequiredArgsConstructor
 public class AdminResumeService {
@@ -41,7 +37,7 @@ public class AdminResumeService {
         List<Long> userIds = page.getContent().stream().map(Resume::getUserId).distinct().toList();
         List<Long> jobIds = page.getContent().stream().map(Resume::getJobId).distinct().toList();
 
-        // Batch-fetch candidates and jobs to avoid N+1 while keeping the admin list join simple.
+
         Map<Long, User> usersById = userRepository.findAllById(userIds).stream()
                 .collect(Collectors.toMap(User::getId, Function.identity()));
         Map<Long, Job> jobsById = jobRepository.findAllById(jobIds).stream()

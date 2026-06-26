@@ -46,8 +46,8 @@ server:
   servlet:
     context-path: /api
 
-# External job ingestion (webscraping via public APIs). Disabled by default;
-# enable in production with INGESTION_ENABLED=true.
+
+
 perfectjob:
   ingestion:
     enabled: ${INGESTION_ENABLED:false}

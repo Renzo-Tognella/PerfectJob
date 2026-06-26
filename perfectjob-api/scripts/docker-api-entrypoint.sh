@@ -1,11 +1,11 @@
-#!/bin/bash
-# Script de entrada para o container Docker que roda a API Spring Boot.
-# Chamado por start.sh quando nao ha Java 21+ ou tectonic no host.
-#
-# Instala tectonic estaticamente em /usr/local/bin/tectonic e roda mvn.
+
+
+
+
+
 set -e
 
-# Install tectonic (LaTeX engine) into the container
+
 if ! command -v tectonic >/dev/null 2>&1; then
   echo "Installing tectonic inside container..."
   ARCH=$(uname -m)

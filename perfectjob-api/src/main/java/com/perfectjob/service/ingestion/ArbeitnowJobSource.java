@@ -11,10 +11,7 @@ import org.springframework.web.client.RestClient;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Imports jobs from the free Arbeitnow job board API (no API key required).
- * Docs: https://www.arbeitnow.com/api/job-board-api
- */
+
 @Slf4j
 @Component
 public class ArbeitnowJobSource implements JobSource {

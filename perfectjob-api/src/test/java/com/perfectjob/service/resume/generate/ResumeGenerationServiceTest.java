@@ -46,8 +46,8 @@ class ResumeGenerationServiceTest {
     @BeforeEach
     void setUp() {
         objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
-        // jobContextMapper mock returns null by default; toJson(null) returns "null"
-        // which the LLM mock receives as anyString().
+
+
         service = new ResumeGenerationService(
                 aiService, latexBuilder, tectonicCompiler, profileService, objectMapper, jobContextMapper);
     }

@@ -16,62 +16,51 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Deterministic resume (curriculo) analyzer. Extracts structured information —
- * skills, professional experience, education and contact details — from the raw
- * text of a CV. It is intentionally dependency-free and operates on a plain
- * {@link String} so it can be unit-tested in isolation; PDF-to-text conversion
- * lives in {@link PdfTextExtractor}.
- *
- * <p>The parser supports Portuguese and English resumes and degrades gracefully:
- * whatever it cannot confidently parse is simply omitted rather than guessed.
- */
+
 @Component
 public class ResumeAnalyzer {
 
     private static final int MAX_SKILLS = 40;
 
-    /** Canonical skill catalogue. Matching is case-insensitive; the canonical
-     *  spelling here is what gets returned. */
+    
     private static final List<String> SKILL_DICTIONARY = List.of(
-            // Languages
+
             "Java", "Kotlin", "Scala", "Groovy", "Python", "JavaScript", "TypeScript",
             "C++", "C#", "C", "Go", "Rust", "Ruby", "PHP", "Swift", "Objective-C",
             "Dart", "R", "MATLAB", "Perl", "Elixir",
-            // JVM / backend frameworks
+
             "Spring Boot", "Spring", "Hibernate", "JPA", "Maven", "Gradle", "Quarkus",
-            // JS / frontend
+
             "Node.js", "Express", "NestJS", "React Native", "React", "Next.js",
             "Angular", "Vue.js", "Vue", "Redux", "jQuery", "Svelte",
             "HTML", "CSS", "Sass", "Tailwind CSS", "Tailwind", "Bootstrap",
-            // Other ecosystems
+
             ".NET", "ASP.NET", "Django", "Flask", "FastAPI", "Laravel",
             "Ruby on Rails", "Rails", "Flutter", "Spring Cloud",
-            // Data
+
             "Pandas", "NumPy", "scikit-learn", "TensorFlow", "PyTorch", "Spark", "Hadoop",
             "SQL", "PostgreSQL", "MySQL", "MariaDB", "Oracle", "SQL Server", "SQLite",
             "MongoDB", "Redis", "Cassandra", "Elasticsearch", "DynamoDB", "Firebase",
             "Kafka", "RabbitMQ", "GraphQL", "gRPC", "REST", "Microservices",
-            // Cloud / DevOps
+
             "AWS", "Azure", "GCP", "Google Cloud", "Docker", "Kubernetes", "Terraform",
             "Ansible", "Jenkins", "CI/CD", "GitHub Actions", "GitLab CI",
             "Git", "GitHub", "GitLab", "Bitbucket", "Linux", "Unix", "Bash", "Shell",
-            // Practices / tools
+
             "Scrum", "Agile", "Kanban", "Jira", "Confluence", "TDD",
-            // Design
+
             "Figma", "Sketch", "Adobe XD", "Photoshop", "Illustrator", "UX/UI", "UX", "UI",
-            // Analytics
+
             "Excel", "Power BI", "Tableau", "Looker",
-            // AI / ML
+
             "Machine Learning", "Deep Learning", "Data Science", "NLP", "Computer Vision"
-            // NOTE: spoken languages are handled separately (see LANGUAGE_ALIASES)
+
     );
 
-    /** Pre-compiled patterns keyed by canonical skill, longest first so that
-     *  compound skills (e.g. "React Native") are matched before their parts. */
+    
     private static final Map<String, Pattern> SKILL_PATTERNS = buildSkillPatterns();
 
-    /** Spoken languages: canonical name -> recognized aliases (lowercase). */
+    
     private static final Map<String, List<String>> LANGUAGE_ALIASES = Map.ofEntries(
             Map.entry("Inglês", List.of("inglês", "ingles", "english")),
             Map.entry("Espanhol", List.of("espanhol", "spanish", "español", "espanol")),
@@ -83,7 +72,7 @@ public class ResumeAnalyzer {
             Map.entry("Japonês", List.of("japonês", "japones", "japanese"))
     );
 
-    /** Proficiency keyword (lowercase) -> canonical level, checked most-specific first. */
+    
     private static final List<Map.Entry<String, String>> LEVEL_KEYWORDS = List.of(
             Map.entry("nativo", "Nativo"), Map.entry("native", "Nativo"), Map.entry("materna", "Nativo"),
             Map.entry("fluente", "Fluente"), Map.entry("fluent", "Fluente"), Map.entry("fluência", "Fluente"),
@@ -106,7 +95,7 @@ public class ResumeAnalyzer {
             Pattern.compile("(?:https?://)?(?:www\\.)?github\\.com/[A-Za-z0-9_-]+/?", Pattern.CASE_INSENSITIVE);
     private static final Pattern YEAR = Pattern.compile("(19|20)\\d{2}");
 
-    /** A date range such as "2020 - 2022", "Jan 2020 – Atual", "03/2019 a 12/2021". */
+    
     private static final String TOKEN =
             "(?:[A-Za-zçÇãÃéÉêÊáÁóÓ.]+\\.?\\s*)?(?:\\d{1,2}/)?(?:19|20)\\d{2}";
     private static final String END_TOKEN =
@@ -128,7 +117,7 @@ public class ResumeAnalyzer {
         List<String> skills = extractSkills(text, sections.getOrDefault(Section.SKILLS, List.of()));
         List<LanguageDto> languages = extractLanguages(text);
 
-        // Languages must not also show up as skills.
+
         if (!languages.isEmpty()) {
             Set<String> langNames = new java.util.HashSet<>();
             for (LanguageDto l : languages) {
@@ -151,23 +140,23 @@ public class ResumeAnalyzer {
         );
     }
 
-    // ---------------------------------------------------------------------
-    // Skills
-    // ---------------------------------------------------------------------
+
+
+
 
     public List<String> extractSkills(String fullText, List<String> skillSectionLines) {
         Set<String> found = new LinkedHashSet<>();
         String haystack = fullText == null ? "" : fullText;
 
-        // 1) Dictionary scan over the whole document.
+
         for (Map.Entry<String, Pattern> entry : SKILL_PATTERNS.entrySet()) {
             if (entry.getValue().matcher(haystack).find()) {
                 found.add(entry.getKey());
             }
         }
 
-        // 2) Free tokens listed explicitly in the "Skills" section that the
-        //    dictionary may not know about.
+
+
         for (String line : skillSectionLines) {
             for (String token : line.split("[,;•·|\\u2022\\t]| - |\\u2013")) {
                 String candidate = cleanSkillToken(token);
@@ -206,7 +195,7 @@ public class ResumeAnalyzer {
         if (!candidate.matches("[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9 .+#/-]*")) {
             return false;
         }
-        // at most three words
+
         return candidate.split("\\s+").length <= 3;
     }
 
@@ -215,18 +204,18 @@ public class ResumeAnalyzer {
     }
 
     private static Map<String, Pattern> buildSkillPatterns() {
-        // Longest skill names first to avoid a sub-skill shadowing a compound one.
+
         List<String> ordered = new ArrayList<>(SKILL_DICTIONARY);
         ordered.sort((a, b) -> Integer.compare(b.length(), a.length()));
         Map<String, Pattern> map = new LinkedHashMap<>();
         for (String skill : ordered) {
             String quoted = Pattern.quote(skill.toLowerCase());
-            // Boundaries treat letters, digits and the symbols "+"/"#" as part of a
-            // token, so "Java" is not found inside "JavaScript" and a bare "C" is not
-            // found inside "C++"/"C#". "." and "/" are intentionally NOT boundary
-            // characters (they are common trailing punctuation), yet skills that
-            // contain them ("Node.js", "CI/CD") still match because those characters
-            // are part of the quoted literal itself.
+
+
+
+
+
+
             Pattern p = Pattern.compile(
                     "(?<![\\p{L}\\p{N}+#])" + quoted + "(?![\\p{L}\\p{N}+#])",
                     Pattern.CASE_INSENSITIVE);
@@ -235,9 +224,9 @@ public class ResumeAnalyzer {
         return map;
     }
 
-    // ---------------------------------------------------------------------
-    // Languages (idiomas)
-    // ---------------------------------------------------------------------
+
+
+
 
     public List<LanguageDto> extractLanguages(String rawText) {
         List<LanguageDto> result = new ArrayList<>();
@@ -293,9 +282,9 @@ public class ResumeAnalyzer {
         return map;
     }
 
-    // ---------------------------------------------------------------------
-    // Contacts
-    // ---------------------------------------------------------------------
+
+
+
 
     public String extractPhone(String text) {
         if (text == null) {
@@ -328,9 +317,9 @@ public class ResumeAnalyzer {
         return m.find() ? m.group() : null;
     }
 
-    // ---------------------------------------------------------------------
-    // Sections
-    // ---------------------------------------------------------------------
+
+
+
 
     private Map<Section, List<String>> splitIntoSections(List<String> lines) {
         Map<Section, List<String>> result = new LinkedHashMap<>();
@@ -347,7 +336,7 @@ public class ResumeAnalyzer {
             if (!line.isBlank()) {
                 result.get(current).add(line);
             } else {
-                // preserve blank as separator inside experience/education blocks
+
                 result.get(current).add("");
             }
         }
@@ -392,9 +381,9 @@ public class ResumeAnalyzer {
         return false;
     }
 
-    // ---------------------------------------------------------------------
-    // Experience
-    // ---------------------------------------------------------------------
+
+
+
 
     public List<ExperienceDto> parseExperiences(List<String> lines) {
         List<ExperienceDto> result = new ArrayList<>();
@@ -410,7 +399,7 @@ public class ResumeAnalyzer {
             boolean hasDate = dateMatcher.find();
 
             if (hasDate) {
-                // Starting a new entry: flush the previous one.
+
                 if (title != null) {
                     result.add(buildExperience(title, company, startDate, endDate, description));
                     description = new ArrayList<>();
@@ -424,7 +413,7 @@ public class ResumeAnalyzer {
                 title = roleCompany[0];
                 company = roleCompany[1];
                 if (title == null || title.isBlank()) {
-                    // title may be on the previous non-date line already captured as description
+
                     if (!description.isEmpty()) {
                         String[] rc = splitRoleCompany(description.remove(description.size() - 1));
                         title = rc[0];
@@ -434,11 +423,11 @@ public class ResumeAnalyzer {
                     }
                 }
             } else if (line.isBlank()) {
-                // blank line ends the current description block but keeps entry open
+
                 continue;
             } else {
                 if (title == null) {
-                    // header line that precedes the date line
+
                     String[] rc = splitRoleCompany(line);
                     title = rc[0];
                     company = rc[1];
@@ -484,7 +473,7 @@ public class ResumeAnalyzer {
         String lower = end.toLowerCase();
         if (lower.startsWith("atual") || lower.startsWith("present") || lower.startsWith("current")
                 || lower.startsWith("hoje") || lower.contains("momento")) {
-            return null; // ongoing
+            return null;
         }
         return end;
     }
@@ -512,9 +501,9 @@ public class ResumeAnalyzer {
         return m.find() ? Integer.parseInt(m.group()) : null;
     }
 
-    // ---------------------------------------------------------------------
-    // Education
-    // ---------------------------------------------------------------------
+
+
+
 
     public List<EducationDto> parseEducation(List<String> lines) {
         List<EducationDto> result = new ArrayList<>();
@@ -532,7 +521,7 @@ public class ResumeAnalyzer {
     }
 
     private EducationDto parseEducationLine(String line) {
-        // years
+
         List<Integer> years = new ArrayList<>();
         Matcher ym = YEAR.matcher(line);
         while (ym.find()) {
@@ -541,12 +530,12 @@ public class ResumeAnalyzer {
         Integer startYear = years.isEmpty() ? null : years.get(0);
         Integer endYear = years.size() >= 2 ? years.get(1) : null;
         if (years.size() == 1) {
-            // single year is usually the conclusion year
+
             startYear = null;
             endYear = years.get(0);
         }
 
-        // strip the date portion (everything from the first 4-digit year)
+
         String body = line.replaceAll("\\(?(19|20)\\d{2}.*$", "").strip();
         body = body.replaceAll("[|–—,\\-]+$", "").strip();
 
@@ -568,7 +557,7 @@ public class ResumeAnalyzer {
                 degree = degreeField;
             }
         } else if (!body.isBlank()) {
-            // single chunk: treat as institution
+
             institution = body;
         }
 
@@ -585,14 +574,14 @@ public class ResumeAnalyzer {
         return haystack.toLowerCase().indexOf(needle.toLowerCase());
     }
 
-    // ---------------------------------------------------------------------
-    // Headline
-    // ---------------------------------------------------------------------
+
+
+
 
     private String detectHeadline(List<String> lines, Map<Section, List<String>> sections) {
         List<String> summary = sections.getOrDefault(Section.SUMMARY, List.of());
-        // The first line is usually the candidate name; the headline is the next
-        // line that looks like a role.
+
+
         for (String line : summary) {
             if (line.isBlank()) {
                 continue;

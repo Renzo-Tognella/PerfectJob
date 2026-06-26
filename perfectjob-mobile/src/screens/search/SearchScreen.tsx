@@ -40,7 +40,6 @@ const SearchScreen = () => {
   const [query, setQuery] = useState(initialQuery)
   const [activeFilter, setActiveFilter] = useState('Todas as vagas')
 
-  // Pre-fill / update the search when navigated with a query (e.g. from Home).
   useEffect(() => {
     const incoming = route.params?.query ?? route.params?.category
     if (incoming) {
@@ -236,8 +235,8 @@ const styles = StyleSheet.create({
     borderColor: colors.primary[500],
     backgroundColor: colors.primary[50],
   },
-  // flexGrow: 0 keeps the horizontal chip row at its content height so it can't
-  // expand or collapse inside the column (the empty-gap / counter-overlap bug).
+
+
   chipScroll: { flexGrow: 0 },
   chipList: { paddingHorizontal: spacing[4], paddingVertical: spacing[2] },
   chip: {

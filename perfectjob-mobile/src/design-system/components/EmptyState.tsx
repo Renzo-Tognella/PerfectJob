@@ -12,16 +12,7 @@ export interface EmptyStateProps {
   action?: { label: string; onPress: () => void };
 }
 
-/**
- * Shared empty state for lists and detail screens.
- *
- * @example
- *   <EmptyState
- *     icon={<Icon name="document-text-outline" size={48} color={colors.neutral[400]} />}
- *     title="Nenhum currículo gerado"
- *     description="Explore vagas e gere seu primeiro currículo."
- *   />
- */
+
 export const EmptyState: React.FC<EmptyStateProps> = ({
   icon,
   title,

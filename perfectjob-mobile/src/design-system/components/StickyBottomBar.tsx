@@ -9,17 +9,7 @@ export interface StickyBottomBarProps {
   style?: StyleProp<ViewStyle>;
 }
 
-/**
- * Bottom-anchored action bar with safe-area-aware padding. Used for primary
- * CTAs that must remain reachable while the user scrolls (e.g. "Gerar Currículo").
- *
- * @example
- *   <StickyBottomBar>
- *     <TouchableOpacity style={styles.cta} onPress={handleGenerate}>
- *       <Text style={styles.ctaText}>Gerar Currículo</Text>
- *     </TouchableOpacity>
- *   </StickyBottomBar>
- */
+
 export const StickyBottomBar: React.FC<StickyBottomBarProps> = ({ children, style }) => {
   const insets = useSafeAreaInsets();
   return (

@@ -38,7 +38,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister }) => {
     try {
       await login({ email: data.email.trim(), password: data.password });
     } catch {
-      // Error is handled in useAuth
+
     }
   };
 
@@ -52,13 +52,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister }) => {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Logo */}
+          {}
           <View style={styles.logoContainer}>
             <Text style={styles.logo}>PerfectJob</Text>
             <Text style={styles.subtitle}>Bem-vindo de volta</Text>
           </View>
 
-          {/* Form */}
+          {}
           <View style={styles.form}>
             <FormField
               control={control}
@@ -97,12 +97,12 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister }) => {
               </TouchableOpacity>
             </View>
 
-            {/* Forgot Password */}
+            {}
             <TouchableOpacity style={styles.forgotContainer}>
               <Text style={styles.forgotText}>Esqueceu a senha?</Text>
             </TouchableOpacity>
 
-            {/* Error Message */}
+            {}
             {error ? (
               <View style={styles.errorContainer}>
                 <Icon family="MaterialIcons" name="error-outline" size={16} color={colors.error.DEFAULT} />
@@ -110,7 +110,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister }) => {
               </View>
             ) : null}
 
-            {/* Login Button */}
+            {}
             <TouchableOpacity
               activeOpacity={0.8}
               style={[styles.button, (!isValid || isLoading) && styles.buttonDisabled]}
@@ -124,7 +124,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigateToRegister }) => {
               )}
             </TouchableOpacity>
 
-            {/* Register Link */}
+            {}
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() =>

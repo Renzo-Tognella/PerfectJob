@@ -1,17 +1,17 @@
-#!/bin/bash
-# =============================================================================
-# PerfectJob - Sobe TUDO localmente com um comando:
-#   - PostgreSQL + Redis (Docker Compose)
-#   - API Spring Boot (Java do host se houver; senao via Docker, sem precisar de JDK)
-#   - App mobile (Expo/Metro em modo --offline)
-#   - Painel Admin (Vite)
-#
-# Detecta automaticamente o IP da sua rede (LAN) e configura o app mobile para
-# apontar para ele, para que funcione em um celular fisico via Expo Go.
-#
-# Uso:  ./start.sh        (sobe tudo em background)
-#       ./stop.sh         (para tudo)
-# =============================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 cd "$ROOT"
@@ -21,19 +21,19 @@ METRO_PORT=8081
 ADMIN_PORT=5173
 API_CONTAINER=perfectjob-api
 
-# ---------------------------------------------------------------------------
-# Carrega .env (OPENROUTER_API_KEY, DB_*, etc.) se existir.
-# ---------------------------------------------------------------------------
+
+
+
 if [ -f "${ROOT}/.env" ]; then
   set -a
-  # shellcheck disable=SC1091
+
   source "${ROOT}/.env"
   set +a
 fi
 
-# ---------------------------------------------------------------------------
-# Detecta o IP da LAN (para o celular alcancar a API/Metro)
-# ---------------------------------------------------------------------------
+
+
+
 detect_lan_ip() {
   local ip=""
   if command -v ipconfig >/dev/null 2>&1; then                  # macOS
@@ -55,18 +55,18 @@ echo "  IP da LAN detectado: ${LAN_IP}"
 echo "  API_URL do mobile:   ${API_URL}"
 echo ""
 
-# ---------------------------------------------------------------------------
-# 0. Docker precisa estar rodando (Postgres + Redis vivem no Docker mesmo
-#    quando a API roda no host).
-# ---------------------------------------------------------------------------
+
+
+
+
 if ! docker info >/dev/null 2>&1; then
   echo "ERRO: Docker nao esta rodando. Abra o Docker Desktop e tente de novo."
   exit 1
 fi
 
-# ---------------------------------------------------------------------------
-# 1. Infra: PostgreSQL + Redis
-# ---------------------------------------------------------------------------
+
+
+
 echo "[1/5] PostgreSQL + Redis..."
 docker compose up -d postgres redis >/dev/null
 echo -n "      aguardando o Postgres ficar pronto"
@@ -76,13 +76,13 @@ for _ in $(seq 1 30); do
 done
 echo " OK"
 
-# ---------------------------------------------------------------------------
-# 2. API (Spring Boot) - Java do host se houver Java 21+ E tectonic local,
-#    senao via Docker (que baixa tectonic estaticamente).
-# ---------------------------------------------------------------------------
+
+
+
+
 echo "[2/5] API (Spring Boot)..."
 
-# Auto-instala tectonic local se ainda nao existir (uma vez so).
+
 if [ ! -x "${HOME}/.local/bin/tectonic" ]; then
   bash "${ROOT}/scripts/install-tectonic.sh" || true
 fi
@@ -96,11 +96,11 @@ fi
 TECTONIC_OK=0
 [ -x "${HOME}/.local/bin/tectonic" ] && TECTONIC_OK=1
 
-# Quando rodamos a API no host, o DB esta em localhost (nao em Docker).
-# Quando rodamos em Docker, o DB esta em host.docker.internal.
+
+
 export DB_URL="${DB_URL:-jdbc:postgresql://localhost:5432/perfectjob}"
 export DB_USER="${DB_USER:-perfectjob}"
-# O container postgres define POSTGRES_PASSWORD=perfectjob.
+
 export DB_PASSWORD="${DB_PASSWORD:-perfectjob}"
 export REDIS_HOST="${REDIS_HOST:-localhost}"
 export PERFECTJOB_RESUME_STORAGE_DIR="${ROOT}/data/resumes"
@@ -109,7 +109,7 @@ if [ "$JAVA_OK" = "1" ] && [ "$TECTONIC_OK" = "1" ]; then
   echo "      usando Java do host ($(java -version 2>&1 | head -1)) + tectonic local"
   export PATH="${HOME}/.local/bin:$PATH"
   export TECTONIC_PATH="${HOME}/.local/bin/tectonic"
-  # Mata qualquer API antiga nessa porta
+
   old_pids=$(lsof -ti:${API_PORT} 2>/dev/null || true)
   [ -n "$old_pids" ] && kill -9 $old_pids 2>/dev/null || true
   ( cd perfectjob-api && nohup ./mvnw -q -Dmaven.test.skip=true spring-boot:run \
@@ -141,33 +141,33 @@ for _ in $(seq 1 120); do
 done
 echo " OK"
 
-# ---------------------------------------------------------------------------
-# 3. Dependencias Node (instala se faltar)
-# ---------------------------------------------------------------------------
+
+
+
 echo "[3/5] Dependencias do mobile/admin..."
 [ -d perfectjob-mobile/node_modules ] || ( cd perfectjob-mobile && npm install --silent )
 [ -d perfectjob-admin/node_modules ]  || ( cd perfectjob-admin  && npm install --silent )
 echo "      OK"
 
-# ---------------------------------------------------------------------------
-# 4. Mobile (Expo/Metro). Escreve o .env com o IP da LAN e sobe em --offline
-#    (--offline evita o erro 500 de modo nao-interativo/tunnel do Expo).
-# ---------------------------------------------------------------------------
+
+
+
+
 echo "[4/5] Mobile (Expo)..."
 cat > perfectjob-mobile/.env <<EOF
 API_URL=${API_URL}
 APP_VARIANT=development
 EOF
-# Mata qualquer Metro antigo nessa porta
+
 old_pids=$(lsof -ti:${METRO_PORT} 2>/dev/null || true)
 [ -n "$old_pids" ] && kill -9 $old_pids 2>/dev/null || true
 ( cd perfectjob-mobile && PATH="${HOME}/.local/bin:$PATH" nohup npx expo start --offline --port ${METRO_PORT} \
     > /tmp/perfectjob-mobile.log 2>&1 & )
 echo "      Metro (offline) na porta ${METRO_PORT}"
 
-# ---------------------------------------------------------------------------
-# 5. Admin (Vite)
-# ---------------------------------------------------------------------------
+
+
+
 echo "[5/5] Admin (Vite)..."
 old_pids=$(lsof -ti:${ADMIN_PORT} 2>/dev/null || true)
 [ -n "$old_pids" ] && kill -9 $old_pids 2>/dev/null || true

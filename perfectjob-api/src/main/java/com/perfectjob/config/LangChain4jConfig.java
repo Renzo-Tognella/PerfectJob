@@ -9,15 +9,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.time.Duration;
 
-/**
- * Manual bean wiring for LangChain4j OpenAI-compatible chat model + AiServices proxy.
- * We use core deps (NOT the Spring Boot starter) because the starter requires
- * Spring Boot 3.5+ and this project is on 3.3.5.
- *
- * <p>Default base URL is OpenRouter (https://openrouter.ai/api/v1) which exposes
- * an OpenAI-compatible API. The model name defaults to DeepSeek and is overridable
- * via environment variables.
- */
+
 @Configuration
 public class LangChain4jConfig {
 

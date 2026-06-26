@@ -10,10 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * Admin-only manual trigger for the external job ingestion pipeline. Useful for
- * seeding the catalogue on demand without waiting for the schedule.
- */
+
 @RestController
 @RequestMapping("/v1/admin/ingestion")
 @RequiredArgsConstructor

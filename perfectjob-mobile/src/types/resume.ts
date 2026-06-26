@@ -1,9 +1,4 @@
-/**
- * Resume types — mirror the Java records from `ai-resume-generator`:
- *   GenerateResumeRequest(Long jobId)
- *   ResumeResponse(Long id, Long jobId, String jobTitle, String pdfStoragePath, LocalDateTime, LocalDateTime)
- *   ResumeDetailResponse(..., String jobDescription, String latexSource, ...)
- */
+
 
 export interface GenerateResumeRequest {
   jobId: number;

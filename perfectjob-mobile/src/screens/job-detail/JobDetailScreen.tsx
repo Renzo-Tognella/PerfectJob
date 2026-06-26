@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
   },
   saveBtn: {
-    width: 40, height: 40, borderRadius: 20, // half of width — perfect 40×40 circle
+    width: 40, height: 40, borderRadius: 20,
     backgroundColor: colors.neutral[100],
     alignItems: 'center', justifyContent: 'center',
   },

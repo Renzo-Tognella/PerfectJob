@@ -13,23 +13,7 @@ export interface CardProps {
   style?: StyleProp<ViewStyle>;
 }
 
-/**
- * Shared surface for card-like containers across the mobile app.
- *
- * Variants:
- *  - `elevated` (default): white bg, xl radius, card shadow
- *  - `outlined`: white bg, xl radius, 1px neutral[200] border, no shadow
- *  - `outlined-elevated`: white bg, xl radius, 1px neutral[100] border, card shadow (hybrid)
- *  - `flat`: neutral[50] bg, xl radius, no shadow
- *
- * All variants apply padding[5] by default. Override via `style={{ padding: spacing[N] }}`.
- *
- * @example
- *   <Card>...</Card>
- *
- * @example
- *   <Card variant="outlined-elevated" style={{ marginBottom: spacing[3] }}>...</Card>
- */
+
 export const Card: React.FC<CardProps> = ({
   variant = 'elevated',
   children,

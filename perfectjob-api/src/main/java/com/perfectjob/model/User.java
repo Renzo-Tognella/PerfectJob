@@ -53,7 +53,7 @@ public class User {
     @Column(name = "github_url")
     private String githubUrl;
 
-    // ---- Candidate profile (populated manually or via CV analysis) ----
+
 
     private String headline;
 

@@ -9,11 +9,7 @@ import jakarta.validation.constraints.Size;
 
 import java.util.List;
 
-/**
- * Partial update of a candidate profile. All fields are optional; a {@code null}
- * value leaves the corresponding field unchanged. Lists, when provided (non-null),
- * fully replace the existing collection.
- */
+
 public record UpdateProfileRequest(
         @Size(max = 255) String fullName,
         @Size(max = 255) String headline,

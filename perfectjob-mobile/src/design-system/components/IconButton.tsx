@@ -17,16 +17,7 @@ export interface IconButtonProps {
 
 const ICON_COLOR = colors.neutral[800];
 
-/**
- * 40x40 circular icon button used in screen headers and toolbars.
- *
- * @example
- *   <IconButton
- *     icon={{ family: 'MaterialIcons', name: 'arrow-back', size: 22 }}
- *     onPress={() => navigation.goBack()}
- *     accessibilityLabel="Voltar"
- *   />
- */
+
 export const IconButton: React.FC<IconButtonProps> = ({
   icon,
   onPress,

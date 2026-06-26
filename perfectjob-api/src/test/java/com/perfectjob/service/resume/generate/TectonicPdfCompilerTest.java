@@ -32,16 +32,16 @@ class TectonicPdfCompilerTest {
     void compile_propagatesIOExceptionAsPdfCompilationException() {
         TectonicPdfCompiler compiler = new TectonicPdfCompiler("/dev/null", 5);
 
-        // /dev/null is a valid file but cannot be executed; on most systems the process
-        // will fail with an IOException when starting. We expect either IOException-wrapped
-        // (TectonicNotFoundException) or a non-zero exit (PdfCompilationException).
+
+
+
         assertThatThrownBy(() -> compiler.compile("\\documentclass{article}\\begin{document}hi\\end{document}"))
                 .isInstanceOfAny(TectonicNotFoundException.class, PdfCompilationException.class);
     }
 
     @Test
     void timeout_killsProcessAndThrowsPdfCompilationException() {
-        // Use /bin/sleep as a stand-in for a never-returning binary
+
         TectonicPdfCompiler compiler = new TectonicPdfCompiler("/bin/sleep", 1);
 
         long start = System.currentTimeMillis();
@@ -49,7 +49,7 @@ class TectonicPdfCompilerTest {
                 .isInstanceOf(PdfCompilationException.class);
         long elapsed = System.currentTimeMillis() - start;
 
-        // Should have been killed within ~3s (timeout + cleanup overhead)
+
         assertThat(elapsed).isLessThan(10_000L);
     }
 }

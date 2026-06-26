@@ -100,7 +100,6 @@ const JobCard: React.FC<JobCardProps> = ({
     );
   }
 
-  // Legacy layout
   return (
     <Card variant="outlined-elevated" style={styles.cardOuter}>
       <TouchableOpacity

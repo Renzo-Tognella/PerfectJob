@@ -103,7 +103,7 @@ const ProfileScreen = () => {
           </View>
         </Card>
 
-        {/* Currículo */}
+        {}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Meu Currículo</Text>
           <TouchableOpacity
@@ -128,7 +128,7 @@ const ProfileScreen = () => {
           ) : null}
         </View>
 
-        {/* Competências */}
+        {}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Competências</Text>
           {profile?.skills?.length ? (
@@ -146,7 +146,7 @@ const ProfileScreen = () => {
           )}
         </View>
 
-        {/* Experiências */}
+        {}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Experiência Profissional</Text>
           {profile?.experiences?.length ? (
@@ -165,7 +165,7 @@ const ProfileScreen = () => {
           )}
         </View>
 
-        {/* Formação */}
+        {}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Formação Acadêmica</Text>
           {profile?.education?.length ? (
@@ -181,7 +181,7 @@ const ProfileScreen = () => {
           )}
         </View>
 
-        {/* Idiomas */}
+        {}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Idiomas</Text>
           {profile?.languages?.length ? (
@@ -199,7 +199,7 @@ const ProfileScreen = () => {
           )}
         </View>
 
-        {/* Links */}
+        {}
         {(profile?.linkedinUrl || profile?.githubUrl) ? (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Links</Text>

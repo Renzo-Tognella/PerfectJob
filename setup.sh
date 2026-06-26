@@ -1,4 +1,4 @@
-#!/bin/bash
+
 set -e
 
 echo "========================================"
@@ -6,7 +6,7 @@ echo "  PerfectJob - Development Setup"
 echo "========================================"
 echo ""
 
-# Check if Docker is running
+
 if ! docker info > /dev/null 2>&1; then
     echo "Docker is not running. Please start Docker first."
     exit 1
@@ -15,11 +15,11 @@ fi
 echo " Docker is running"
 echo ""
 
-# Start docker compose
+
 echo "Starting PostgreSQL and Redis..."
 docker compose up -d
 
-# Wait for PostgreSQL to be ready
+
 echo "Waiting for PostgreSQL to be ready..."
 RETRIES=30
 until docker exec perfectjob-postgres pg_isready -U perfectjob -d perfectjob > /dev/null 2>&1 || [ $RETRIES -eq 0 ]; do

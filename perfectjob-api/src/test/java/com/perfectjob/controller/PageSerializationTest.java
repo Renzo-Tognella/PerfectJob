@@ -30,15 +30,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * The mobile app ({@code PageResponse} in perfectjob-mobile) and the admin panel both consume
- * Spring's <b>flat</b> Page JSON — top-level {@code totalElements}, {@code totalPages}, {@code number}.
- *
- * <p>{@code @EnableSpringDataWebSupport(pageSerializationMode = VIA_DTO)} nests those fields under a
- * {@code "page"} object, which silently breaks every paginated list in the clients (counts render 0,
- * infinite scroll never advances). This is a full-context test (not {@code @WebMvcTest}) so it exercises
- * the real serialization mode declared on the application class, pinning the flat contract.
- */
+
 @SpringBootTest
 @ActiveProfiles("test")
 @AutoConfigureMockMvc(addFilters = false)
@@ -52,20 +44,20 @@ class PageSerializationTest {
 
     @Test
     void pageResponse_serializesPaginationMetadataFlat_notNestedUnderPageObject() throws Exception {
-        // pageSize (5) <= totalElements (12) keeps PageImpl from re-deriving the total down to the
-        // content size; content size (5) intentionally differs from total (12) so the assertion
-        // proves the *total* count is serialized, not the page's content length.
+
+
+
         Pageable pageable = PageRequest.of(0, 5);
         Page<JobResponse> page = new PageImpl<>(Collections.nCopies(5, sampleJob()), pageable, 12L);
         when(jobService.findActiveJobs(any(Pageable.class))).thenReturn(page);
 
         mockMvc.perform(get("/v1/jobs/featured"))
                 .andExpect(status().isOk())
-                // Flat contract that the mobile + admin clients read:
+
                 .andExpect(jsonPath("$.totalElements").value(12))
                 .andExpect(jsonPath("$.totalPages").value(3))
                 .andExpect(jsonPath("$.number").value(0))
-                // Pagination metadata must NOT be nested under a "page" object (VIA_DTO):
+
                 .andExpect(jsonPath("$.page").doesNotExist());
     }
 

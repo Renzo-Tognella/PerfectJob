@@ -8,10 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Builds a complete LaTeX document string from structured LLM content + profile data.
- * The template is fixed (LLM never produces LaTeX). All dynamic content is escaped.
- */
+
 @Component
 public class LatexTemplateBuilder {
 
@@ -26,9 +23,7 @@ public class LatexTemplateBuilder {
     private static final String SECTION_BODY_VSPACE = "\\vspace{0.20cm}\n";
     private static final String SECTION_HEADING_VSPACE = "\\vspace{0.10cm}\n";
 
-    /**
-     * Returns a complete `.tex` document string. No I/O, deterministic.
-     */
+    
     public String build(TailoredResumeContent content, ProfileResponse profile) {
         StringBuilder sb = new StringBuilder(8192);
         writePreamble(sb);
@@ -43,9 +38,9 @@ public class LatexTemplateBuilder {
         return sb.toString();
     }
 
-    // -----------------------------------------------------------------
-    // Template sections
-    // -----------------------------------------------------------------
+
+
+
 
     private void writePreamble(StringBuilder sb) {
         sb.append("\\documentclass[a4paper,9pt]{article}\n")
@@ -253,13 +248,11 @@ public class LatexTemplateBuilder {
         sb.append(SECTION_HEADING_VSPACE);
     }
 
-    // -----------------------------------------------------------------
-    // Escaping
-    // -----------------------------------------------------------------
 
-    /**
-     * Escapes all LaTeX special characters in the given text. Returns empty string for null.
-     */
+
+
+
+    
     public static String escapeLatex(String text) {
         if (text == null) return "";
         StringBuilder out = new StringBuilder(text.length() + 16);

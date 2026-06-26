@@ -17,13 +17,13 @@ public interface ResumeRepository extends JpaRepository<Resume, Long> {
 
     Optional<Resume> findByIdAndUserId(Long id, Long userId);
 
-    /** Admin: every resume, newest first. */
+    
     Page<Resume> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
-    /** Admin: how many resumes were generated since the given moment (e.g. start of today). */
+    
     long countByCreatedAtAfter(java.time.LocalDateTime moment);
 
-    /** Admin: resume counts grouped by job, most resumes first. Rows are [jobId, jobTitle, count]. */
+    
     @Query(value = "SELECT j.id, j.title, COUNT(r.id) "
             + "FROM resumes r JOIN jobs j ON j.id = r.job_id "
             + "GROUP BY j.id, j.title "

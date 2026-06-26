@@ -39,9 +39,9 @@ class JobServiceTrendingSkillsTest {
     void getTrendingSkills_boundsLimit() {
         when(jobRepository.findTopSkills(50)).thenReturn(List.of());
 
-        jobService.getTrendingSkills(9999); // should be clamped to 50
+        jobService.getTrendingSkills(9999);
 
-        // verified implicitly: stub matches only when called with 50
+
         assertThat(jobService.getTrendingSkills(9999)).isEmpty();
     }
 }

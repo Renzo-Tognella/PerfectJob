@@ -38,8 +38,8 @@ class JobIngestionServiceTest {
     void ingestAll_createsNewJobsAndSkipsDuplicates() {
         when(source.name()).thenReturn("test");
         when(source.fetch(anyInt())).thenReturn(List.of(job("1", "Acme"), job("2", "Globex")));
-        when(jobRepository.existsBySourceAndExternalId("test", "1")).thenReturn(true);  // duplicate
-        when(jobRepository.existsBySourceAndExternalId("test", "2")).thenReturn(false); // new
+        when(jobRepository.existsBySourceAndExternalId("test", "1")).thenReturn(true);
+        when(jobRepository.existsBySourceAndExternalId("test", "2")).thenReturn(false);
         when(companyRepository.findBySlug(anyString())).thenReturn(Optional.empty());
         when(companyRepository.save(any(Company.class))).thenAnswer(inv -> {
             Company c = inv.getArgument(0);

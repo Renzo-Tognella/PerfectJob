@@ -37,9 +37,8 @@ export const useAuth = () => {
   const loginMutation = useLogin();
   const registerMutation = useRegister();
 
-  // Only surface a real error. `extractErrorMessage(null)` returns a generic
-  // fallback string, so guarding here prevents the error banner from showing
-  // on initial render when no mutation has actually errored.
+
+
   const loginError = loginMutation.error ? extractErrorMessage(loginMutation.error) : null;
   const registerError = registerMutation.error ? extractErrorMessage(registerMutation.error) : null;
 

@@ -7,11 +7,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-/**
- * Lightweight, serialization-safe view of a {@link Job} for LLM context.
- * Built explicitly (no reflection into lazy proxies) to avoid Jackson
- * failing on Hibernate lazy collections.
- */
+
 @Component
 @RequiredArgsConstructor
 public class JobContextMapper {

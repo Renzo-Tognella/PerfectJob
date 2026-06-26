@@ -33,31 +33,28 @@ apiClient.interceptors.response.use(
 
 export default apiClient;
 
-/**
- * Extracts a human-readable error message from an Axios error.
- * Checks the response body first, then falls back to generic messages.
- */
+
 export function extractErrorMessage(error: unknown): string {
   if (error instanceof AxiosError) {
-    // API returned an error response with a body
+
     const data = error.response?.data;
     if (data?.message) {
       return data.message;
     }
-    // Validation errors
+
     if (data?.details && typeof data.details === 'object') {
       const firstError = Object.values(data.details)[0];
       if (firstError) return String(firstError);
     }
-    // Network error
+
     if (error.code === 'ERR_NETWORK') {
       return 'Sem conexão com o servidor. Verifique sua internet.';
     }
-    // Timeout
+
     if (error.code === 'ECONNABORTED') {
       return 'O servidor demorou para responder. Tente novamente.';
     }
-    // HTTP status codes without body
+
     const statusMessages: Record<number, string> = {
       400: 'Dados inválidos. Verifique as informações.',
       401: 'Email ou senha incorretos.',

@@ -20,11 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
-/**
- * Candidate profile endpoints. All require authentication (enforced globally by
- * {@code SecurityConfig#anyRequest().authenticated()}); a user only ever reads or
- * mutates their own profile, resolved from the JWT.
- */
+
 @RestController
 @RequestMapping("/v1/profile")
 @RequiredArgsConstructor

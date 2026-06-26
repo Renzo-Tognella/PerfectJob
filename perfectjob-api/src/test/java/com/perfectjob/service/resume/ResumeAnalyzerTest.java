@@ -61,7 +61,7 @@ class ResumeAnalyzerTest {
 
     @Test
     void analyze_doesNotMatchSkillSubstrings() {
-        // "Java" must not be detected inside "JavaScript"; only JavaScript should be present.
+
         List<String> skills = analyzer.extractSkills("Experienced with JavaScript and TypeScript.", List.of());
 
         assertThat(skills).contains("JavaScript", "TypeScript");
@@ -93,7 +93,7 @@ class ResumeAnalyzerTest {
         assertThat(first.title()).isEqualTo("Desenvolvedor Full Stack");
         assertThat(first.company()).isEqualTo("TechCorp");
         assertThat(first.startDate()).isEqualTo("2021");
-        assertThat(first.endDate()).isNull(); // "Atual" => ongoing
+        assertThat(first.endDate()).isNull();
         assertThat(first.description()).contains("Java", "Spring Boot", "React");
 
         ExperienceDto second = result.experiences().get(1);
@@ -120,7 +120,7 @@ class ResumeAnalyzerTest {
     void analyze_estimatesYearsOfExperience() {
         ResumeAnalysisResponse result = analyzer.analyze(SAMPLE_CV);
 
-        // StartupX (2019-2021) alone contributes 2 years; the ongoing role adds more.
+
         assertThat(result.yearsExperience()).isNotNull();
         assertThat(result.yearsExperience()).isGreaterThanOrEqualTo(2);
     }

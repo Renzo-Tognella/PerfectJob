@@ -15,8 +15,7 @@ jest.mock('@/store/useAuthStore', () => ({
   ),
 }));
 
-// Re-export the real extractErrorMessage — no mock needed for these tests
-// because the hook's only contract is "null when no error, message when error".
+
 jest.mock('@/services/api/client', () => jest.requireActual('@/services/api/client'));
 
 import { useMutation } from '@tanstack/react-query';

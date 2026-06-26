@@ -11,15 +11,7 @@ import com.perfectjob.exception.ResumeContentException;
 import com.perfectjob.model.Job;
 import com.perfectjob.service.ProfileService;
 
-/**
- * Orchestrates the resume generation pipeline:
- * 1. Serialize profile + job for the LLM
- * 2. Call LLM (with retry on parse failure) to get structured content
- * 3. Build the LaTeX template
- * 4. Compile to PDF via tectonic
- *
- * The result ({@link GenerationResult}) is persisted by the caller (ResumeService).
- */
+
 @Slf4j
 @Service
 @RequiredArgsConstructor

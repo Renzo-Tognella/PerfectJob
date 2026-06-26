@@ -15,10 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-/**
- * Admin-only views over all generated resumes (currículos): a paginated list and
- * aggregate dashboard counts. Replaces the removed application-tracking endpoints.
- */
+
 @RestController
 @RequestMapping("/v1/admin/resumes")
 @RequiredArgsConstructor

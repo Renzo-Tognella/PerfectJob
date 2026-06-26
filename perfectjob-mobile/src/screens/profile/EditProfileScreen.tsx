@@ -52,7 +52,6 @@ const EditProfileScreen = () => {
     setLanguages(profile.languages ?? [])
   }, [profile?.id])
 
-  // ---- list helpers ----
   const updateExp = (i: number, patch: Partial<ExperienceDto>) =>
     setExperiences((prev) => prev.map((e, idx) => (idx === i ? { ...e, ...patch } : e)))
   const addExp = () =>
@@ -190,7 +189,7 @@ const EditProfileScreen = () => {
           {field('Anos de experiência', yearsExperience, setYearsExperience, { placeholder: '5', keyboardType: 'numeric' })}
           {field('Competências (separadas por vírgula)', skills, setSkills, { placeholder: 'Java, React, SQL', autoCapitalize: 'none' })}
 
-          {/* Experiência profissional */}
+          {}
           {sectionHeader('Experiência profissional', addExp)}
           {experiences.length === 0 ? <Text style={styles.emptyHint}>Nenhuma experiência. Toque em "Adicionar".</Text> : null}
           {experiences.map((exp, i) => (
@@ -209,7 +208,7 @@ const EditProfileScreen = () => {
             </Card>
           ))}
 
-          {/* Formação acadêmica */}
+          {}
           {sectionHeader('Formação acadêmica', addEdu)}
           {education.length === 0 ? <Text style={styles.emptyHint}>Nenhuma formação. Toque em "Adicionar".</Text> : null}
           {education.map((edu, i) => (
@@ -228,7 +227,7 @@ const EditProfileScreen = () => {
             </Card>
           ))}
 
-          {/* Idiomas */}
+          {}
           {sectionHeader('Idiomas', addLang)}
           {languages.length === 0 ? <Text style={styles.emptyHint}>Nenhum idioma. Toque em "Adicionar".</Text> : null}
           {languages.map((lang, i) => (

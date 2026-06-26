@@ -80,7 +80,7 @@ describe('toResume mapper (ResumeResponse -> ResumeView)', () => {
     expect(view.jobId).toBe(42);
     expect(view.jobTitle).toBe('Desenvolvedor Backend');
     expect(view.createdAt).toBe('2026-06-22T15:30:00.000Z');
-    // Brazilian format is DD/MM/YYYY
+
     expect(view.createdAtLabel).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
   });
 

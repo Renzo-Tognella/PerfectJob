@@ -118,13 +118,13 @@ class ProfileServiceTest {
         assertThat(captor.getValue().getTitle()).isEqualTo("Backend Dev");
         assertThat(captor.getValue().getCompany()).isEqualTo("Acme");
 
-        // education was null -> collection left untouched
+
         verify(educationRepository, never()).deleteByUserId(anyLong());
     }
 
     @Test
     void analyzeResume_persistsExtractedDataAndMergesSkills() {
-        User user = candidate(); // headline/phone null, skills [Python]
+        User user = candidate();
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
         ResumeAnalysisResponse analysis = new ResumeAnalysisResponse(

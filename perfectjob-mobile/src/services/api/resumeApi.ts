@@ -5,7 +5,7 @@ import type { PageResponse } from '@/types/page';
 import type { GenerateResumeRequest, ResumeResponse, ResumeDetailResponse } from '@/types/resume';
 import { ENV } from '@/config/env';
 
-const PDF_GENERATION_TIMEOUT_MS = 180_000; // LLM + LaTeX compile can take ~68s; add cold-start margin.
+const PDF_GENERATION_TIMEOUT_MS = 180_000;
 
 async function list(page: number, size = 20): Promise<PageResponse<ResumeResponse>> {
   const response = await apiClient.get<PageResponse<ResumeResponse>>('/v1/resumes', {
@@ -54,16 +54,7 @@ function getHeaderCI(headers: Record<string, string> | undefined, name: string):
   return undefined;
 }
 
-/**
- * Downloads the resume PDF to a local file via expo-file-system and returns the
- * local file URI (e.g. file:///.../resume-42.pdf). Uses the JWT bearer from
- * SecureStore because expo-file-system doesn't go through the axios interceptor.
- *
- * Validates:
- *   - HTTP status code (throws ResumePdfError with reason='http')
- *   - Content-Type header is application/pdf (reason='content-type')
- *   - Downloaded file size > 0 bytes (reason='empty-body')
- */
+
 async function getPdfUri(id: number): Promise<string> {
   const token = (await SecureStore.getItemAsync('auth_token')) ?? '';
   const fileUri = `${FileSystem.documentDirectory ?? ''}resume-${id}.pdf`;
@@ -86,7 +77,7 @@ async function getPdfUri(id: number): Promise<string> {
     try {
       await FileSystem.deleteAsync(fileUri, { idempotent: true });
     } catch {
-      // best-effort cleanup
+
     }
     throw new ResumePdfError(
       'Arquivo de currículo inválido. Tente gerar novamente.',

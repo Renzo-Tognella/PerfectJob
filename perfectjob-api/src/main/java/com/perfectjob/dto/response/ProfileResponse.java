@@ -3,9 +3,7 @@ package com.perfectjob.dto.response;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * Full candidate profile, including CV-derived data and activity counters.
- */
+
 public record ProfileResponse(
         Long id,
         String email,

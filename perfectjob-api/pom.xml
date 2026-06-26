@@ -31,7 +31,7 @@
     </properties>
 
     <dependencies>
-        <!-- Spring Boot Starters -->
+        
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -57,7 +57,7 @@
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
-        <!-- Database -->
+        
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
@@ -72,7 +72,7 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- JWT -->
+        
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
@@ -91,28 +91,28 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Lombok -->
+        
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
 
-        <!-- OpenAPI / Swagger -->
+        
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>${springdoc.version}</version>
         </dependency>
 
-        <!-- PDF text extraction for CV/resume analysis -->
+        
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
             <version>3.0.3</version>
         </dependency>
 
-        <!-- Test -->
+        
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -129,7 +129,7 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- LangChain4j core deps (NOT the Spring Boot starter, which requires SB 3.5+) -->
+        
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j</artifactId>

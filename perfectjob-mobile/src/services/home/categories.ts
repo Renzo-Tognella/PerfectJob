@@ -2,10 +2,7 @@ import type { IconSpec } from '@/design-system/icons';
 import type { Category } from '@/types';
 import type { SkillCount } from '@/types/skill';
 
-/**
- * Maps a skill name to a representative icon. Falls back to a generic code icon
- * so unknown skills still render. Pure data — safe to unit-test.
- */
+
 export function skillIcon(skill: string): IconSpec {
   const key = skill.toLowerCase();
   const map: Array<[string[], IconSpec]> = [
@@ -27,10 +24,7 @@ export function skillIcon(skill: string): IconSpec {
   return { family: 'MaterialIcons', name: 'code' };
 }
 
-/**
- * Turns the backend's trending-skill counts into category cards for the home
- * screen, replacing the previously hardcoded CATEGORIES array.
- */
+
 export function buildCategoriesFromSkills(skills: SkillCount[], limit = 6): Category[] {
   return skills.slice(0, limit).map((s, index) => ({
     id: `${index}-${s.skill}`,

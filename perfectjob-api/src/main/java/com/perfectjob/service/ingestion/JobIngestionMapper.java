@@ -13,12 +13,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-/**
- * Converts a normalized {@link ExternalJob} into a {@code Job} entity that maps
- * one-to-one onto the PerfectJob {@code jobs} table (and {@code job_skills}),
- * inferring the enum fields that external sources don't provide. Pure/static so
- * the mapping rules can be unit-tested without a Spring context.
- */
+
 public final class JobIngestionMapper {
 
     private static final int MAX_DESCRIPTION = 8000;

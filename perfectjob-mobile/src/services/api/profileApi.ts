@@ -24,7 +24,7 @@ export const profileApi = {
 
   uploadResume: async (file: ResumeFile): Promise<ResumeAnalysisResponse> => {
     const form = new FormData();
-    // React Native FormData file shape
+
     form.append('file', {
       uri: file.uri,
       name: file.name || 'curriculo.pdf',

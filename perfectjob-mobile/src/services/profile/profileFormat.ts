@@ -1,6 +1,6 @@
 import type { EducationDto, ExperienceDto, LanguageDto, ResumeAnalysisResponse } from '@/types/profile';
 
-/** "São Paulo, SP" | "São Paulo" | null */
+
 export function formatLocation(
   city?: string | null,
   state?: string | null,
@@ -9,7 +9,7 @@ export function formatLocation(
   return parts.length ? parts.join(', ') : null;
 }
 
-/** "2020 - Atual" | "2020 - 2022" | "2020" | null */
+
 export function formatExperiencePeriod(exp: ExperienceDto): string | null {
   const start = exp.startDate?.trim();
   const end = exp.endDate?.trim();
@@ -19,7 +19,7 @@ export function formatExperiencePeriod(exp: ExperienceDto): string | null {
   return null;
 }
 
-/** "Bacharelado em CS" | "Bacharelado" | "CS" | "" */
+
 export function formatEducationTitle(edu: EducationDto): string {
   const degree = edu.degree?.trim();
   const field = edu.fieldOfStudy?.trim();
@@ -39,13 +39,12 @@ export function formatYearsExperience(years?: number | null): string | null {
   return years === 1 ? '1 ano de experiência' : `${years} anos de experiência`;
 }
 
-/** "Inglês — Avançado" | "Inglês" */
+
 export function formatLanguage(lang: LanguageDto): string {
   return lang.level ? `${lang.name} — ${lang.level}` : lang.name;
 }
 
-/** Human summary of what a CV analysis extracted, e.g.
- *  "8 competências · 2 experiências · 1 formação". */
+
 export function summarizeResumeAnalysis(analysis: ResumeAnalysisResponse): string {
   const parts: string[] = [];
   const skills = analysis.skills?.length ?? 0;

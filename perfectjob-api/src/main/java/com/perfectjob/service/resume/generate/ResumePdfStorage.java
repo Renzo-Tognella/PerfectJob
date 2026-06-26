@@ -12,10 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
-/**
- * Filesystem persistence for generated resume PDFs.
- * Layout: {storage-dir}/{userId}/{resumeId}.pdf
- */
+
 @Slf4j
 @Component
 public class ResumePdfStorage {
@@ -36,10 +33,7 @@ public class ResumePdfStorage {
         }
     }
 
-    /**
-     * Stores the given PDF bytes at {baseDir}/{userId}/{resumeId}.pdf
-     * and returns the absolute path.
-     */
+    
     public Path store(Long userId, Long resumeId, byte[] pdfBytes) {
         try {
             Path userDir = baseDir.resolve(String.valueOf(userId));
@@ -53,10 +47,7 @@ public class ResumePdfStorage {
         }
     }
 
-    /**
-     * Best-effort delete. Returns true if the file was removed, false otherwise
-     * (e.g., file not present, IO error). Callers should log but not fail on false.
-     */
+    
     public boolean delete(String relativeOrAbsolutePath) {
         try {
             Path p = Paths.get(relativeOrAbsolutePath);

@@ -114,7 +114,7 @@ public class Job {
     @Column(name = "expires_at")
     private LocalDateTime expiresAt;
 
-    // ---- External ingestion tracking (null for manually-created jobs) ----
+
 
     @Column(length = 50)
     private String source;

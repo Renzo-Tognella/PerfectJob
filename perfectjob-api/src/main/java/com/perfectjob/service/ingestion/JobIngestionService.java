@@ -15,11 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Orchestrates importing jobs from every configured {@link JobSource}, mapping
- * them into the {@code jobs} table and skipping duplicates by
- * {@code (source, external_id)}. Companies are resolved/created on the fly.
- */
+
 @Slf4j
 @Service
 @RequiredArgsConstructor

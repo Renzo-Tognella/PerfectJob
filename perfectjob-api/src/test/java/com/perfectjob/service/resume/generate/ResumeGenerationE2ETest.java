@@ -25,30 +25,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Optional E2E test for R10.4: per-job tailoring produces visibly different
- * {@code professionalSummary} texts for the same candidate profile against two
- * different jobs.
- *
- * <p>This is a MANUAL E2E test. It:
- * <ul>
- *   <li>Requires a real {@code OPENROUTER_API_KEY} environment variable.</li>
- *   <li>Calls a real LLM (no mocks) via the {@link ResumeContentAiService} proxy.</li>
- *   <li>Skips cleanly (does not fail) when the env var is missing.</li>
- *   <li>Is slow (10-30s per LLM call) and is NOT part of the regular CI run.</li>
- * </ul>
- *
- * <p>The test short-circuits the full {@link ResumeGenerationService} pipeline
- * and calls the LLM directly. This is sufficient for R10.4 (which is about the
- * LLM producing differentiated summaries, not about LaTeX or PDF rendering) and
- * avoids needing a real user, profile, and Tectonic binary in the test JVM.
- *
- * <p>To run it locally:
- * <pre>
- *   docker exec perfectjob-api bash -c \
- *     "cd /app && ./mvnw -Dtest=ResumeGenerationE2ETest test"
- * </pre>
- */
+
 class ResumeGenerationE2ETest {
 
     private static final ObjectMapper MAPPER = new ObjectMapper()

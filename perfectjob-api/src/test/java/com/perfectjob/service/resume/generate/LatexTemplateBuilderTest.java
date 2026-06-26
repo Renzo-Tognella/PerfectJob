@@ -64,15 +64,15 @@ class LatexTemplateBuilderTest {
     void build_includesCategorizedSkillsAsCompactLines() {
         String tex = builder.build(sampleTailoredContent(), sampleProfile());
 
-        // Single "Competências" section heading (R11.5)
+
         assertThat(tex).contains("COMPETÊNCIAS");
-        // Each category appears as a bullet with bold label
+
         assertThat(tex).contains("\\textbf{Linguagens:}");
         assertThat(tex).contains("Java");
         assertThat(tex).contains("Spring");
-        // The old single "Competências Técnicas" parent section is no longer used
+
         assertThat(tex).doesNotContain("COMPETÊNCIAS TÉCNICAS");
-        // hrule is still present (rule between heading and body)
+
         assertThat(tex).contains("\\hrule");
     }
 
@@ -84,7 +84,7 @@ class LatexTemplateBuilderTest {
         assertThat(tex).contains("Acme");
         assertThat(tex).contains("Jan/2022");
         assertThat(tex).contains("Atual");
-        // % is escaped to \% in the LaTeX output
+
         assertThat(tex).contains("\\item Reduzi 40\\% o tempo de deploy");
     }
 
@@ -226,15 +226,15 @@ class LatexTemplateBuilderTest {
         assertThat(tex).doesNotContain("FORMAÇÃO ACADÊMICA");
     }
 
-    // -----------------------------------------------------------------
-    // Phase 2 (R11.5, R11.6): categorized skills rendering
-    // -----------------------------------------------------------------
+
+
+
 
     @Test
     void build_rendersCategorizedSkillsInCanonicalOrder() {
-        // Provide categories in REVERSE canonical order so the test would fail if the
-        // builder emitted them in the order they were supplied. The canonical order is
-        // Linguagens, Frameworks, Bancos de Dados, Ferramentas e Plataformas, Metodologias.
+
+
+
         TailoredResumeContent reversed = new TailoredResumeContent(
                 "Resumo.",
                 List.of(
@@ -250,8 +250,8 @@ class LatexTemplateBuilderTest {
 
         String tex = builder.build(reversed, sampleProfile());
 
-        // Categories render as bullets inside a single "Competências" section,
-        // in canonical order. Assert the bullet labels appear in the right order.
+
+
         int linguagens = tex.indexOf("\\textbf{Linguagens:}");
         int frameworks = tex.indexOf("\\textbf{Frameworks:}");
         int bancos = tex.indexOf("\\textbf{Bancos de Dados:}");
@@ -267,7 +267,7 @@ class LatexTemplateBuilderTest {
 
     @Test
     void build_omitsCategoriesWithZeroItems() {
-        // Only two of the five canonical categories have items; the rest must be absent.
+
         TailoredResumeContent sparse = new TailoredResumeContent(
                 "Resumo.",
                 List.of(
@@ -280,26 +280,26 @@ class LatexTemplateBuilderTest {
 
         String tex = builder.build(sparse, sampleProfile());
 
-        // Present categories are rendered as bullets.
+
         assertThat(tex).contains("\\textbf{Linguagens:}");
         assertThat(tex).contains("\\textbf{Frameworks:}");
-        // Absent categories have no bullet.
+
         assertThat(tex).doesNotContain("\\textbf{Bancos de Dados:}");
         assertThat(tex).doesNotContain("\\textbf{Ferramentas e Plataformas:}");
         assertThat(tex).doesNotContain("\\textbf{Metodologias:}");
     }
 
-    // -----------------------------------------------------------------
-    // Phase 2 (R12.1, R12.2, R12.3, R12.4, R12.5): languages section
-    // The Idiomas section is rendered from the LLM-validated languages, not the
-    // raw profile.languages(). The LLM is responsible for filtering invalid entries
-    // semantically; the template just renders whatever the LLM produced.
-    // -----------------------------------------------------------------
+
+
+
+
+
+
 
     @Test
     void build_includesIdiomasSectionWhenValidatedLanguagesNonEmpty() {
-        // sampleTailoredContent() (via the helper) includes validatedLanguages
-        // (Português, Inglês). The IDIOMAS section must appear.
+
+
         String tex = builder.build(sampleTailoredContent(), sampleProfile());
 
         assertThat(tex).contains("IDIOMAS");
@@ -314,8 +314,8 @@ class LatexTemplateBuilderTest {
                 List.of()
         );
         ProfileResponse noLanguagesProfile = sampleProfile();
-        // The helper's profile has languages, but the LLM returned an empty list.
-        // The template must trust the LLM-validated list, not the profile.
+
+
 
         String tex = builder.build(noLanguages, noLanguagesProfile);
 
@@ -339,20 +339,20 @@ class LatexTemplateBuilderTest {
 
     @Test
     void build_idiomasSectionUsesSameHrulePatternAsOtherSections() {
-        // Build with a content that has at least one validated language, so IDIOMAS
-        // is rendered.
+
+
         String tex = builder.build(sampleTailoredContent(), sampleProfile());
 
-        // The section() helper emits the same pattern around every heading: a hrule
-        // line immediately followed by a vspace line. The pattern must appear at
-        // least once for IDIOMAS to look like the other sections.
+
+
+
         assertThat(tex).contains("\\hrule height 0.45pt}\n\\vspace{0.10cm}");
 
         int idiomasPos = tex.indexOf("IDIOMAS");
         assertThat(idiomasPos).isPositive();
 
-        // Find the hrule that comes after the IDIOMAS heading and verify the
-        // hrule-then-vspace pattern is identical to other sections.
+
+
         int idiomasHrulePos = tex.indexOf("\\hrule height 0.45pt}", idiomasPos);
         assertThat(idiomasHrulePos).isPositive();
 
@@ -402,16 +402,16 @@ class LatexTemplateBuilderTest {
         assertThat(portugues).isGreaterThan(ingles);
     }
 
-    // -----------------------------------------------------------------
-    // Phase 2 (R13.1, R13.2, R13.4): visual section spacing
-    // -----------------------------------------------------------------
+
+
+
 
     @Test
     void build_includesVspaceBetweenSectionContentAndNextHeading() {
         String tex = builder.build(sampleTailoredContent(), sampleProfile());
 
-        // SECTION_BODY_VSPACE = \vspace{0.20cm} is appended after every section's body,
-        // so the next section's heading has breathing room (R13.1).
+
+
         assertThat(tex).contains("\\vspace{0.20cm}");
     }
 
@@ -419,12 +419,12 @@ class LatexTemplateBuilderTest {
     void build_includesVspaceImmediatelyAfterEveryHrule() {
         String tex = builder.build(sampleTailoredContent(), sampleProfile());
 
-        // Every \hrule from section() is followed by a \vspace{0.10cm}. The literal
-        // hrule-then-vspace pattern (hrule + newline + vspace) must appear (R13.2).
-        // Note: writeExperiences also emits stand-alone \vspace{0.10cm} after each
-        // experience, so we count the *pair pattern* (hrule + vspace) and assert it
-        // equals the number of hrules — that proves every hrule is followed by a
-        // vspace.
+
+
+
+
+
+
         long hruleCount = countOccurrences(tex, "\\hrule height 0.45pt}");
         long hruleVspacePairCount = countOccurrences(tex, "\\hrule height 0.45pt}\n\\vspace{0.10cm}");
 
@@ -434,8 +434,8 @@ class LatexTemplateBuilderTest {
 
     @Test
     void build_doesNotIncludeNewpageInTypicalFullProfile() {
-        // A typical full profile (header + summary + skills + experience + education +
-        // one language) should fit on one A4 page with no explicit page break (R13.4).
+
+
         String tex = builder.build(sampleTailoredContent(), sampleProfile());
 
         assertThat(tex).doesNotContain("\\newpage");

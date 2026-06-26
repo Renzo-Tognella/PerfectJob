@@ -35,21 +35,16 @@ class JobServiceSearchTest {
     @InjectMocks
     private JobService jobService;
 
-    /**
-     * A keyword search must go through the indexed {@code searchFullText} query, which declares an
-     * explicit countQuery and therefore returns a correct {@code totalElements}. The legacy
-     * {@code fullTextSearch} has no countQuery, so Spring derives a broken count (0) — that is the
-     * "0 vagas encontradas" bug while cards still render.
-     */
+    
     @Test
     void search_withKeyword_usesIndexedSearchAndPropagatesRealTotalCount() {
         Pageable pageable = PageRequest.of(0, 20);
         SearchJobRequest request = keywordRequest("github");
 
-        // Legacy method (no countQuery) reports a wrong total of 0.
+
         lenient().when(jobRepository.fullTextSearch(any(), any()))
                 .thenReturn(new PageImpl<>(List.of(), pageable, 0L));
-        // Correct method (with countQuery) reports the real total.
+
         lenient().when(jobRepository.searchFullText("github", pageable))
                 .thenReturn(new PageImpl<>(List.of(), pageable, 5L));
 

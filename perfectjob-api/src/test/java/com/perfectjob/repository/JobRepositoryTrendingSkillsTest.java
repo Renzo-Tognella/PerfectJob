@@ -33,7 +33,7 @@ class JobRepositoryTrendingSkillsTest {
         saveJob(company.getId(), "job-1", JobStatus.ACTIVE, List.of("Java", "Spring"));
         saveJob(company.getId(), "job-2", JobStatus.ACTIVE, List.of("Java", "React"));
         saveJob(company.getId(), "job-3", JobStatus.ACTIVE, List.of("Java"));
-        // CLOSED job must be excluded from trending
+
         saveJob(company.getId(), "job-4", JobStatus.CLOSED, List.of("Python", "Java"));
     }
 
@@ -52,11 +52,11 @@ class JobRepositoryTrendingSkillsTest {
         List<Object[]> rows = jobRepository.findTopSkills(10);
 
         assertThat(rows).isNotEmpty();
-        // Java appears in 3 active jobs -> first
+
         assertThat((String) rows.get(0)[0]).isEqualTo("Java");
         assertThat(((Number) rows.get(0)[1]).longValue()).isEqualTo(3L);
 
-        // Python only appears in a CLOSED job -> excluded
+
         boolean hasPython = rows.stream().anyMatch(r -> "Python".equals(r[0]));
         assertThat(hasPython).isFalse();
     }

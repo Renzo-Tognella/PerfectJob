@@ -19,9 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.file.Path;
 
-/**
- * CRUD + generation orchestration for resumes. Called by {@code ResumeController}.
- */
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -98,7 +96,7 @@ public class ResumeService {
         resumeRepository.delete(resume);
     }
 
-    // ------------------------------------------------------------------
+
 
     private void ensureOwner(Resume resume, Long userId) {
         if (!resume.getUserId().equals(userId)) {

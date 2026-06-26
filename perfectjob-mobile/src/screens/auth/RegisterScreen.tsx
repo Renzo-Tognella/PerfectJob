@@ -43,7 +43,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ onNavigateToLogin }) =>
         password: data.password,
       });
     } catch {
-      // Error is handled in useAuth
+
     }
   };
 
@@ -57,13 +57,13 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ onNavigateToLogin }) =>
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Logo */}
+          {}
           <View style={styles.logoContainer}>
             <Text style={styles.logo}>PerfectJob</Text>
             <Text style={styles.subtitle}>Crie sua conta</Text>
           </View>
 
-          {/* Form */}
+          {}
           <View style={styles.form}>
             <FormField
               control={control}
@@ -123,7 +123,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ onNavigateToLogin }) =>
               </TouchableOpacity>
             </View>
 
-            {/* Error Message */}
+            {}
             {error ? (
               <View style={styles.errorContainer}>
                 <Icon family="MaterialIcons" name="error-outline" size={16} color={colors.error.DEFAULT} />
@@ -131,7 +131,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ onNavigateToLogin }) =>
               </View>
             ) : null}
 
-            {/* Register Button */}
+            {}
             <TouchableOpacity
               activeOpacity={0.8}
               style={[styles.button, (!isValid || isLoading) && styles.buttonDisabled]}
@@ -145,7 +145,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ onNavigateToLogin }) =>
               )}
             </TouchableOpacity>
 
-            {/* Login Link */}
+            {}
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() =>
